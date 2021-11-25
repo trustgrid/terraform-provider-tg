@@ -8,12 +8,17 @@ terraform {
 }
 
 provider "tg" {
-	api_host = "api.dev.trustgrid.io"
+	# api_key_id = ... # defaults to envvar TG_API_KEY_ID
+	# api_key_secret = ... # defaults to envvar TG_API_KEY_SECRET
+	api_host = "api.dev.trustgrid.io" # defaults to api.trustgrid.io
 }
 
 data "tg_node" "production" {
 	tags = {
-		gaia = "prime"
+		prod_status = "Production"
+	}
+	exclude_tags = {
+		snmpOverride = "true"
 	}
 }
 
