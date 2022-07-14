@@ -9,10 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataSourceNode() *schema.Resource {
+func nodeDataSource() *schema.Resource {
 	return &schema.Resource{
-		// This description is used by the documentation generator and the language server.
-		Description: "Get Nodes from TG API",
+		Description: "Fetches nodes from Trustgrid",
 
 		ReadContext: nodeRead,
 

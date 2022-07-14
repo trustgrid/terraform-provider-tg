@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -40,11 +41,12 @@ func New(version string) func() *schema.Provider {
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"tg_node": dataSourceNode(),
+				"tg_node": nodeDataSource(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"tg_compute_limits": cpuLimitsResource(),
 				"tg_snmp":           snmpResource(),
+				"tg_license":        licenseResource(),
 			},
 		}
 
@@ -90,6 +92,27 @@ func (tg *tgClient) put(ctx context.Context, url string, payload interface{}) er
 	}
 
 	return nil
+}
+
+func (tg *tgClient) rawGet(ctx context.Context, url string) (io.ReadCloser, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
+
+	r, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.StatusCode != 200 {
+		return r.Body, fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
+	}
+
+	return r.Body, nil
 }
 
 func (tg *tgClient) get(ctx context.Context, url string, out interface{}) error {
