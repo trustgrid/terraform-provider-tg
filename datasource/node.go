@@ -1,4 +1,4 @@
-package provider
+package datasource
 
 import (
 	"context"
@@ -7,9 +7,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/trustgrid/terraform-provider-tg/hcl"
+	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-func nodeDataSource() *schema.Resource {
+func NodeDataSource() *schema.Resource {
 	return &schema.Resource{
 		Description: "Fetches nodes from Trustgrid",
 
@@ -44,23 +46,12 @@ func nodeDataSource() *schema.Resource {
 	}
 }
 
-type Node struct {
-	UID     string            `json:"uid"`
-	Name    string            `json:"name"`
-	FQDN    string            `json:"fqdn"`
-	Cluster string            `json:"cluster"`
-	Tags    map[string]string `json:"tags" `
-	Config  struct {
-		SNMP `json:"snmp"`
-	} `json:"config"`
-}
-
 type filter struct {
 	Tags        map[string]interface{} `tf:"tags"`
 	ExcludeTags map[string]interface{} `tf:"exclude_tags"`
 }
 
-func (f *filter) match(n Node) bool {
+func (f *filter) match(n tg.Node) bool {
 	for tag, value := range f.Tags {
 		nv := n.Tags[tag]
 		if nv != value {
@@ -88,16 +79,16 @@ func nodeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) dia
 	// TODO set this to hash the filters
 	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
 
-	tg := meta.(*tgClient)
+	tgc := meta.(*tg.Client)
 
 	f := filter{}
-	err := marshalResourceData(d, &f)
+	err := hcl.MarshalResourceData(d, &f)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	nodes := make([]Node, 0)
-	err = tg.get(ctx, "/node", &nodes)
+	nodes := make([]tg.Node, 0)
+	err = tgc.Get(ctx, "/node", &nodes)
 	if err != nil {
 		return diag.FromErr(err)
 	}

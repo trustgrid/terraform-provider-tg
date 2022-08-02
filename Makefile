@@ -14,3 +14,6 @@ reset:
 
 docs:
 	go generate
+
+build:
+	go build main.go

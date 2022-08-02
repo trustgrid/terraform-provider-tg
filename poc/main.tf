@@ -13,6 +13,9 @@ provider "tg" {
   api_host = "api.dev.trustgrid.io" # defaults to api.trustgrid.io
 }
 
+data "tg_org" "org" {
+}
+
 data "tg_node" "production" {
   tags = {
     prod_status = "Production"
@@ -28,6 +31,18 @@ resource "tg_license" "edge1" {
 
 output "license" {
   value = resource.tg_license.edge1.license
+}
+
+output "nodeid" {
+  value = resource.tg_license.edge1.uid
+}
+
+output "domain" {
+  value = data.tg_org.org.domain
+}
+
+output "hi" {
+  value = "hi"
 }
 
 # resource "tg_snmp" "global_snmp" {

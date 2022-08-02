@@ -1,36 +1,15 @@
-package provider
+package resource
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/trustgrid/terraform-provider-tg/hcl"
+	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type SNMP struct {
-	NodeID string `tf:"node_id" json:"-"`
-
-	Enabled           bool   `tf:"enabled" json:"enabled"`
-	EngineID          string `tf:"engine_id" json:"engineId"`
-	Username          string `tf:"username" json:"username"`
-	AuthProtocol      string `tf:"auth_protocol" json:"authProtocol"`
-	AuthPassphrase    string `tf:"auth_passphrase" json:"authPassphrase"`
-	PrivacyProtocol   string `tf:"privacy_protocol" json:"privacyProtocol"`
-	PrivacyPassphrase string `tf:"privacy_passphrase" json:"privacyPassphrase"`
-	Port              int    `tf:"port" json:"port"`
-	Interface         string `tf:"interface" json:"interface"`
-}
-
-func (snmp *SNMP) url() string {
-	return fmt.Sprintf("/node/%s/config/snmp", snmp.NodeID)
-}
-
-func (snmp *SNMP) id() string {
-	return "snmp_" + snmp.NodeID
-}
-
-func snmpResource() *schema.Resource {
+func SNMPResource() *schema.Resource {
 	return &schema.Resource{
 		Description: "Node SNMP",
 
@@ -104,42 +83,42 @@ func snmpResource() *schema.Resource {
 }
 
 func snmpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	tg := meta.(*tgClient)
-	snmp := SNMP{}
-	err := marshalResourceData(d, &snmp)
+	tgc := meta.(*tg.Client)
+	snmp := tg.SNMP{}
+	err := hcl.MarshalResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = tg.put(ctx, snmp.url(), snmp)
+	err = tgc.Put(ctx, snmp.URL(), snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	idFromAPI := snmp.id()
+	idFromAPI := snmp.ID()
 	d.SetId(idFromAPI)
 
 	return diag.Diagnostics{}
 }
 
 func snmpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	tg := meta.(*tgClient)
+	tgc := meta.(*tg.Client)
 
-	snmp := SNMP{}
-	err := marshalResourceData(d, &snmp)
+	snmp := tg.SNMP{}
+	err := hcl.MarshalResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	// return diag.FromErr(fmt.Errorf("limits: '%s':'%s' - url: %s", limits.NodeID, limits.ClusterID, limits.url()))
-	n := Node{}
-	err = tg.get(ctx, "/node/"+snmp.NodeID, &n)
+	n := tg.Node{}
+	err = tgc.Get(ctx, "/node/"+snmp.NodeID, &n)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = unmarshalResourceData(&n.Config.SNMP, d)
-	d.SetId(snmp.id())
+	err = hcl.UnmarshalResourceData(&n.Config.SNMP, d)
+	d.SetId(snmp.ID())
 	d.Set("node_id", snmp.NodeID)
 
 	if snmp.AuthPassphrase != "" {
@@ -162,15 +141,15 @@ func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 }
 
 func snmpDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	tg := meta.(*tgClient)
+	tgc := meta.(*tg.Client)
 
-	snmp := SNMP{}
-	err := marshalResourceData(d, &snmp)
+	snmp := tg.SNMP{}
+	err := hcl.MarshalResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = tg.put(ctx, snmp.url(), empty)
+	err = tgc.Put(ctx, snmp.URL(), empty)
 	if err != nil {
 		return diag.FromErr(err)
 	}
