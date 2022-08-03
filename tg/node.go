@@ -2,7 +2,7 @@ package tg
 
 import "fmt"
 
-type SNMP struct {
+type SNMPConfig struct {
 	NodeID string `tf:"node_id" json:"-"`
 
 	Enabled           bool   `tf:"enabled" json:"enabled"`
@@ -16,12 +16,21 @@ type SNMP struct {
 	Interface         string `tf:"interface" json:"interface"`
 }
 
-func (snmp *SNMP) URL() string {
+func (snmp *SNMPConfig) URL() string {
 	return fmt.Sprintf("/node/%s/config/snmp", snmp.NodeID)
 }
 
-func (snmp *SNMP) ID() string {
+func (snmp *SNMPConfig) ID() string {
 	return "snmp_" + snmp.NodeID
+}
+
+type GatewayConfig struct {
+	NodeID string `tf:"node_id" json:"-"`
+
+	Enabled bool   `tf:"enabled" json:"enabled"`
+	Host    string `tf:"host" json:"host"`
+	Port    int    `tf:"port" json:"port"`
+	Type    string `tf:"type" json:"type"`
 }
 
 type Node struct {
@@ -31,7 +40,8 @@ type Node struct {
 	Cluster string            `json:"cluster"`
 	Tags    map[string]string `json:"tags" `
 	Config  struct {
-		SNMP `json:"snmp"`
+		Gateway GatewayConfig `json:"gateway"`
+		SNMP    SNMPConfig    `json:"snmp"`
 	} `json:"config"`
 }
 

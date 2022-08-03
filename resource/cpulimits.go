@@ -10,7 +10,7 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type CPULimit struct {
+type cpuLimitData struct {
 	NodeID string `tf:"node_id" json:"-"`
 
 	CPUMax  int `tf:"cpu_max" json:"cpuMax"`
@@ -23,15 +23,15 @@ type CPULimit struct {
 	IO_WIOPS int `tf:"io_wiops" json:"ioWiops"`
 }
 
-func (limit *CPULimit) url() string {
+func (limit *cpuLimitData) url() string {
 	return fmt.Sprintf("/v2/node/%s/exec/limit", limit.NodeID)
 }
 
-func (limit *CPULimit) id() string {
+func (limit *cpuLimitData) id() string {
 	return "cpu_limits_" + limit.NodeID
 }
 
-func CPULimitsResource() *schema.Resource {
+func CPULimits() *schema.Resource {
 	return &schema.Resource{
 		Description: "Node CPU Limits",
 
@@ -94,7 +94,7 @@ func CPULimitsResource() *schema.Resource {
 
 func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tg := meta.(*tg.Client)
-	limits := CPULimit{}
+	limits := cpuLimitData{}
 	err := hcl.MarshalResourceData(d, &limits)
 	if err != nil {
 		return diag.FromErr(err)
@@ -114,7 +114,7 @@ func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta interface
 func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tg := meta.(*tg.Client)
 
-	limits := CPULimit{}
+	limits := cpuLimitData{}
 	err := hcl.MarshalResourceData(d, &limits)
 	if err != nil {
 		return diag.FromErr(err)
@@ -146,7 +146,7 @@ var empty = map[string]interface{}{}
 func cpuLimitsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tg := meta.(*tg.Client)
 
-	limits := CPULimit{}
+	limits := cpuLimitData{}
 	err := hcl.MarshalResourceData(d, &limits)
 	if err != nil {
 		return diag.FromErr(err)

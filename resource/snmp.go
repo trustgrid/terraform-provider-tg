@@ -9,7 +9,7 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-func SNMPResource() *schema.Resource {
+func SNMP() *schema.Resource {
 	return &schema.Resource{
 		Description: "Node SNMP",
 
@@ -84,7 +84,7 @@ func SNMPResource() *schema.Resource {
 
 func snmpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
-	snmp := tg.SNMP{}
+	snmp := tg.SNMPConfig{}
 	err := hcl.MarshalResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
@@ -104,7 +104,7 @@ func snmpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 func snmpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	snmp := tg.SNMP{}
+	snmp := tg.SNMPConfig{}
 	err := hcl.MarshalResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
@@ -143,7 +143,7 @@ func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 func snmpDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	snmp := tg.SNMP{}
+	snmp := tg.SNMPConfig{}
 	err := hcl.MarshalResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)

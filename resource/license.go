@@ -12,12 +12,13 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type License struct {
+type licenseData struct {
 	Name    string `tf:"name" json:"-"`
 	License string `tf:"license" json:"-"`
+	UID     string `tf:"uid" json:"-"`
 }
 
-func LicenseResource() *schema.Resource {
+func License() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provides a TG node license. The license will be stored in TF state.",
 
@@ -55,7 +56,7 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	parser := jwt.Parser{ValidMethods: []string{"RS512"}}
 
 	tg := meta.(*tg.Client)
-	l := License{}
+	l := licenseData{}
 	err := hcl.MarshalResourceData(d, &l)
 	if err != nil {
 		return diag.FromErr(err)
