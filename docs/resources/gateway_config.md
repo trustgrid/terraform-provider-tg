@@ -19,6 +19,12 @@ resource "tg_gateway_config" "mygateway" {
   host    = "10.10.10.10"
   port    = 8553
   type    = "public"
+
+  udp_enabled = true
+  udp_port    = 5555
+  cert        = "mycert.trustgrid.io"
+
+  maxmbps = 1000
 }
 ```
 
@@ -31,10 +37,14 @@ resource "tg_gateway_config" "mygateway" {
 
 ### Optional
 
+- `cert` (String) Gateway TLS certificate
 - `enabled` (Boolean) Enable the gateway plugin
 - `host` (String) Host IP
+- `maxmbps` (Number) Max Gateway throughput
 - `port` (Number) Host Port
 - `type` (String) Gateway Type (public, private, or hub)
+- `udp_enabled` (Boolean) Enable gateway UDP mode
+- `udp_port` (Number) UDP Port
 
 ### Read-Only
 

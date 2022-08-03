@@ -45,11 +45,12 @@ func New(version string) func() *schema.Provider {
 				"tg_cert": datasource.Cert(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"tg_compute_limits": resource.CPULimits(),
-				"tg_snmp":           resource.SNMP(),
-				"tg_license":        resource.License(),
-				"tg_gateway_config": resource.GatewayConfig(),
-				"tg_cert":           resource.Cert(),
+				"tg_compute_limits":      resource.CPULimits(),
+				"tg_snmp":                resource.SNMP(),
+				"tg_license":             resource.License(),
+				"tg_gateway_config":      resource.GatewayConfig(),
+				"tg_ztna_gateway_config": resource.ZTNAConfig(),
+				"tg_cert":                resource.Cert(),
 			},
 		}
 

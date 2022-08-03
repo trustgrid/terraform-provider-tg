@@ -5,4 +5,10 @@ resource "tg_gateway_config" "mygateway" {
   host    = "10.10.10.10"
   port    = 8553
   type    = "public"
+
+  udp_enabled = true
+  udp_port    = 5555
+  cert        = "mycert.trustgrid.io"
+
+  maxmbps = 1000
 }
