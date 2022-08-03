@@ -1,19 +1,24 @@
-package provider
+package resource
 
 import (
 	"context"
 	"io"
 
+	"github.com/golang-jwt/jwt"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/trustgrid/terraform-provider-tg/hcl"
+	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type License struct {
+type licenseData struct {
 	Name    string `tf:"name" json:"-"`
 	License string `tf:"license" json:"-"`
+	UID     string `tf:"uid" json:"-"`
 }
 
-func licenseResource() *schema.Resource {
+func License() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provides a TG node license. The license will be stored in TF state.",
 
@@ -28,6 +33,11 @@ func licenseResource() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
+			"uid": {
+				Description: "Node UID",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
 			"license": {
 				Type:        schema.TypeString,
 				Description: "License JWT",
@@ -38,19 +48,22 @@ func licenseResource() *schema.Resource {
 }
 
 func licenseNoop(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	tflog.Debug(ctx, "hi from licensenoop")
 	return diag.Diagnostics{}
 }
 
 func licenseCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	tg := meta.(*tgClient)
-	l := License{}
-	err := marshalResourceData(d, &l)
+	parser := jwt.Parser{ValidMethods: []string{"RS512"}}
+
+	tg := meta.(*tg.Client)
+	l := licenseData{}
+	err := hcl.MarshalResourceData(d, &l)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	if l.License == "" {
-		reply, err := tg.rawGet(ctx, "/node/license?name="+l.Name)
+		reply, err := tg.RawGet(ctx, "/node/license?name="+l.Name)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -63,6 +76,15 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 		d.SetId(l.Name)
 		d.Set("license", string(body))
+
+		var claims struct {
+			jwt.StandardClaims
+			Exp float64 `json:"exp"`
+		}
+		if _, _, err := parser.ParseUnverified(string(body), &claims); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Set("uid", claims.Id)
 	}
 
 	return diag.Diagnostics{}

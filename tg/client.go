@@ -1,4 +1,4 @@
-package provider
+package tg
 
 import (
 	"bytes"
@@ -9,60 +9,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func init() {
-	schema.DescriptionKind = schema.StringMarkdown
-}
-
-func New(version string) func() *schema.Provider {
-	return func() *schema.Provider {
-		p := &schema.Provider{
-			Schema: map[string]*schema.Schema{
-				"api_key_id": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("TG_API_KEY_ID", nil),
-				},
-				"api_key_secret": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Sensitive:   true,
-					DefaultFunc: schema.EnvDefaultFunc("TG_API_KEY_SECRET", nil),
-				},
-				"api_host": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Sensitive:   true,
-					DefaultFunc: schema.EnvDefaultFunc("TG_API_HOST", "api.trustgrid.io"),
-				},
-			},
-			DataSourcesMap: map[string]*schema.Resource{
-				"tg_node": nodeDataSource(),
-			},
-			ResourcesMap: map[string]*schema.Resource{
-				"tg_compute_limits": cpuLimitsResource(),
-				"tg_snmp":           snmpResource(),
-				"tg_license":        licenseResource(),
-			},
-		}
-
-		p.ConfigureContextFunc = configure(version, p)
-
-		return p
-	}
-}
-
-type tgClient struct {
+type Client struct {
 	APIKey    string
 	APISecret string
 	APIHost   string
 }
 
-func (tg *tgClient) put(ctx context.Context, url string, payload interface{}) error {
+func (tg *Client) Put(ctx context.Context, url string, payload interface{}) error {
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
@@ -94,7 +49,7 @@ func (tg *tgClient) put(ctx context.Context, url string, payload interface{}) er
 	return nil
 }
 
-func (tg *tgClient) rawGet(ctx context.Context, url string) (io.ReadCloser, error) {
+func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
 	if err != nil {
 		return nil, err
@@ -115,7 +70,7 @@ func (tg *tgClient) rawGet(ctx context.Context, url string) (io.ReadCloser, erro
 	return r.Body, nil
 }
 
-func (tg *tgClient) get(ctx context.Context, url string, out interface{}) error {
+func (tg *Client) Get(ctx context.Context, url string, out interface{}) error {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
 	if err != nil {
 		return err
@@ -149,14 +104,4 @@ func (tg *tgClient) get(ctx context.Context, url string, out interface{}) error 
 	}
 
 	return nil
-}
-
-func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		return &tgClient{
-			APIKey:    d.Get("api_key_id").(string),
-			APISecret: d.Get("api_key_secret").(string),
-			APIHost:   d.Get("api_host").(string),
-		}, nil
-	}
 }

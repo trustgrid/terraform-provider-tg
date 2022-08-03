@@ -17,17 +17,20 @@ Node CPU Limits
 
 ### Required
 
-- **node_id** (String) Node ID
+- `node_id` (String) Node ID
 
 ### Optional
 
-- **cpu_max** (Number) CPU Max %
-- **id** (String) The ID of this resource.
-- **io_rbps** (Number) Read Throughput Limit (B/s)
-- **io_riops** (Number) Read Limit (IOPS/s)
-- **io_wbps** (Number) Write Throughput Limit (B/s)
-- **io_wiops** (Number) Write Limit (IOPS/s)
-- **mem_high** (Number) Mem High Limit (MB)
-- **mem_max** (Number) Mem Max Limit (MB)
+- `cpu_max` (Number) CPU Max %
+- `io_rbps` (Number) Read Throughput Limit (B/s)
+- `io_riops` (Number) Read Limit (IOPS/s)
+- `io_wbps` (Number) Write Throughput Limit (B/s)
+- `io_wiops` (Number) Write Limit (IOPS/s)
+- `mem_high` (Number) Mem High Limit (MB)
+- `mem_max` (Number) Mem Max Limit (MB)
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 
