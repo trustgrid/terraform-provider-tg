@@ -22,12 +22,12 @@ func GatewayConfig() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node ID",
+				Description: "Node UID",
 				Type:        schema.TypeString,
 				Required:    true,
 			},
 			"enabled": {
-				Description: "Gateway Enabled",
+				Description: "Enable the gateway plugin",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Computed:    true,
@@ -40,14 +40,14 @@ func GatewayConfig() *schema.Resource {
 				ValidateFunc: validation.IsIPv4Address,
 			},
 			"port": {
-				Description:  "Gateway Port",
+				Description:  "Host Port",
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"type": {
-				Description:  "Gateway Type",
+				Description:  "Gateway Type (public, private, or hub)",
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,

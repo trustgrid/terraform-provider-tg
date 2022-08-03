@@ -17,19 +17,22 @@ Node SNMP
 
 ### Required
 
-- **node_id** (String) Node ID
+- `node_id` (String) Node ID
 
 ### Optional
 
-- **auth_passphrase** (String) Auth passphrase
-- **auth_protocol** (String) Authentication protocol (SHA/MD5)
-- **enabled** (Boolean) SNMP Enabled
-- **engine_id** (String) Engine ID
-- **id** (String) The ID of this resource.
-- **interface** (String) SNMP interface
-- **port** (Number) Write Limit (IOPS/s)
-- **privacy_passphrase** (String) Privacy passphrase
-- **privacy_protocol** (String) Privacy protocol (AES128/AES192/AES256/DES)
-- **username** (String) Username
+- `auth_passphrase` (String) Auth passphrase
+- `auth_protocol` (String) Authentication protocol (SHA/MD5)
+- `enabled` (Boolean) SNMP Enabled
+- `engine_id` (String) Engine ID
+- `interface` (String) SNMP interface
+- `port` (Number) Write Limit (IOPS/s)
+- `privacy_passphrase` (String) Privacy passphrase
+- `privacy_protocol` (String) Privacy protocol (AES128/AES192/AES256/DES)
+- `username` (String) Username
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 

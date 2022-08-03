@@ -38,14 +38,12 @@ output "license" {
 
 ### Required
 
-- **name** (String) Node Name
-
-### Optional
-
-- **id** (String) The ID of this resource.
+- `name` (String) Node Name
 
 ### Read-Only
 
-- **license** (String) License JWT
+- `id` (String) The ID of this resource.
+- `license` (String) License JWT
+- `uid` (String) Node UID
 
 

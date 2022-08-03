@@ -17,12 +17,12 @@ Fetches nodes from Trustgrid
 
 ### Optional
 
-- **exclude_tags** (Map of String) Exclude Tag Filters
-- **id** (String) The ID of this resource.
-- **tags** (Map of String) Tag Filters
+- `exclude_tags` (Map of String) Exclude Tag Filters
+- `tags` (Map of String) Tag Filters
 
 ### Read-Only
 
-- **node_ids** (Set of String) List of matching nodes
+- `id` (String) The ID of this resource.
+- `node_ids` (Set of String) List of matching nodes
 
 

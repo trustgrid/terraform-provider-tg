@@ -20,19 +20,22 @@ func New(version string) func() *schema.Provider {
 			Schema: map[string]*schema.Schema{
 				"api_key_id": {
 					Type:        schema.TypeString,
+					Description: "Trustgrid Portal API Key ID. Will use `TG_API_KEY_ID` environment variable if not set.",
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("TG_API_KEY_ID", nil),
 				},
 				"api_key_secret": {
 					Type:        schema.TypeString,
+					Description: "Trustgrid Portal API Key secret. Will use `TG_API_KEY_SECRET` environment variable if not set.",
 					Optional:    true,
 					Sensitive:   true,
 					DefaultFunc: schema.EnvDefaultFunc("TG_API_KEY_SECRET", nil),
 				},
 				"api_host": {
 					Type:        schema.TypeString,
+					Description: "Trustgrid Portal endpoint. Used for development.",
 					Optional:    true,
-					Sensitive:   true,
+					Sensitive:   false,
 					DefaultFunc: schema.EnvDefaultFunc("TG_API_HOST", "api.trustgrid.io"),
 				},
 			},
