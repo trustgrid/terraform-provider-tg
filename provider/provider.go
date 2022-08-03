@@ -40,14 +40,16 @@ func New(version string) func() *schema.Provider {
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"tg_node": datasource.NodeDataSource(),
-				"tg_org":  datasource.OrgDataSource(),
+				"tg_node": datasource.Node(),
+				"tg_org":  datasource.Org(),
+				"tg_cert": datasource.Cert(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"tg_compute_limits": resource.CPULimits(),
 				"tg_snmp":           resource.SNMP(),
 				"tg_license":        resource.License(),
 				"tg_gateway_config": resource.GatewayConfig(),
+				"tg_cert":           resource.Cert(),
 			},
 		}
 
