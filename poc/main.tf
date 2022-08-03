@@ -17,7 +17,7 @@ data "tg_org" "org" {
 }
 
 data "tg_node" "production" {
-  tags = {
+  include_tags = {
     prod_status = "Production"
   }
   exclude_tags = {
@@ -51,6 +51,22 @@ resource "tg_gateway_config" "test" {
   host = "10.10.10.10"
   port = 8553
   type = "public"
+
+  udp_enabled = true
+  udp_port = 4555
+  maxmbps = 100
+  cert = "locapp.dev.trustgrid.io"
+}
+
+resource "tg_ztna_gateway_config" "ztna1" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  enabled = "true"
+  host = "10.10.10.10"
+  port = 8552
+  cert = "proxy.dev.trustgrid.io"
+  wg_enabled = true
+  wg_port = 8555
+  wg_endpoint = "wg.dev.trustgrid.io"
 }
 
 

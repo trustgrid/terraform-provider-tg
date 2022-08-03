@@ -28,9 +28,28 @@ type GatewayConfig struct {
 	NodeID string `tf:"node_id" json:"-"`
 
 	Enabled bool   `tf:"enabled" json:"enabled"`
+	Host    string `tf:"host" json:"host,omitempty"`
+	Port    int    `tf:"port" json:"port,omitempty"`
+	MaxMBPS int    `tf:"maxmbps" json:"maxmbps,omitempty"`
+	Type    string `tf:"type" json:"type"`
+
+	UDPEnabled bool `tf:"udp_enabled" json:"udpEnabled"`
+	UDPPort    int  `tf:"udp_port" json:"udpPort,omitempty"`
+
+	Cert string `tf:"cert" json:"cert,omitempty"`
+}
+
+type ZTNAConfig struct {
+	NodeID string `tf:"node_id" json:"-"`
+
+	Enabled bool   `tf:"enabled" json:"enabled"`
 	Host    string `tf:"host" json:"host"`
 	Port    int    `tf:"port" json:"port"`
-	Type    string `tf:"type" json:"type"`
+	Cert    string `tf:"cert" json:"cert"`
+
+	WireguardEndpoint string `tf:"wg_endpoint" json:"wireguardEndpoint"`
+	WireguardPort     int    `tf:"wg_port" json:"wireguardPort"`
+	WireguardEnabled  bool   `tf:"wg_enabled" json:"wireguardEnabled"`
 }
 
 type Node struct {
@@ -42,6 +61,7 @@ type Node struct {
 	Config  struct {
 		Gateway GatewayConfig `json:"gateway"`
 		SNMP    SNMPConfig    `json:"snmp"`
+		ZTNA    ZTNAConfig    `json:"apigw"`
 	} `json:"config"`
 }
 

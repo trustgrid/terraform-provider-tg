@@ -18,7 +18,7 @@ Fetches nodes from Trustgrid
 ### Optional
 
 - `exclude_tags` (Map of String) Exclude Tag Filters
-- `tags` (Map of String) Tag Filters
+- `include_tags` (Map of String) Include Tag Filters
 
 ### Read-Only
 
