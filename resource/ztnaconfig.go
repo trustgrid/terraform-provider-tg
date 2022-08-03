@@ -11,14 +11,14 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-func GatewayConfig() *schema.Resource {
+func ZTNAConfig() *schema.Resource {
 	return &schema.Resource{
-		Description: "Node Gateway Config",
+		Description: "Node ZTNA Gateway Config",
 
-		CreateContext: gatewayConfigCreate,
-		ReadContext:   gatewayConfigRead,
-		UpdateContext: gatewayConfigUpdate,
-		DeleteContext: gatewayConfigDelete,
+		CreateContext: ztnaConfigCreate,
+		ReadContext:   ztnaConfigRead,
+		UpdateContext: ztnaConfigUpdate,
+		DeleteContext: ztnaConfigDelete,
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
@@ -29,18 +29,6 @@ func GatewayConfig() *schema.Resource {
 			"enabled": {
 				Description: "Enable the gateway plugin",
 				Type:        schema.TypeBool,
-				Optional:    true,
-				Computed:    true,
-			},
-			"udp_enabled": {
-				Description: "Enable gateway UDP mode",
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Computed:    true,
-			},
-			"cert": {
-				Description: "Gateway TLS certificate",
-				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
 			},
@@ -58,39 +46,44 @@ func GatewayConfig() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
-			"udp_port": {
-				Description:  "UDP Port",
+			"wg_enabled": {
+				Description: "Enable the wireguard gateway feature",
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Computed:    true,
+			},
+			"wg_endpoint": {
+				Description: "Wireguard endpoint",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+			},
+			"wg_port": {
+				Description:  "Wireguard port",
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
-			"maxmbps": {
-				Description: "Max Gateway throughput",
-				Type:        schema.TypeInt,
+			"cert": {
+				Description: "Certificate",
+				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-			},
-			"type": {
-				Description:  "Gateway Type (public, private, or hub)",
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"public", "private", "hub"}, false),
 			},
 		},
 	}
 }
 
-func gatewayConfigCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
-	gw := tg.GatewayConfig{}
+	gw := tg.ZTNAConfig{}
 	err := hcl.MarshalResourceData(d, &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/gateway", gw.NodeID), &gw)
+	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", gw.NodeID), &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -100,10 +93,10 @@ func gatewayConfigCreate(ctx context.Context, d *schema.ResourceData, meta inter
 	return diag.Diagnostics{}
 }
 
-func gatewayConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw := tg.GatewayConfig{}
+	gw := tg.ZTNAConfig{}
 	err := hcl.MarshalResourceData(d, &gw)
 	if err != nil {
 		return diag.FromErr(err)
@@ -115,7 +108,7 @@ func gatewayConfigRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		return diag.FromErr(err)
 	}
 
-	if err := hcl.UnmarshalResourceData(&n.Config.Gateway, d); err != nil {
+	if err := hcl.UnmarshalResourceData(&n.Config.ZTNA, d); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(gw.NodeID)
@@ -124,20 +117,20 @@ func gatewayConfigRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	return diag.Diagnostics{}
 }
 
-func gatewayConfigUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return gatewayConfigCreate(ctx, d, meta)
+func ztnaConfigUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return ztnaConfigCreate(ctx, d, meta)
 }
 
-func gatewayConfigDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ztnaConfigDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw := tg.GatewayConfig{}
+	gw := tg.ZTNAConfig{}
 	err := hcl.MarshalResourceData(d, &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/gateway", gw.NodeID), map[string]any{"enabled": false})
+	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", gw.NodeID), map[string]any{"enabled": false, "wireguardEnabled": false})
 	if err != nil {
 		return diag.FromErr(err)
 	}

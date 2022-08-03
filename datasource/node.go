@@ -18,8 +18,8 @@ func NodeDataSource() *schema.Resource {
 		ReadContext: nodeRead,
 
 		Schema: map[string]*schema.Schema{
-			"tags": {
-				Description: "Tag Filters",
+			"include_tags": {
+				Description: "Include Tag Filters",
 				Type:        schema.TypeMap,
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -47,7 +47,7 @@ func NodeDataSource() *schema.Resource {
 }
 
 type filter struct {
-	Tags        map[string]interface{} `tf:"tags"`
+	Tags        map[string]interface{} `tf:"include_tags"`
 	ExcludeTags map[string]interface{} `tf:"exclude_tags"`
 }
 
