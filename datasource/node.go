@@ -11,7 +11,7 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-func NodeDataSource() *schema.Resource {
+func Node() *schema.Resource {
 	return &schema.Resource{
 		Description: "Fetches nodes from Trustgrid",
 

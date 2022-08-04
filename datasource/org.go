@@ -10,7 +10,7 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-func OrgDataSource() *schema.Resource {
+func Org() *schema.Resource {
 	return &schema.Resource{
 		Description: "Fetches org info from Trustgrid",
 
