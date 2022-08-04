@@ -15,6 +15,25 @@ type Client struct {
 	APIKey    string
 	APISecret string
 	APIHost   string
+
+	Domain string
+}
+
+func NewClient(ctx context.Context, apiKey, apiSecret, apiHost string) (*Client, error) {
+	client := &Client{
+		APIKey:    apiKey,
+		APISecret: apiSecret,
+		APIHost:   apiHost,
+	}
+	org := Org{}
+
+	if err := client.Get(ctx, "/org/mine", &org); err != nil {
+		return client, fmt.Errorf("error retrieving org info: %w", err)
+	}
+
+	client.Domain = org.Domain
+
+	return client, nil
 }
 
 func (tg *Client) Delete(ctx context.Context, url string, payload interface{}) error {

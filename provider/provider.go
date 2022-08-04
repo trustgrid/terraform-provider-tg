@@ -51,6 +51,7 @@ func New(version string) func() *schema.Provider {
 				"tg_gateway_config":      resource.GatewayConfig(),
 				"tg_ztna_gateway_config": resource.ZTNAConfig(),
 				"tg_cert":                resource.Cert(),
+				"tg_virtual_network":     resource.VirtualNetwork(),
 			},
 		}
 
@@ -62,10 +63,10 @@ func New(version string) func() *schema.Provider {
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		return &tg.Client{
-			APIKey:    d.Get("api_key_id").(string),
-			APISecret: d.Get("api_key_secret").(string),
-			APIHost:   d.Get("api_host").(string),
-		}, nil
+		c, err := tg.NewClient(ctx, d.Get("api_key_id").(string), d.Get("api_key_secret").(string), d.Get("api_host").(string))
+		if err != nil {
+			return c, diag.FromErr(err)
+		}
+		return c, nil
 	}
 }
