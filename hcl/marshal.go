@@ -13,7 +13,12 @@ func MarshalResourceData(d *schema.ResourceData, out interface{}) error {
 		field := reflect.TypeOf(out).Elem().FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
 		if tf != "" {
-			reflect.ValueOf(out).Elem().FieldByIndex([]int{i}).Set(reflect.ValueOf(d.Get(tf)))
+			f := reflect.ValueOf(out).Elem().FieldByIndex([]int{i})
+			if f.CanSet() {
+				if reflect.ValueOf(d.Get(tf)).IsValid() {
+					f.Set(reflect.ValueOf(d.Get(tf)))
+				}
+			}
 		}
 
 	}

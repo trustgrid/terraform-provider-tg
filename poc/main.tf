@@ -45,6 +45,13 @@ output "hi" {
   value = "hi"
 }
 
+resource "tg_virtual_network" "testaringo" {
+  name = "tftest2"
+  network_cidr = "10.10.0.0/16"
+  description = "terraform testbed"
+  no_nat = true
+}
+
 resource "tg_gateway_config" "test" {
   node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
   enabled = true
