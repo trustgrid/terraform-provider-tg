@@ -52,6 +52,14 @@ resource "tg_virtual_network" "testaringo" {
   no_nat = true
 }
 
+resource "tg_virtual_network_route" "route1" {
+  network = resource.tg_virtual_network.testaringo.name
+  dest = "node1-profiled"
+  network_cidr = "10.10.10.14/32"
+  metric = 12
+  description = "a route"
+}
+
 resource "tg_gateway_config" "test" {
   node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
   enabled = true
