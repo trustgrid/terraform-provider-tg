@@ -53,6 +53,7 @@ func New(version string) func() *schema.Provider {
 				"tg_cert":                  resource.Cert(),
 				"tg_virtual_network":       resource.VirtualNetwork(),
 				"tg_virtual_network_route": resource.VNetRoute(),
+				"tg_virtual_network_acl":   resource.VNetACL(),
 			},
 		}
 

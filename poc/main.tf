@@ -73,6 +73,17 @@ resource "tg_gateway_config" "test" {
   cert = "locapp.dev.trustgrid.io"
 }
 
+
+resource "tg_virtual_network_acl" "acl1" {
+  action = "allow"
+  network = resource.tg_virtual_network.testaringo.name
+  line_number = 10
+  dest = "0.0.0.0/0"
+  source = "0.0.0.0/0"
+  protocol = "icmp"
+  description = "ping"
+}
+
 resource "tg_ztna_gateway_config" "ztna1" {
   node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
   enabled = "true"
