@@ -17,7 +17,7 @@ type VNetRoute struct {
 	Description string `tf:"description" json:"description"`
 }
 
-type VNetACL struct {
+type VNetAccessRule struct {
 	UID         string `tf:"uid" json:"uid"`
 	NetworkName string `tf:"network" json:"-"`
 

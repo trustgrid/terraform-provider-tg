@@ -11,14 +11,14 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type vnetACL struct {
+type vnetAccessRule struct {
 }
 
-func VNetACL() *schema.Resource {
-	r := vnetACL{}
+func VNetAccessRule() *schema.Resource {
+	r := vnetAccessRule{}
 
 	return &schema.Resource{
-		Description: "Manage a virtual network access policy",
+		Description: "Manage a virtual network access rule",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
@@ -27,7 +27,7 @@ func VNetACL() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"uid": {
-				Description: "Unique identifier of the ACL",
+				Description: "Unique identifier of the rule",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -79,116 +79,116 @@ func VNetACL() *schema.Resource {
 	}
 }
 
-func (vn *vnetACL) urlRoot(tgc *tg.Client, acl tg.VNetACL) string {
-	return "/v2/domain/" + tgc.Domain + "/network/" + acl.NetworkName + "/access-policy"
+func (vn *vnetAccessRule) urlRoot(tgc *tg.Client, rule tg.VNetAccessRule) string {
+	return "/v2/domain/" + tgc.Domain + "/network/" + rule.NetworkName + "/access-policy"
 }
 
-func (vn *vnetACL) aclURL(tgc *tg.Client, acl tg.VNetACL) string {
-	return vn.urlRoot(tgc, acl) + "/" + acl.UID
+func (vn *vnetAccessRule) ruleURL(tgc *tg.Client, rule tg.VNetAccessRule) string {
+	return vn.urlRoot(tgc, rule) + "/" + rule.UID
 }
 
-func (vn *vnetACL) findACL(ctx context.Context, tgc *tg.Client, acl tg.VNetACL) (tg.VNetACL, error) {
-	acls := []tg.VNetACL{}
-	if err := tgc.Get(ctx, vn.urlRoot(tgc, acl), &acls); err != nil {
-		return tg.VNetACL{}, err
+func (vn *vnetAccessRule) findRule(ctx context.Context, tgc *tg.Client, rule tg.VNetAccessRule) (tg.VNetAccessRule, error) {
+	rules := []tg.VNetAccessRule{}
+	if err := tgc.Get(ctx, vn.urlRoot(tgc, rule), &rules); err != nil {
+		return tg.VNetAccessRule{}, err
 	}
 
-	for _, r := range acls {
-		if r.UID == acl.UID {
+	for _, r := range rules {
+		if r.UID == rule.UID {
 			return r, nil
 		}
-		if acl.UID == "" &&
-			r.Dest == acl.Dest &&
-			r.Source == acl.Source &&
-			r.Ports == acl.Ports &&
-			r.LineNumber == acl.LineNumber &&
-			r.Description == acl.Description {
+		if rule.UID == "" &&
+			r.Dest == rule.Dest &&
+			r.Source == rule.Source &&
+			r.Ports == rule.Ports &&
+			r.LineNumber == rule.LineNumber &&
+			r.Description == rule.Description {
 			return r, nil
 		}
 	}
 
-	return tg.VNetACL{}, fmt.Errorf("no ACL found")
+	return tg.VNetAccessRule{}, fmt.Errorf("no rule found")
 }
 
-func (vn *vnetACL) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	acl := tg.VNetACL{}
-	if err := hcl.MarshalResourceData(d, &acl); err != nil {
+	rule := tg.VNetAccessRule{}
+	if err := hcl.MarshalResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Post(ctx, vn.urlRoot(tgc, acl), &acl); err != nil {
+	if err := tgc.Post(ctx, vn.urlRoot(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := vnetCommit(ctx, tgc, acl.NetworkName); err != nil {
+	if err := vnetCommit(ctx, tgc, rule.NetworkName); err != nil {
 		return diag.FromErr(err)
 	}
 
-	acl, err := vn.findACL(ctx, tgc, acl)
+	rule, err := vn.findRule(ctx, tgc, rule)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(acl.UID)
-	d.Set("uid", acl.UID)
+	d.SetId(rule.UID)
+	d.Set("uid", rule.UID)
 
 	return diag.Diagnostics{}
 }
 
-func (vn *vnetACL) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	acl := tg.VNetACL{}
-	if err := hcl.MarshalResourceData(d, &acl); err != nil {
+	rule := tg.VNetAccessRule{}
+	if err := hcl.MarshalResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Put(ctx, vn.aclURL(tgc, acl), &acl); err != nil {
+	if err := tgc.Put(ctx, vn.ruleURL(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := vnetCommit(ctx, tgc, acl.NetworkName); err != nil {
+	if err := vnetCommit(ctx, tgc, rule.NetworkName); err != nil {
 		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func (vn *vnetACL) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	acl := tg.VNetACL{}
-	if err := hcl.MarshalResourceData(d, &acl); err != nil {
+	rule := tg.VNetAccessRule{}
+	if err := hcl.MarshalResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, vn.aclURL(tgc, acl), &acl); err != nil {
+	if err := tgc.Delete(ctx, vn.ruleURL(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := vnetCommit(ctx, tgc, acl.NetworkName); err != nil {
+	if err := vnetCommit(ctx, tgc, rule.NetworkName); err != nil {
 		return diag.FromErr(err)
 	}
 
 	return diag.Diagnostics{}
 }
 
-func (vn *vnetACL) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	acl := tg.VNetACL{}
-	if err := hcl.MarshalResourceData(d, &acl); err != nil {
+	rule := tg.VNetAccessRule{}
+	if err := hcl.MarshalResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
-	acl, err := vn.findACL(ctx, tgc, acl)
+	rule, err := vn.findRule(ctx, tgc, rule)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(acl.UID)
+	d.SetId(rule.UID)
 
 	return diag.Diagnostics{}
 }
