@@ -74,7 +74,7 @@ resource "tg_gateway_config" "test" {
 }
 
 
-resource "tg_virtual_network_acl" "acl1" {
+resource "tg_virtual_network_access_rule" "acl1" {
   action = "allow"
   network = resource.tg_virtual_network.testaringo.name
   line_number = 10
