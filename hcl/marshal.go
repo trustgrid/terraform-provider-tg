@@ -1,6 +1,7 @@
 package hcl
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -32,7 +33,9 @@ func UnmarshalResourceData(in interface{}, d *schema.ResourceData) error {
 		field := reflect.TypeOf(in).Elem().FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
 		if tf != "" {
-			d.Set(tf, reflect.ValueOf(in).Elem().FieldByIndex([]int{i}).Interface())
+			if err := d.Set(tf, reflect.ValueOf(in).Elem().FieldByIndex([]int{i}).Interface()); err != nil {
+				return fmt.Errorf("error setting %s: %w", tf, err)
+			}
 		}
 	}
 

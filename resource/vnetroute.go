@@ -106,7 +106,9 @@ func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	d.SetId(route.UID)
-	d.Set("uid", route.UID)
+	if err := d.Set("uid", route.UID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diag.Diagnostics{}
 }

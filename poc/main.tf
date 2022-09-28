@@ -123,14 +123,60 @@ resource "tg_container" "alpine" {
   description = "my alpine container"
   enabled = "true"
   exec_type = "onDemand"
-  image_repository = "dev.regression.trustgrid.io/alpine"
-  image_tag = "latest"
-  name = "alpine1"
-  add_caps = ["xNET_ADMIN"]
-  drop_caps = ["MKNOD"]
-  variables = {
-    "foo" = "barx"
+  image {
+    repository = "dev.regression.trustgrid.io/alpine"
+    tag = "latest"
   }
+  name = "alpine1"
+  drop_caps = ["MKNOD"]
   log_max_file_size = 100
-  log_max_num_files = 101
+  log_max_num_files = 102
+
+  healthcheck {
+    command = "l -lR"
+    interval = 10
+    retries = 3
+    start_period = 10
+    timeout = 10
+  }
+
+  limits {
+    cpu_max = 25
+    io_rbps = 15
+    io_riops = 11
+    io_wbps = 16
+    mem_high = 25
+    mem_max = 45
+    limits {
+      type = "nice"
+      soft = 25
+      hard = 35
+    }
+  }
+
+  mount {
+    type = "volume"
+    source = resource.tg_container_volume.myvol.name
+    dest = "/mnt/myvol"
+  }
+
+  port_mapping {
+    protocol = "tcp"
+    container_port = 80
+    host_port = 8080
+    iface = "ens160"
+  }
+
+  virtual_network {
+    network = "profiled-nodes"
+    ip = "1.1.1.1"
+  }
+
+  vrf = "default"
+
+}
+
+resource "tg_container_volume" "myvol" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  name = "myvol"
 }

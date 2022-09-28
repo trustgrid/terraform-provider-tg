@@ -55,6 +55,7 @@ func New(version string) func() *schema.Provider {
 				"tg_virtual_network_route":       resource.VNetRoute(),
 				"tg_virtual_network_access_rule": resource.VNetAccessRule(),
 				"tg_container":                   resource.Container(),
+				"tg_container_volume":            resource.Volume(),
 			},
 		}
 

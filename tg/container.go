@@ -13,8 +13,6 @@ type Container struct {
 		Repository string `json:"repository"`
 		Tag        string `json:"tag"`
 	} `json:"image"`
-	ImageRepository     string `tf:"image_repository" json:"-"`
-	ImageTag            string `tf:"image_tag" json:"-"`
 	Name                string `tf:"name" json:"name"`
 	Privileged          bool   `tf:"privileged" json:"privileged"`
 	RequireConnectivity bool   `tf:"require_connectivity" json:"requireConnectivity"`
@@ -22,50 +20,96 @@ type Container struct {
 	UseInit             bool   `tf:"use_init" json:"useInit"`
 	User                string `tf:"user" json:"user,omitempty"`
 
-	AddCaps        []interface{}          `tf:"add_caps" json:"-"`
-	DropCaps       []interface{}          `tf:"drop_caps" json:"-"`
-	Variables      map[string]interface{} `tf:"variables" json:"-"`
-	LogMaxFileSize int                    `tf:"log_max_file_size" json:"-"`
-	LogMaxNumFiles int                    `tf:"log_max_num_files" json:"-"`
+	Config ContainerConfig `json:"-"`
 }
 
-type containerVar struct {
+type Volume struct {
+	NodeID      string `tf:"node_id" json:"-"`
+	ClusterFQDN string `tf:"cluster_fqdn" json:"-"`
+
+	Name      string `tf:"name" json:"name"`
+	Encrypted bool   `tf:"encrypted" json:"encrypted"`
+}
+
+type ContainerVar struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
+type HealthCheck struct {
+	Command     string `json:"command"`
+	Interval    int    `json:"interval"`
+	Timeout     int    `json:"timeout"`
+	StartPeriod int    `json:"startPeriod"`
+	Retries     int    `json:"retries"`
+}
+
+type ULimit struct {
+	Type string `json:"type"`
+	Soft int    `json:"soft"`
+	Hard int    `json:"hard"`
+}
+
+type ContainerLimits struct {
+	CPUMax  int `json:"cpuMax,omitempty"`
+	IORBPS  int `json:"ioRbps,omitempty"`
+	IOWBPS  int `json:"ioWbps,omitempty"`
+	IORIOPS int `json:"ioRiops,omitempty"`
+	IOWIOPS int `json:"ioWiops,omitempty"`
+	MemHigh int `json:"memHigh,omitempty"`
+	MemMax  int `json:"memMax,omitempty"`
+
+	Limits []ULimit `json:"limits,omitempty"`
+}
+
+type PortMapping struct {
+	UID           string `json:"uid,omitempty"`
+	Protocol      string `json:"protocol"`
+	IFace         string `json:"iface"`
+	HostPort      int    `json:"hostPort"`
+	ContainerPort int    `json:"containerPort"`
+}
+
+type Mount struct {
+	UID    string `json:"uid,omitempty"`
+	Type   string `json:"mountType"`
+	Source string `json:"source"`
+	Dest   string `json:"dest"`
+}
+
+type VRF struct {
+	Name string `json:"name"`
+}
+
+type ContainerInterface struct {
+	UID  string `json:"uid,omitempty"`
+	Name string `json:"name"`
+	Dest string `json:"dest"`
+}
+
+type ContainerVirtualNetwork struct {
+	UID           string `json:"uid,omitempty"`
+	Network       string `json:"network"`
+	IP            string `json:"ip"`
+	AllowOutbound bool   `json:"allowOutbound"`
+}
+
 type ContainerConfig struct {
+	VRF *VRF
+
 	Capabilities struct {
-		AddCaps  []string `json:"addCaps,omitempty"`
-		DropCaps []string `json:"dropCaps,omitempty"`
-	} `json:"capabilities,omitempty"`
-	Variables []containerVar `json:"variables,omitempty"`
+		AddCaps  []string `json:"addCaps"`
+		DropCaps []string `json:"dropCaps"`
+	} `json:"capabilities"`
+	Variables []ContainerVar `json:"variables"`
 	Logging   struct {
 		MaxFileSize int `json:"maxFileSize,omitempty"`
 		NumFiles    int `json:"numFiles,omitempty"`
 	} `json:"logging,omitempty"`
-}
-
-func (c Container) Config() ContainerConfig {
-	cc := ContainerConfig{}
-	if len(c.AddCaps) > 0 {
-		cc.Capabilities.AddCaps = make([]string, len(c.AddCaps))
-		for i, c := range c.AddCaps {
-			cc.Capabilities.AddCaps[i] = c.(string)
-		}
-	}
-	if len(c.DropCaps) > 0 {
-		cc.Capabilities.DropCaps = make([]string, len(c.DropCaps))
-		for i, c := range c.DropCaps {
-			cc.Capabilities.DropCaps[i] = c.(string)
-		}
-	}
-	if len(c.Variables) > 0 {
-		for k, v := range c.Variables {
-			cc.Variables = append(cc.Variables, containerVar{Name: k, Value: v.(string)})
-		}
-	}
-	cc.Logging.MaxFileSize = c.LogMaxFileSize
-	cc.Logging.NumFiles = c.LogMaxNumFiles
-	return cc
+	HealthCheck     *HealthCheck              `json:"healthcheck,omitempty"`
+	Limits          *ContainerLimits          `json:"limits,omitempty"`
+	Mounts          []Mount                   `json:"mounts"`
+	PortMappings    []PortMapping             `json:"portMappings"`
+	VirtualNetworks []ContainerVirtualNetwork `json:"virtualNetworks"`
+	Interfaces      []ContainerInterface      `json:"interfaces"`
 }

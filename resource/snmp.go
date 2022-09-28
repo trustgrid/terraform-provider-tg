@@ -118,19 +118,25 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) dia
 	}
 
 	err = hcl.UnmarshalResourceData(&n.Config.SNMP, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	d.SetId(snmp.ID())
-	d.Set("node_id", snmp.NodeID)
+	if err := d.Set("node_id", snmp.NodeID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	if snmp.AuthPassphrase != "" {
-		d.Set("auth_passphrase", snmp.AuthPassphrase)
+		if err := d.Set("auth_passphrase", snmp.AuthPassphrase); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	if snmp.PrivacyPassphrase != "" {
-		d.Set("privacy_passphrase", snmp.PrivacyPassphrase)
-	}
-
-	if err != nil {
-		return diag.FromErr(err)
+		if err := d.Set("privacy_passphrase", snmp.PrivacyPassphrase); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return diag.Diagnostics{}
