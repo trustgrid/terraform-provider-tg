@@ -132,7 +132,9 @@ func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(limits.id())
-	d.Set("node_id", limits.NodeID)
+	if err := d.Set("node_id", limits.NodeID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diag.Diagnostics{}
 }

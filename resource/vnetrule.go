@@ -132,7 +132,9 @@ func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	d.SetId(rule.UID)
-	d.Set("uid", rule.UID)
+	if err := d.Set("uid", rule.UID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diag.Diagnostics{}
 }

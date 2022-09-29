@@ -119,7 +119,9 @@ func gatewayConfigRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		return diag.FromErr(err)
 	}
 	d.SetId(gw.NodeID)
-	d.Set("node_id", gw.NodeID)
+	if err := d.Set("node_id", gw.NodeID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diag.Diagnostics{}
 }

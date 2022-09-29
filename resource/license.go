@@ -75,7 +75,9 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		}
 
 		d.SetId(l.Name)
-		d.Set("license", string(body))
+		if err := d.Set("license", string(body)); err != nil {
+			return diag.FromErr(err)
+		}
 
 		var claims struct {
 			jwt.StandardClaims
@@ -84,7 +86,9 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		if _, _, err := parser.ParseUnverified(string(body), &claims); err != nil {
 			return diag.FromErr(err)
 		}
-		d.Set("uid", claims.Id)
+		if err := d.Set("uid", claims.Id); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return diag.Diagnostics{}
