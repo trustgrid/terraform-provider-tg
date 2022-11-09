@@ -46,55 +46,68 @@ output "hi" {
 }
 
 resource "tg_virtual_network" "testaringo" {
-  name = "tftest2"
+  name         = "tftest2"
   network_cidr = "10.10.0.0/16"
-  description = "terraform testbed"
-  no_nat = true
+  description  = "terraform testbed"
+  no_nat       = true
 }
 
 resource "tg_virtual_network_route" "route1" {
-  network = resource.tg_virtual_network.testaringo.name
-  dest = "node1-profiled"
+  network      = resource.tg_virtual_network.testaringo.name
+  dest         = "node1-profiled"
   network_cidr = "10.10.10.14/32"
-  metric = 12
-  description = "a route"
+  metric       = 12
+  description  = "a route"
 }
 
 resource "tg_gateway_config" "test" {
   node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
   enabled = true
-  host = "10.10.10.10"
-  port = 8553
-  type = "public"
+  host    = "10.10.10.10"
+  port    = 8553
+  type    = "private"
 
   udp_enabled = true
-  udp_port = 4555
-  maxmbps = 100
-  cert = "locapp.dev.trustgrid.io"
+  udp_port    = 4555
+  maxmbps     = 100
+  cert        = "locapp.dev.trustgrid.io"
+
+  client {
+    name    = "2aug1245test"
+    enabled = true
+  }
 }
 
 
 resource "tg_virtual_network_access_rule" "acl1" {
-  action = "allow"
-  network = resource.tg_virtual_network.testaringo.name
+  action      = "allow"
+  network     = resource.tg_virtual_network.testaringo.name
   line_number = 10
-  dest = "0.0.0.0/0"
-  source = "0.0.0.0/0"
-  protocol = "icmp"
+  dest        = "0.0.0.0/0"
+  source      = "0.0.0.0/0"
+  protocol    = "icmp"
   description = "ping"
 }
 
 resource "tg_ztna_gateway_config" "ztna1" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-  enabled = "true"
-  host = "10.10.10.10"
-  port = 8552
-  cert = "proxy.dev.trustgrid.io"
-  wg_enabled = true
-  wg_port = 8555
+  node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  enabled     = "true"
+  host        = "10.10.10.10"
+  port        = 8552
+  cert        = "proxy.dev.trustgrid.io"
+  wg_enabled  = true
+  wg_port     = 8555
   wg_endpoint = "wg.dev.trustgrid.io"
 }
 
+#resource "tg_cluster_config" "node1-cluster" {
+#  node_id = "1234"
+#  enabled = true
+#  host = "10.10.10.10"
+#  port = 8552
+#  status_host = "whatever.com"
+#  status_port = 1234
+#}
 
 # resource "tg_snmp" "global_snmp" {
 # 	for_each = data.tg_node.production.node_ids
@@ -118,35 +131,35 @@ resource "tg_ztna_gateway_config" "ztna1" {
 # }
 
 resource "tg_container" "alpine" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-  command = "ls -lR"
+  node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  command     = "ls -lR"
   description = "my alpine container"
-  enabled = "true"
-  exec_type = "onDemand"
+  enabled     = "true"
+  exec_type   = "onDemand"
   image {
     repository = "dev.regression.trustgrid.io/alpine"
-    tag = "latest"
+    tag        = "latest"
   }
-  name = "alpine1"
-  drop_caps = ["MKNOD"]
+  name              = "alpine1"
+  drop_caps         = ["MKNOD"]
   log_max_file_size = 100
   log_max_num_files = 102
 
   healthcheck {
-    command = "l -lR"
-    interval = 10
-    retries = 3
+    command      = "l -lR"
+    interval     = 10
+    retries      = 3
     start_period = 10
-    timeout = 10
+    timeout      = 10
   }
 
   limits {
-    cpu_max = 25
-    io_rbps = 15
+    cpu_max  = 25
+    io_rbps  = 15
     io_riops = 11
-    io_wbps = 16
+    io_wbps  = 16
     mem_high = 25
-    mem_max = 45
+    mem_max  = 45
     limits {
       type = "nice"
       soft = 25
@@ -155,21 +168,21 @@ resource "tg_container" "alpine" {
   }
 
   mount {
-    type = "volume"
+    type   = "volume"
     source = resource.tg_container_volume.myvol.name
-    dest = "/mnt/myvol"
+    dest   = "/mnt/myvol"
   }
 
   port_mapping {
-    protocol = "tcp"
+    protocol       = "tcp"
     container_port = 80
-    host_port = 8080
-    iface = "ens160"
+    host_port      = 8080
+    iface          = "ens160"
   }
 
   virtual_network {
     network = "profiled-nodes"
-    ip = "1.1.1.1"
+    ip      = "1.1.1.1"
   }
 
   vrf = "default"
@@ -178,5 +191,17 @@ resource "tg_container" "alpine" {
 
 resource "tg_container_volume" "myvol" {
   node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-  name = "myvol"
+  name    = "myvol"
 }
+
+# resource "tg_cluster" "tf-cluster" {
+#   name = "tf-cluster"
+#   node {
+#     node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+#     active = true
+#   }
+#   node {
+#     node_id = "1234"
+#   }
+# }
+

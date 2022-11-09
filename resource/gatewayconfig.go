@@ -11,14 +11,19 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
+type gatewayConfig struct {
+}
+
 func GatewayConfig() *schema.Resource {
+	c := gatewayConfig{}
+
 	return &schema.Resource{
 		Description: "Node Gateway Config",
 
-		CreateContext: gatewayConfigCreate,
-		ReadContext:   gatewayConfigRead,
-		UpdateContext: gatewayConfigUpdate,
-		DeleteContext: gatewayConfigDelete,
+		CreateContext: c.Create,
+		ReadContext:   c.Read,
+		UpdateContext: c.Update,
+		DeleteContext: c.Delete,
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
@@ -52,40 +57,58 @@ func GatewayConfig() *schema.Resource {
 				ValidateFunc: validation.IsIPv4Address,
 			},
 			"port": {
-				Description:  "Host Port",
+				Description:  "Host port",
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"udp_port": {
-				Description:  "UDP Port",
+				Description:  "UDP port",
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"maxmbps": {
-				Description: "Max Gateway throughput",
+				Description: "Max gateway throughput",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Computed:    true,
 			},
 			"type": {
-				Description:  "Gateway Type (public, private, or hub)",
+				Description:  "Gateway type (public, private, or hub)",
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"public", "private", "hub"}, false),
 			},
+			"client": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Private gateway clients",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Client node name",
+						},
+						"enabled": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Client enabled",
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func gatewayConfigCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
-	gw := tg.GatewayConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
+	gw, err := gc.marshalResourceData(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -100,11 +123,10 @@ func gatewayConfigCreate(ctx context.Context, d *schema.ResourceData, meta inter
 	return diag.Diagnostics{}
 }
 
-func gatewayConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw := tg.GatewayConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
+	gw, err := gc.marshalResourceData(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -115,7 +137,7 @@ func gatewayConfigRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		return diag.FromErr(err)
 	}
 
-	if err := hcl.UnmarshalResourceData(&n.Config.Gateway, d); err != nil {
+	if err := gc.unmarshalResourceData(ctx, n.Config.Gateway, d); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(gw.NodeID)
@@ -126,15 +148,14 @@ func gatewayConfigRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	return diag.Diagnostics{}
 }
 
-func gatewayConfigUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return gatewayConfigCreate(ctx, d, meta)
+func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return gc.Create(ctx, d, meta)
 }
 
-func gatewayConfigDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw := tg.GatewayConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
+	gw, err := gc.marshalResourceData(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -145,4 +166,43 @@ func gatewayConfigDelete(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 
 	return diag.Diagnostics{}
+}
+
+func (gc *gatewayConfig) marshalResourceData(ctx context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {
+	gw := tg.GatewayConfig{}
+	err := hcl.MarshalResourceData(d, &gw)
+	if err != nil {
+		return gw, err
+	}
+
+	if clients, ok := d.Get("client").([]interface{}); ok {
+		for _, c := range clients {
+			client := c.(map[string]interface{})
+			gw.Clients = append(gw.Clients, tg.GatewayClient{
+				Name:    client["name"].(string),
+				Enabled: client["enabled"].(bool),
+			})
+		}
+	}
+
+	return gw, nil
+}
+
+func (gc *gatewayConfig) unmarshalResourceData(ctx context.Context, config tg.GatewayConfig, d *schema.ResourceData) error {
+	if err := hcl.UnmarshalResourceData(&config, d); err != nil {
+		return err
+	}
+
+	clients := make([]interface{}, 0)
+	for _, c := range config.Clients {
+		client := make(map[string]interface{})
+		client["name"] = c.Name
+		client["enabled"] = c.Enabled
+		clients = append(clients, client)
+	}
+	if err := d.Set("client", clients); err != nil {
+		return fmt.Errorf("clients=%+v error setting client: %w", clients, err)
+	}
+
+	return nil
 }
