@@ -67,7 +67,7 @@ func SNMP() *schema.Resource {
 				Computed:    true,
 			},
 			"port": {
-				Description: "Write Limit (IOPS/s)",
+				Description: "SNMP Port",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Computed:    true,

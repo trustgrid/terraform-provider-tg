@@ -24,6 +24,11 @@ func (snmp *SNMPConfig) ID() string {
 	return "snmp_" + snmp.NodeID
 }
 
+type GatewayClient struct {
+	Name    string `json:"name"`
+	Enabled bool   `json:"enabled"`
+}
+
 type GatewayConfig struct {
 	NodeID string `tf:"node_id" json:"-"`
 
@@ -37,6 +42,8 @@ type GatewayConfig struct {
 	UDPPort    int  `tf:"udp_port" json:"udpPort,omitempty"`
 
 	Cert string `tf:"cert" json:"cert,omitempty"`
+
+	Clients []GatewayClient `json:"clients,omitempty"`
 }
 
 type ZTNAConfig struct {
