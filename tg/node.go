@@ -59,6 +59,19 @@ type ZTNAConfig struct {
 	WireguardEnabled  bool   `tf:"wg_enabled" json:"wireguardEnabled"`
 }
 
+type ClusterConfig struct {
+	NodeID string `tf:"node_id" json:"-"`
+
+	Enabled bool   `tf:"enabled" json:"enabled"`
+	Host    string `tf:"host" json:"host"`
+	Port    int    `tf:"port" json:"port"`
+
+	StatusHost string `tf:"status_host" json:"statusHost,omitempty"`
+	StatusPort int    `tf:"status_port" json:"statusPort,omitempty"`
+
+	Active bool `tf:"active" json:"master"`
+}
+
 type Node struct {
 	UID     string            `json:"uid"`
 	Name    string            `json:"name"`
@@ -69,6 +82,7 @@ type Node struct {
 		Gateway GatewayConfig `json:"gateway"`
 		SNMP    SNMPConfig    `json:"snmp"`
 		ZTNA    ZTNAConfig    `json:"apigw"`
+		Cluster ClusterConfig `json:"cluster"`
 	} `json:"config"`
 }
 

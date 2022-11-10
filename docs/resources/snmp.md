@@ -26,7 +26,7 @@ Node SNMP
 - `enabled` (Boolean) SNMP Enabled
 - `engine_id` (String) Engine ID
 - `interface` (String) SNMP interface
-- `port` (Number) Write Limit (IOPS/s)
+- `port` (Number) SNMP Port
 - `privacy_passphrase` (String) Privacy passphrase
 - `privacy_protocol` (String) Privacy protocol (AES128/AES192/AES256/DES)
 - `username` (String) Username

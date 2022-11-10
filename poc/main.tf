@@ -108,6 +108,25 @@ resource "tg_ztna_gateway_config" "ztna1" {
 #  status_host = "whatever.com"
 #  status_port = 1234
 #}
+resource "tg_cluster" "cluster-1" {
+  name = "tf-cluster1"
+}
+
+resource "tg_cluster_member" "member-1" {
+  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+}
+
+resource "tg_node_cluster_config" "cluster-gossip" {
+  node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  host        = "10.10.10.10"
+  port        = 9090
+  status_host = "1.1.1.1"
+  status_port = 8080
+  enabled     = true
+  active      = true
+}
+
 
 # resource "tg_snmp" "global_snmp" {
 # 	for_each = data.tg_node.production.node_ids
