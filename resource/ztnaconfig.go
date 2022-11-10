@@ -126,14 +126,7 @@ func ztnaConfigUpdate(ctx context.Context, d *schema.ResourceData, meta interfac
 func ztnaConfigDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw := tg.ZTNAConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", gw.NodeID), map[string]any{"enabled": false, "wireguardEnabled": false})
-	if err != nil {
+	if err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", d.Id()), map[string]any{"enabled": false, "wireguardEnabled": false}); err != nil {
 		return diag.FromErr(err)
 	}
 

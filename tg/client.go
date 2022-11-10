@@ -48,7 +48,9 @@ func (tg *Client) Delete(ctx context.Context, url string, payload interface{}) e
 		return err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
 	req.Header.Set("Accept", "application/json")
 
@@ -80,7 +82,9 @@ func (tg *Client) Post(ctx context.Context, url string, payload interface{}) err
 		return err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
 	req.Header.Set("Accept", "application/json")
 
@@ -112,7 +116,9 @@ func (tg *Client) Put(ctx context.Context, url string, payload interface{}) erro
 		return err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
 	req.Header.Set("Accept", "application/json")
 
