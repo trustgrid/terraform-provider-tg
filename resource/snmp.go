@@ -82,7 +82,7 @@ func SNMP() *schema.Resource {
 	}
 }
 
-func snmpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	snmp := tg.SNMPConfig{}
 	err := hcl.MarshalResourceData(d, &snmp)
@@ -101,7 +101,7 @@ func snmpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func snmpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	snmp := tg.SNMPConfig{}
@@ -142,11 +142,11 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) dia
 	return diag.Diagnostics{}
 }
 
-func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return snmpCreate(ctx, d, meta)
 }
 
-func snmpDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	snmp := tg.SNMPConfig{}

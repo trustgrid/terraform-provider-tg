@@ -45,7 +45,7 @@ func Cert() *schema.Resource {
 	}
 }
 
-func certCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
@@ -62,7 +62,7 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func certUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
@@ -77,7 +77,7 @@ func certUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func certDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
@@ -92,7 +92,7 @@ func certDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func certRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	certs := make([]tg.Cert, 0)

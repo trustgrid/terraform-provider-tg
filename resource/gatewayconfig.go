@@ -106,7 +106,7 @@ func GatewayConfig() *schema.Resource {
 	}
 }
 
-func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	gw, err := gc.marshalResourceData(ctx, d)
 	if err != nil {
@@ -123,7 +123,7 @@ func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, met
 	return diag.Diagnostics{}
 }
 
-func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	gw, err := gc.marshalResourceData(ctx, d)
@@ -148,11 +148,11 @@ func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 	return diag.Diagnostics{}
 }
 
-func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return gc.Create(ctx, d, meta)
 }
 
-func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	gw, err := gc.marshalResourceData(ctx, d)
@@ -175,9 +175,9 @@ func (gc *gatewayConfig) marshalResourceData(ctx context.Context, d *schema.Reso
 		return gw, err
 	}
 
-	if clients, ok := d.Get("client").([]interface{}); ok {
+	if clients, ok := d.Get("client").([]any); ok {
 		for _, c := range clients {
-			client := c.(map[string]interface{})
+			client := c.(map[string]any)
 			gw.Clients = append(gw.Clients, tg.GatewayClient{
 				Name:    client["name"].(string),
 				Enabled: client["enabled"].(bool),
@@ -193,9 +193,9 @@ func (gc *gatewayConfig) unmarshalResourceData(ctx context.Context, config tg.Ga
 		return err
 	}
 
-	clients := make([]interface{}, 0)
+	clients := make([]any, 0)
 	for _, c := range config.Clients {
-		client := make(map[string]interface{})
+		client := make(map[string]any)
 		client["name"] = c.Name
 		client["enabled"] = c.Enabled
 		clients = append(clients, client)

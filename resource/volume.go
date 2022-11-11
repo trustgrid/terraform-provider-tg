@@ -65,7 +65,7 @@ func (vr *volume) volumeURL(v tg.Volume) string {
 	return vr.urlRoot(v) + "/" + v.Name
 }
 
-func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
@@ -82,7 +82,7 @@ func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta inter
 	return diag.Diagnostics{}
 }
 
-func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
@@ -97,7 +97,7 @@ func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta inter
 	return nil
 }
 
-func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
@@ -112,7 +112,7 @@ func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta inter
 	return diag.Diagnostics{}
 }
 
-func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}

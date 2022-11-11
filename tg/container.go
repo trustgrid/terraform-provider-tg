@@ -77,7 +77,7 @@ type Mount struct {
 	Dest   string `json:"dest"`
 }
 
-type VRF struct {
+type ContainerVRF struct {
 	Name string `json:"name"`
 }
 
@@ -95,7 +95,7 @@ type ContainerVirtualNetwork struct {
 }
 
 type ContainerConfig struct {
-	VRF *VRF
+	VRF *ContainerVRF
 
 	Capabilities struct {
 		AddCaps  []string `json:"addCaps"`

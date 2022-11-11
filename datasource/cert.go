@@ -25,7 +25,7 @@ func Cert() *schema.Resource {
 	}
 }
 
-func certRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	certs := make([]tg.Cert, 0)

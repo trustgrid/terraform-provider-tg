@@ -87,7 +87,7 @@ func (cr *clusterconfig) getConfig(ctx context.Context, tgc *tg.Client, uid stri
 	return &n.Config.Cluster, nil
 }
 
-func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	cc := tg.ClusterConfig{}
 	if err := hcl.MarshalResourceData(d, &cc); err != nil {
@@ -103,7 +103,7 @@ func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, met
 	return diag.Diagnostics{}
 }
 
-func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
@@ -130,7 +130,7 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 	return diag.Diagnostics{}
 }
 
-func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	existing, err := cr.getConfig(ctx, tgc, d.Id())
 	if err != nil {
@@ -150,7 +150,7 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 	return diag.Diagnostics{}
 }
 
-func (cr *clusterconfig) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *clusterconfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
 	if err != nil {

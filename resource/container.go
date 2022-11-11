@@ -555,9 +555,9 @@ func (cr *container) unmarshalResourceData(ctx context.Context, c tg.Container, 
 		return err
 	}
 
-	mounts := make([]interface{}, 0)
+	mounts := make([]any, 0)
 	for _, m := range c.Config.Mounts {
-		mount := make(map[string]interface{})
+		mount := make(map[string]any)
 		mount["uid"] = m.UID
 		mount["type"] = m.Type
 		mount["source"] = m.Source
@@ -568,9 +568,9 @@ func (cr *container) unmarshalResourceData(ctx context.Context, c tg.Container, 
 		return fmt.Errorf("error setting mounts: %w", err)
 	}
 
-	mappings := make([]interface{}, 0)
+	mappings := make([]any, 0)
 	for _, m := range c.Config.PortMappings {
-		mapping := make(map[string]interface{})
+		mapping := make(map[string]any)
 		mapping["uid"] = m.UID
 		mapping["protocol"] = m.Protocol
 		mapping["iface"] = m.IFace
@@ -582,9 +582,9 @@ func (cr *container) unmarshalResourceData(ctx context.Context, c tg.Container, 
 		return fmt.Errorf("error setting port mappings: %w", err)
 	}
 
-	vnets := make([]interface{}, 0)
+	vnets := make([]any, 0)
 	for _, m := range c.Config.VirtualNetworks {
-		vnet := make(map[string]interface{})
+		vnet := make(map[string]any)
 		vnet["uid"] = m.UID
 		vnet["network"] = m.Network
 		vnet["ip"] = m.IP
@@ -595,9 +595,9 @@ func (cr *container) unmarshalResourceData(ctx context.Context, c tg.Container, 
 		return fmt.Errorf("error setting virtual_network: %w", err)
 	}
 
-	ifaces := make([]interface{}, 0)
+	ifaces := make([]any, 0)
 	for _, m := range c.Config.Interfaces {
-		iface := make(map[string]interface{})
+		iface := make(map[string]any)
 		iface["uid"] = m.UID
 		iface["name"] = m.Name
 		iface["dest"] = m.Dest
@@ -616,14 +616,14 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 		return ct, err
 	}
 
-	images, ok := d.Get("image").([]interface{})
+	images, ok := d.Get("image").([]any)
 	if !ok {
 		return ct, fmt.Errorf("error getting image")
 	}
 	if len(images) == 0 {
 		return ct, fmt.Errorf("no image specified")
 	}
-	image := images[0].(map[string]interface{})
+	image := images[0].(map[string]any)
 
 	ct.Image.Tag = image["tag"].(string)
 	ct.Image.Repository = image["repository"].(string)
@@ -631,21 +631,21 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 
 	cc.Capabilities.AddCaps = make([]string, 0)
 	if caps, ok := d.GetOk("add_caps"); ok {
-		for _, c := range caps.([]interface{}) {
+		for _, c := range caps.([]any) {
 			cc.Capabilities.AddCaps = append(cc.Capabilities.AddCaps, c.(string))
 		}
 	}
 
 	cc.Capabilities.DropCaps = make([]string, 0)
 	if caps, ok := d.GetOk("drop_caps"); ok {
-		for _, c := range caps.([]interface{}) {
+		for _, c := range caps.([]any) {
 			cc.Capabilities.DropCaps = append(cc.Capabilities.DropCaps, c.(string))
 		}
 	}
 
 	cc.Variables = make([]tg.ContainerVar, 0)
 	if vars, ok := d.GetOk("variables"); ok {
-		for k, v := range vars.(map[string]interface{}) {
+		for k, v := range vars.(map[string]any) {
 			cc.Variables = append(cc.Variables, tg.ContainerVar{Name: k, Value: v.(string)})
 		}
 	}
@@ -658,9 +658,9 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 		cc.Logging.NumFiles = lnf.(int)
 	}
 
-	healthchecks, ok := d.Get("healthcheck").([]interface{})
+	healthchecks, ok := d.Get("healthcheck").([]any)
 	if ok && len(healthchecks) > 0 {
-		healthcheck := healthchecks[0].(map[string]interface{})
+		healthcheck := healthchecks[0].(map[string]any)
 		cc.HealthCheck = &tg.HealthCheck{
 			Command:     healthcheck["command"].(string),
 			Interval:    healthcheck["interval"].(int),
@@ -670,9 +670,9 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 		}
 	}
 
-	limits, ok := d.Get("limits").([]interface{})
+	limits, ok := d.Get("limits").([]any)
 	if ok && len(limits) > 0 {
-		limit := limits[0].(map[string]interface{})
+		limit := limits[0].(map[string]any)
 		cc.Limits = &tg.ContainerLimits{
 			CPUMax:  limit["cpu_max"].(int),
 			IORBPS:  limit["io_rbps"].(int),
@@ -682,9 +682,9 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 			MemMax:  limit["mem_max"].(int),
 			MemHigh: limit["mem_high"].(int),
 		}
-		if limits, ok := limit["limits"].([]interface{}); ok {
+		if limits, ok := limit["limits"].([]any); ok {
 			for _, l := range limits {
-				limit := l.(map[string]interface{})
+				limit := l.(map[string]any)
 				cc.Limits.Limits = append(cc.Limits.Limits, tg.ULimit{
 					Type: limit["type"].(string),
 					Hard: limit["hard"].(int),
@@ -695,9 +695,9 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 	}
 
 	cc.Mounts = make([]tg.Mount, 0)
-	if mounts, ok := d.Get("mount").([]interface{}); ok {
+	if mounts, ok := d.Get("mount").([]any); ok {
 		for _, m := range mounts {
-			mount := m.(map[string]interface{})
+			mount := m.(map[string]any)
 			_, ok := mount["uid"]
 			if !ok {
 				mount["uid"] = uuid.NewString()
@@ -715,9 +715,9 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 	}
 
 	cc.PortMappings = make([]tg.PortMapping, 0)
-	if mappings, ok := d.Get("port_mapping").([]interface{}); ok {
+	if mappings, ok := d.Get("port_mapping").([]any); ok {
 		for _, m := range mappings {
-			mapping := m.(map[string]interface{})
+			mapping := m.(map[string]any)
 			_, ok := mapping["uid"]
 			if !ok {
 				mapping["uid"] = uuid.NewString()
@@ -736,9 +736,9 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 	}
 
 	cc.VirtualNetworks = make([]tg.ContainerVirtualNetwork, 0)
-	if vnets, ok := d.Get("virtual_network").([]interface{}); ok {
+	if vnets, ok := d.Get("virtual_network").([]any); ok {
 		for _, m := range vnets {
-			vnet := m.(map[string]interface{})
+			vnet := m.(map[string]any)
 			_, ok := vnet["uid"]
 			if !ok {
 				vnet["uid"] = uuid.NewString()
@@ -756,9 +756,9 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 	}
 
 	cc.Interfaces = make([]tg.ContainerInterface, 0)
-	if ifaces, ok := d.Get("interface").([]interface{}); ok {
+	if ifaces, ok := d.Get("interface").([]any); ok {
 		for _, i := range ifaces {
-			iface := i.(map[string]interface{})
+			iface := i.(map[string]any)
 			_, ok := iface["uid"]
 			if !ok {
 				iface["uid"] = uuid.NewString()
@@ -775,13 +775,13 @@ func (cr *container) marshalResourceData(ctx context.Context, d *schema.Resource
 	}
 
 	if vrf, ok := d.GetOk("vrf"); ok {
-		cc.VRF = &tg.VRF{Name: vrf.(string)}
+		cc.VRF = &tg.ContainerVRF{Name: vrf.(string)}
 	}
 
 	return ct, nil
 }
 
-func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	ct, err := cr.marshalResourceData(ctx, d)
@@ -804,7 +804,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta in
 	return diag.Diagnostics{}
 }
 
-func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	ct, err := cr.marshalResourceData(ctx, d)
@@ -823,7 +823,7 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta in
 	return nil
 }
 
-func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	ct, err := cr.marshalResourceData(ctx, d)
@@ -838,7 +838,7 @@ func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta in
 	return diag.Diagnostics{}
 }
 
-func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	ct, err := cr.marshalResourceData(ctx, d)
