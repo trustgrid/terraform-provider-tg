@@ -2,6 +2,9 @@ package tg
 
 // Cluster represents a TG API cluster
 type Cluster struct {
-	Name string `json:"name,omitempty"`
-	FQDN string `json:"fqdn,omitempty"`
+	Name   string `json:"name,omitempty"`
+	FQDN   string `json:"fqdn,omitempty"`
+	Config struct {
+		Network NetworkConfig `json:"network"`
+	} `json:"config"`
 }

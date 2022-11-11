@@ -26,9 +26,18 @@ func NetworkConfig() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node UID",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Node ID",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
+			},
+			"cluster_fqdn": {
+				Description:  "Cluster FQDN",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"dark_mode": {
 				Description: "Dark mode",
@@ -692,6 +701,18 @@ func (nr *network) marshalResourceData(ctx context.Context, d *schema.ResourceDa
 	return nc, nil
 }
 
+func (nr *network) endpoint(d *schema.ResourceData) (id string, isCluster bool) {
+	nodeid, ok := d.GetOk("node_id")
+	isCluster = false
+	if !ok || nodeid == "" {
+		id = d.Get("cluster_fqdn").(string)
+		isCluster = true
+		return
+	}
+	id = nodeid.(string)
+	return
+}
+
 func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	nc, err := nr.marshalResourceData(ctx, d)
@@ -699,12 +720,19 @@ func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/network", nc.NodeID), &nc)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	id, isCluster := nr.endpoint(d)
 
-	d.SetId(nc.NodeID)
+	if isCluster {
+		err = tgc.Put(ctx, fmt.Sprintf("/cluster/%s/config/network", id), &nc)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/network", id), &nc)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
 
 	return diag.Diagnostics{}
 }
@@ -712,19 +740,31 @@ func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any)
 func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	n := tg.Node{}
-	if err := tgc.Get(ctx, "/node/"+d.Id(), &n); err != nil {
-		return diag.FromErr(err)
-	}
+	id, isCluster := nr.endpoint(d)
 
-	if err := nr.unmarshalResourceData(ctx, n.Config.Network, d); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("node_id", d.Id()); err != nil {
-		return diag.FromErr(err)
-	}
+	if isCluster {
+		n := tg.Cluster{}
+		if err := tgc.Get(ctx, "/cluster/"+id, &n); err != nil {
+			return diag.FromErr(fmt.Errorf("cannot lookup cluster id=%s isCluster=%t %w", id, isCluster, err))
+		}
 
-	return diag.Diagnostics{}
+		if err := nr.unmarshalResourceData(ctx, n.Config.Network, d); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return diag.Diagnostics{}
+	} else {
+		n := tg.Node{}
+		if err := tgc.Get(ctx, "/node/"+id, &n); err != nil {
+			return diag.FromErr(err)
+		}
+
+		if err := nr.unmarshalResourceData(ctx, n.Config.Network, d); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return diag.Diagnostics{}
+	}
 }
 
 func (nr *network) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

@@ -157,8 +157,6 @@ type VRF struct {
 }
 
 type NetworkConfig struct {
-	NodeID string `tf:"node_id" json:"-"`
-
 	DarkMode   bool `tf:"dark_mode" json:"darkMode"`
 	Forwarding bool `tf:"forwarding" json:"forwarding"`
 
@@ -180,7 +178,7 @@ type Node struct {
 		SNMP    SNMPConfig    `json:"snmp"`
 		ZTNA    ZTNAConfig    `json:"apigw"`
 		Cluster ClusterConfig `json:"cluster"`
-		Network NetworkConfig
+		Network NetworkConfig `json:"network"`
 	} `json:"config"`
 }
 
