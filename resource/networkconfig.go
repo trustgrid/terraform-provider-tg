@@ -13,6 +13,97 @@ import (
 
 type network struct{}
 
+type HCLNetworkTunnel struct {
+	Enabled       bool   `tf:"enabled"`
+	Name          string `tf:"name"`
+	IKE           int    `tf:"ike,omitempty"`
+	IKECipher     string `tf:"ike_cipher,omitempty"`
+	IKEGroup      int    `tf:"ike_group,omitempty"`
+	RekeyInterval int    `tf:"rekey_interval,omitempty"`
+	IP            string `tf:"ip,omitempty"`
+	Destination   string `tf:"destination,omitempty"`
+	IPSecCipher   string `tf:"ipsec_cipher,omitempty"`
+	PSK           string `tf:"psk,omitempty"`
+	VRF           string `tf:"vrf,omitempty"`
+	Type          string `tf:"type"`
+	MTU           int    `tf:"mtu"`
+	NetworkID     int    `tf:"network_id"`
+	LocalID       string `tf:"local_id,omitempty"`
+	RemoteID      string `tf:"remote_id,omitempty"`
+	DPDRetries    int    `tf:"dpd_retries,omitempty"`
+	DPDInterval   int    `tf:"dpd_interval,omitempty"`
+	IFace         string `tf:"iface,omitempty"`
+	PFS           int    `tf:"pfs"`
+	ReplayWindow  int    `tf:"replay_window,omitempty"`
+}
+
+type HCLNetworkInterface struct {
+	NIC       string   `tf:"nic"`
+	Routes    []string `tf:"routes,omitempty"`
+	ClusterIP string   `tf:"cluster_ip,omitempty"`
+	DHCP      bool     `tf:"dhcp"`
+	Gateway   string   `tf:"gateway"`
+	IP        string   `tf:"ip"`
+	Mode      string   `tf:"mode,omitempty"`
+	DNS       []string `tf:"dns,omitempty"`
+	Duplex    string   `tf:"duplex,omitempty"`
+	Speed     int      `tf:"speed,omitempty"`
+}
+
+type HCLVRFACL struct {
+	Action      string `tf:"action"`
+	Description string `tf:"description"`
+	Protocol    string `tf:"protocol"`
+	Source      string `tf:"source"`
+	Dest        string `tf:"dest"`
+	Line        int    `tf:"line"`
+}
+
+type HCLVRFRoute struct {
+	Dest        string `tf:"dest"`
+	Dev         string `tf:"dev"`
+	Description string `tf:"description"`
+	Metric      int    `tf:"metric"`
+}
+
+type HCLVRFNAT struct {
+	Source     string `tf:"source,omitempty"`
+	Dest       string `tf:"dest,omitempty"`
+	Masquerade bool   `tf:"masquerade"`
+	ToSource   string `tf:"to_source,omitempty"`
+	ToDest     string `tf:"to_dest,omitempty"`
+}
+
+type HCLVRFRule struct {
+	Protocol    string `tf:"protocol"`
+	Line        int    `tf:"line"`
+	Action      string `tf:"action"`
+	Description string `tf:"description,omitempty"`
+	Source      string `tf:"source,omitempty"`
+	VRF         string `tf:"vrf,omitempty"`
+	Dest        string `tf:"dest,omitempty"`
+}
+
+type HCLVRF struct {
+	Name       string        `tf:"name"`
+	Forwarding bool          `tf:"forwarding"`
+	ACLs       []HCLVRFACL   `tf:"acls,omitempty"`
+	Routes     []HCLVRFRoute `tf:"routes,omitempty"`
+	NATs       []HCLVRFNAT   `tf:"nats,omitempty"`
+	Rules      []HCLVRFRule  `tf:"rules,omitempty"`
+}
+
+type HCLNetworkConfigData struct {
+	DarkMode   bool `tf:"dark_mode"`
+	Forwarding bool `tf:"forwarding"`
+
+	Tunnels []HCLNetworkTunnel `tf:"tunnel"`
+
+	Interfaces []HCLNetworkInterface `tf:"interface"`
+
+	VRFs []HCLVRF
+}
+
 func NetworkConfig() *schema.Resource {
 	n := network{}
 
@@ -435,97 +526,6 @@ func NetworkConfig() *schema.Resource {
 	}
 }
 
-type HCLNetworkTunnel struct {
-	Enabled       bool   `tf:"enabled"`
-	Name          string `tf:"name"`
-	IKE           int    `tf:"ike,omitempty"`
-	IKECipher     string `tf:"ike_cipher,omitempty"`
-	IKEGroup      int    `tf:"ike_group,omitempty"`
-	RekeyInterval int    `tf:"rekey_interval,omitempty"`
-	IP            string `tf:"ip,omitempty"`
-	Destination   string `tf:"destination,omitempty"`
-	IPSecCipher   string `tf:"ipsec_cipher,omitempty"`
-	PSK           string `tf:"psk,omitempty"`
-	VRF           string `tf:"vrf,omitempty"`
-	Type          string `tf:"type"`
-	MTU           int    `tf:"mtu"`
-	NetworkID     int    `tf:"network_id"`
-	LocalID       string `tf:"local_id,omitempty"`
-	RemoteID      string `tf:"remote_id,omitempty"`
-	DPDRetries    int    `tf:"dpd_retries,omitempty"`
-	DPDInterval   int    `tf:"dpd_interval,omitempty"`
-	IFace         string `tf:"iface,omitempty"`
-	PFS           int    `tf:"pfs"`
-	ReplayWindow  int    `tf:"replay_window,omitempty"`
-}
-
-type HCLNetworkInterface struct {
-	NIC       string   `tf:"nic"`
-	Routes    []string `tf:"routes,omitempty"`
-	ClusterIP string   `tf:"cluster_ip,omitempty"`
-	DHCP      bool     `tf:"dhcp"`
-	Gateway   string   `tf:"gateway"`
-	IP        string   `tf:"ip"`
-	Mode      string   `tf:"mode,omitempty"`
-	DNS       []string `tf:"dns,omitempty"`
-	Duplex    string   `tf:"duplex,omitempty"`
-	Speed     int      `tf:"speed,omitempty"`
-}
-
-type HCLVRFACL struct {
-	Action      string `tf:"action"`
-	Description string `tf:"description"`
-	Protocol    string `tf:"protocol"`
-	Source      string `tf:"source"`
-	Dest        string `tf:"dest"`
-	Line        int    `tf:"line"`
-}
-
-type HCLVRFRoute struct {
-	Dest        string `tf:"dest"`
-	Dev         string `tf:"dev"`
-	Description string `tf:"description"`
-	Metric      int    `tf:"metric"`
-}
-
-type HCLVRFNAT struct {
-	Source     string `tf:"source,omitempty"`
-	Dest       string `tf:"dest,omitempty"`
-	Masquerade bool   `tf:"masquerade"`
-	ToSource   string `tf:"to_source,omitempty"`
-	ToDest     string `tf:"to_dest,omitempty"`
-}
-
-type HCLVRFRule struct {
-	Protocol    string `tf:"protocol"`
-	Line        int    `tf:"line"`
-	Action      string `tf:"action"`
-	Description string `tf:"description,omitempty"`
-	Source      string `tf:"source,omitempty"`
-	VRF         string `tf:"vrf,omitempty"`
-	Dest        string `tf:"dest,omitempty"`
-}
-
-type HCLVRF struct {
-	Name       string        `tf:"name"`
-	Forwarding bool          `tf:"forwarding"`
-	ACLs       []HCLVRFACL   `tf:"acls,omitempty"`
-	Routes     []HCLVRFRoute `tf:"routes,omitempty"`
-	NATs       []HCLVRFNAT   `tf:"nats,omitempty"`
-	Rules      []HCLVRFRule  `tf:"rules,omitempty"`
-}
-
-type HCLNetworkConfigData struct {
-	DarkMode   bool `tf:"dark_mode"`
-	Forwarding bool `tf:"forwarding"`
-
-	Tunnels []HCLNetworkTunnel `tf:"tunnel"`
-
-	Interfaces []HCLNetworkInterface `tf:"interface"`
-
-	VRFs []HCLVRF
-}
-
 func (nr *network) convertToTFConfig(ctx context.Context, c tg.NetworkConfig, d *schema.ResourceData) error {
 	nc := HCLNetworkConfigData{
 		DarkMode:   c.DarkMode,
@@ -626,11 +626,7 @@ func (nr *network) convertToTFConfig(ctx context.Context, c tg.NetworkConfig, d 
 		}
 	}
 
-	if err := hcl.EncodeResourceData(&nc, d); err != nil {
-		return err
-	}
-
-	return nil
+	return hcl.EncodeResourceData(&nc, d)
 }
 
 func (nr *network) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.NetworkConfig, error) {

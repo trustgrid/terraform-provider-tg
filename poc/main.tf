@@ -148,7 +148,6 @@ resource "tg_network_config" "network-1" {
     destination    = "54.79.135.160"
     ipsec_cipher   = "aes128-sha1"
     dpd_retries    = 3
-    psk            = "3F6s1rTw9vfTLEMwa5oFVYWrUxxzqSSgfmvC9J0YTyw="
     vrf            = "customer1"
     type           = "ipsec"
     local_id       = "34.233.156.148"

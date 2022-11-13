@@ -15,6 +15,98 @@ import (
 type container struct {
 }
 
+type HCLContainerImage struct {
+	Repository string `tf:"repository"`
+	Tag        string `tf:"tag"`
+}
+
+type HCLContainerHealthCheck struct {
+	Command     string `tf:"command"`
+	Interval    int    `tf:"interval"`
+	Timeout     int    `tf:"timeout"`
+	StartPeriod int    `tf:"start_period"`
+	Retries     int    `tf:"retries"`
+}
+
+type HCLContainerULimit struct {
+	Type string `tf:"type"`
+	Hard int    `tf:"hard"`
+	Soft int    `tf:"soft"`
+}
+
+type HCLContainerLimit struct {
+	CPUMax  int `tf:"cpu_max"`
+	IORBPS  int `tf:"io_rbps"`
+	IOWBPS  int `tf:"io_wbps"`
+	IORIOPS int `tf:"io_riops"`
+	IOWIOPS int `tf:"io_wiops"`
+	MemMax  int `tf:"mem_max"`
+	MemHigh int `tf:"mem_high"`
+
+	Limits []HCLContainerULimit `tf:"limits"`
+}
+
+type HCLContainerMount struct {
+	UID    string `tf:"uid"`
+	Type   string `tf:"type"`
+	Source string `tf:"source"`
+	Dest   string `tf:"dest"`
+}
+
+type HCLContainerPortMapping struct {
+	UID           string `tf:"uid"`
+	Protocol      string `tf:"protocol"`
+	IFace         string `tf:"iface"`
+	HostPort      int    `tf:"host_port"`
+	ContainerPort int    `tf:"container_port"`
+}
+
+type HCLContainerVirtualNetwork struct {
+	UID           string `tf:"uid"`
+	Network       string `tf:"network"`
+	IP            string `tf:"ip"`
+	AllowOutbound bool   `tf:"allow_outbound"`
+}
+
+type HCLContainerInterface struct {
+	UID  string `tf:"uid"`
+	Name string `tf:"name"`
+	Dest string `tf:"dest"`
+}
+
+type HCLContainer struct {
+	NodeID              string              `tf:"node_id"`
+	ClusterFQDN         string              `tf:"cluster_fqdn"`
+	ID                  string              `tf:"id"`
+	Command             string              `tf:"command"`
+	Description         string              `tf:"description"`
+	Enabled             bool                `tf:"enabled"`
+	ExecType            string              `tf:"exec_type"`
+	Hostname            string              `tf:"hostname"`
+	Image               []HCLContainerImage `tf:"image"`
+	Name                string              `tf:"name"`
+	Privileged          bool                `tf:"privileged"`
+	RequireConnectivity bool                `tf:"require_connectivity"`
+	StopTime            int                 `tf:"stop_time"`
+	UseInit             bool                `tf:"use_init"`
+	User                string              `tf:"user"`
+	VRF                 string              `tf:"vrf"`
+
+	AddCaps      []string                  `tf:"add_caps"`
+	DropCaps     []string                  `tf:"drop_caps"`
+	Variables    map[string]string         `tf:"variables"`
+	Healthchecks []HCLContainerHealthCheck `tf:"healthcheck"`
+
+	LogMaxFileSize int `tf:"log_max_file_size"`
+	LogMaxNumFiles int `tf:"log_max_num_files"`
+
+	Limits          []HCLContainerLimit          `tf:"limits"`
+	Mounts          []HCLContainerMount          `tf:"mount"`
+	PortMappings    []HCLContainerPortMapping    `tf:"port_mapping"`
+	VirtualNetworks []HCLContainerVirtualNetwork `tf:"virtual_network"`
+	Interfaces      []HCLContainerInterface      `tf:"interface"`
+}
+
 func Container() *schema.Resource {
 	c := container{}
 
@@ -661,98 +753,6 @@ func (cr *container) convertToTFConfig(ctx context.Context, c tg.Container, d *s
 	}
 
 	return hcl.EncodeResourceData(&c, d)
-}
-
-type HCLContainerImage struct {
-	Repository string `tf:"repository"`
-	Tag        string `tf:"tag"`
-}
-
-type HCLContainerHealthCheck struct {
-	Command     string `tf:"command"`
-	Interval    int    `tf:"interval"`
-	Timeout     int    `tf:"timeout"`
-	StartPeriod int    `tf:"start_period"`
-	Retries     int    `tf:"retries"`
-}
-
-type HCLContainerULimit struct {
-	Type string `tf:"type"`
-	Hard int    `tf:"hard"`
-	Soft int    `tf:"soft"`
-}
-
-type HCLContainerLimit struct {
-	CPUMax  int `tf:"cpu_max"`
-	IORBPS  int `tf:"io_rbps"`
-	IOWBPS  int `tf:"io_wbps"`
-	IORIOPS int `tf:"io_riops"`
-	IOWIOPS int `tf:"io_wiops"`
-	MemMax  int `tf:"mem_max"`
-	MemHigh int `tf:"mem_high"`
-
-	Limits []HCLContainerULimit `tf:"limits"`
-}
-
-type HCLContainerMount struct {
-	UID    string `tf:"uid"`
-	Type   string `tf:"type"`
-	Source string `tf:"source"`
-	Dest   string `tf:"dest"`
-}
-
-type HCLContainerPortMapping struct {
-	UID           string `tf:"uid"`
-	Protocol      string `tf:"protocol"`
-	IFace         string `tf:"iface"`
-	HostPort      int    `tf:"host_port"`
-	ContainerPort int    `tf:"container_port"`
-}
-
-type HCLContainerVirtualNetwork struct {
-	UID           string `tf:"uid"`
-	Network       string `tf:"network"`
-	IP            string `tf:"ip"`
-	AllowOutbound bool   `tf:"allow_outbound"`
-}
-
-type HCLContainerInterface struct {
-	UID  string `tf:"uid"`
-	Name string `tf:"name"`
-	Dest string `tf:"dest"`
-}
-
-type HCLContainer struct {
-	NodeID              string              `tf:"node_id"`
-	ClusterFQDN         string              `tf:"cluster_fqdn"`
-	ID                  string              `tf:"id"`
-	Command             string              `tf:"command"`
-	Description         string              `tf:"description"`
-	Enabled             bool                `tf:"enabled"`
-	ExecType            string              `tf:"exec_type"`
-	Hostname            string              `tf:"hostname"`
-	Image               []HCLContainerImage `tf:"image"`
-	Name                string              `tf:"name"`
-	Privileged          bool                `tf:"privileged"`
-	RequireConnectivity bool                `tf:"require_connectivity"`
-	StopTime            int                 `tf:"stop_time"`
-	UseInit             bool                `tf:"use_init"`
-	User                string              `tf:"user"`
-	VRF                 string              `tf:"vrf"`
-
-	AddCaps      []string                  `tf:"add_caps"`
-	DropCaps     []string                  `tf:"drop_caps"`
-	Variables    map[string]string         `tf:"variables"`
-	Healthchecks []HCLContainerHealthCheck `tf:"healthcheck"`
-
-	LogMaxFileSize int `tf:"log_max_file_size"`
-	LogMaxNumFiles int `tf:"log_max_num_files"`
-
-	Limits          []HCLContainerLimit          `tf:"limits"`
-	Mounts          []HCLContainerMount          `tf:"mount"`
-	PortMappings    []HCLContainerPortMapping    `tf:"port_mapping"`
-	VirtualNetworks []HCLContainerVirtualNetwork `tf:"virtual_network"`
-	Interfaces      []HCLContainerInterface      `tf:"interface"`
 }
 
 func (cr *container) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.Container, error) {
