@@ -78,7 +78,7 @@ func ZTNAConfig() *schema.Resource {
 func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	gw := tg.ZTNAConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
+	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -97,7 +97,7 @@ func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	tgc := meta.(*tg.Client)
 
 	gw := tg.ZTNAConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
+	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -108,13 +108,10 @@ func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	if err := hcl.UnmarshalResourceData(&n.Config.ZTNA, d); err != nil {
+	if err := hcl.EncodeResourceData(&n.Config.ZTNA, d); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(gw.NodeID)
-	if err := d.Set("node_id", gw.NodeID); err != nil {
-		return diag.FromErr(err)
-	}
 
 	return diag.Diagnostics{}
 }

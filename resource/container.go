@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -550,241 +549,345 @@ func (cr *container) writeExtendedConfig(ctx context.Context, tgc *tg.Client, c 
 	return tgc.Put(ctx, cr.containerURL(tgc, c)+"/config", c.Config)
 }
 
-func (cr *container) unmarshalResourceData(ctx context.Context, c tg.Container, d *schema.ResourceData) error {
-	if err := hcl.UnmarshalResourceData(&c, d); err != nil {
-		return err
+func (cr *container) convertToTFConfig(ctx context.Context, c tg.Container, d *schema.ResourceData) error {
+	tfc := HCLContainer{
+		NodeID:      c.NodeID,
+		ClusterFQDN: c.ClusterFQDN,
+		ID:          c.ID,
+		Command:     c.Command,
+		Description: c.Description,
+		Enabled:     c.Enabled,
+		ExecType:    c.ExecType,
+		Hostname:    c.Hostname,
+		Image: []HCLContainerImage{
+			{Repository: c.Image.Repository, Tag: c.Image.Tag},
+		},
+		Name:                c.Name,
+		Privileged:          c.Privileged,
+		RequireConnectivity: c.RequireConnectivity,
+		StopTime:            c.StopTime,
+		UseInit:             c.UseInit,
+		User:                c.User,
+		Variables:           make(map[string]string),
 	}
 
-	mounts := make([]any, 0)
+	if c.Config.VRF != nil {
+		tfc.VRF = c.Config.VRF.Name
+	}
+
+	tfc.AddCaps = append(tfc.AddCaps, c.Config.Capabilities.AddCaps...)
+	tfc.DropCaps = append(tfc.AddCaps, c.Config.Capabilities.DropCaps...)
+
+	for _, v := range c.Config.Variables {
+		tfc.Variables[v.Name] = v.Value
+	}
+
+	if c.Config.HealthCheck != nil {
+		hc := c.Config.HealthCheck
+		tfc.Healthcheck = []HCLContainerHealthCheck{
+			{
+				Command:     hc.Command,
+				Interval:    hc.Interval,
+				Timeout:     hc.Timeout,
+				StartPeriod: hc.StartPeriod,
+				Retries:     hc.Retries,
+			},
+		}
+	}
+
+	if c.Config.Logging.MaxFileSize > 0 {
+		tfc.LogMaxFileSize = c.Config.Logging.MaxFileSize
+	}
+	if c.Config.Logging.NumFiles > 0 {
+		tfc.LogMaxNumFiles = c.Config.Logging.NumFiles
+	}
+
+	if c.Config.Limits != nil {
+		limits := c.Config.Limits
+		tlimit := HCLContainerLimit{
+			CPUMax:  limits.CPUMax,
+			IORBPS:  limits.IORBPS,
+			IORIOPS: limits.IORIOPS,
+			IOWBPS:  limits.IOWBPS,
+			IOWIOPS: limits.IOWIOPS,
+			MemMax:  limits.MemMax,
+			MemHigh: limits.MemHigh,
+		}
+
+		for _, l := range limits.Limits {
+			tlimit.Limits = append(tlimit.Limits, HCLContainerULimit{
+				Type: l.Type,
+				Hard: l.Hard,
+				Soft: l.Soft,
+			})
+		}
+		tfc.Limits = []HCLContainerLimit{tlimit}
+	}
+
 	for _, m := range c.Config.Mounts {
-		mount := make(map[string]any)
-		mount["uid"] = m.UID
-		mount["type"] = m.Type
-		mount["source"] = m.Source
-		mount["dest"] = m.Dest
-		mounts = append(mounts, mount)
-	}
-	if err := d.Set("mount", mounts); err != nil {
-		return fmt.Errorf("error setting mounts: %w", err)
+		tfc.Mounts = append(tfc.Mounts, HCLContainerMount{
+			UID:    m.UID,
+			Type:   m.Type,
+			Source: m.Source,
+			Dest:   m.Dest,
+		})
 	}
 
-	mappings := make([]any, 0)
-	for _, m := range c.Config.PortMappings {
-		mapping := make(map[string]any)
-		mapping["uid"] = m.UID
-		mapping["protocol"] = m.Protocol
-		mapping["iface"] = m.IFace
-		mapping["host_port"] = m.HostPort
-		mapping["container_port"] = m.ContainerPort
-		mappings = append(mappings, mapping)
-	}
-	if err := d.Set("port_mapping", mappings); err != nil {
-		return fmt.Errorf("error setting port mappings: %w", err)
+	for _, pm := range c.Config.PortMappings {
+		tfc.PortMappings = append(tfc.PortMappings, HCLContainerPortMapping{
+			UID:           pm.UID,
+			Protocol:      pm.Protocol,
+			IFace:         pm.IFace,
+			HostPort:      pm.HostPort,
+			ContainerPort: pm.ContainerPort,
+		})
 	}
 
-	vnets := make([]any, 0)
-	for _, m := range c.Config.VirtualNetworks {
-		vnet := make(map[string]any)
-		vnet["uid"] = m.UID
-		vnet["network"] = m.Network
-		vnet["ip"] = m.IP
-		vnet["allow_outbound"] = m.AllowOutbound
-		vnets = append(vnets, vnet)
-	}
-	if err := d.Set("virtual_network", vnets); err != nil {
-		return fmt.Errorf("error setting virtual_network: %w", err)
+	for _, vnet := range c.Config.VirtualNetworks {
+		tfc.VirtualNetworks = append(tfc.VirtualNetworks, HCLContainerVirtualNetwork{
+			UID:           vnet.UID,
+			Network:       vnet.Network,
+			IP:            vnet.IP,
+			AllowOutbound: vnet.AllowOutbound,
+		})
 	}
 
-	ifaces := make([]any, 0)
-	for _, m := range c.Config.Interfaces {
-		iface := make(map[string]any)
-		iface["uid"] = m.UID
-		iface["name"] = m.Name
-		iface["dest"] = m.Dest
-		ifaces = append(ifaces, iface)
+	for _, i := range c.Config.Interfaces {
+		tfc.Interfaces = append(tfc.Interfaces, HCLContainerInterface{
+			UID:  i.UID,
+			Name: i.Name,
+			Dest: i.Dest,
+		})
 	}
-	if err := d.Set("interface", ifaces); err != nil {
-		return fmt.Errorf("error setting interface: %w", err)
-	}
-	return nil
+
+	return hcl.EncodeResourceData(&c, d)
 }
 
-func (cr *container) marshalResourceData(ctx context.Context, d *schema.ResourceData) (tg.Container, error) {
-	ct := tg.Container{}
+type HCLContainerImage struct {
+	Repository string `tf:"repository"`
+	Tag        string `tf:"tag"`
+}
 
-	if err := hcl.MarshalResourceData(d, &ct); err != nil {
-		return ct, err
+type HCLContainerHealthCheck struct {
+	Command     string `tf:"command"`
+	Interval    int    `tf:"interval"`
+	Timeout     int    `tf:"timeout"`
+	StartPeriod int    `tf:"start_period"`
+	Retries     int    `tf:"retries"`
+}
+
+type HCLContainerULimit struct {
+	Type string `tf:"type"`
+	Hard int    `tf:"hard"`
+	Soft int    `tf:"soft"`
+}
+
+type HCLContainerLimit struct {
+	CPUMax  int `tf:"cpu_max"`
+	IORBPS  int `tf:"io_rbps"`
+	IOWBPS  int `tf:"io_wbps"`
+	IORIOPS int `tf:"io_riops"`
+	IOWIOPS int `tf:"io_wiops"`
+	MemMax  int `tf:"mem_max"`
+	MemHigh int `tf:"mem_high"`
+
+	Limits []HCLContainerULimit `tf:"limits"`
+}
+
+type HCLContainerMount struct {
+	UID    string `tf:"uid"`
+	Type   string `tf:"type"`
+	Source string `tf:"source"`
+	Dest   string `tf:"dest"`
+}
+
+type HCLContainerPortMapping struct {
+	UID           string `tf:"uid"`
+	Protocol      string `tf:"protocol"`
+	IFace         string `tf:"iface"`
+	HostPort      int    `tf:"host_port"`
+	ContainerPort int    `tf:"container_port"`
+}
+
+type HCLContainerVirtualNetwork struct {
+	UID           string `tf:"uid"`
+	Network       string `tf:"network"`
+	IP            string `tf:"ip"`
+	AllowOutbound bool   `tf:"allow_outbound"`
+}
+
+type HCLContainerInterface struct {
+	UID  string `tf:"uid"`
+	Name string `tf:"name"`
+	Dest string `tf:"dest"`
+}
+
+type HCLContainer struct {
+	NodeID              string              `tf:"node_id"`
+	ClusterFQDN         string              `tf:"cluster_fqdn"`
+	ID                  string              `tf:"id"`
+	Command             string              `tf:"command"`
+	Description         string              `tf:"description"`
+	Enabled             bool                `tf:"enabled"`
+	ExecType            string              `tf:"exec_type"`
+	Hostname            string              `tf:"hostname"`
+	Image               []HCLContainerImage `tf:"image"`
+	Name                string              `tf:"name"`
+	Privileged          bool                `tf:"privileged"`
+	RequireConnectivity bool                `tf:"require_connectivity"`
+	StopTime            int                 `tf:"stop_time"`
+	UseInit             bool                `tf:"use_init"`
+	User                string              `tf:"user"`
+	VRF                 string              `tf:"vrf"`
+
+	AddCaps   []string          `tf:"add_caps"`
+	DropCaps  []string          `tf:"drop_caps"`
+	Variables map[string]string `tf:"variables"`
+	// TODO pluralize
+	Healthcheck []HCLContainerHealthCheck `tf:"healthcheck"`
+
+	LogMaxFileSize int `tf:"log_max_file_size"`
+	LogMaxNumFiles int `tf:"log_max_num_files"`
+
+	Limits          []HCLContainerLimit          `tf:"limits"`
+	Mounts          []HCLContainerMount          `tf:"mount"`
+	PortMappings    []HCLContainerPortMapping    `tf:"port_mapping"`
+	VirtualNetworks []HCLContainerVirtualNetwork `tf:"virtual_network"`
+	Interfaces      []HCLContainerInterface      `tf:"interface"`
+}
+
+func (cr *container) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.Container, error) {
+	tfc := HCLContainer{}
+	c := tg.Container{}
+
+	if err := hcl.DecodeResourceData(d, &tfc); err != nil {
+		return c, err
 	}
 
-	images, ok := d.Get("image").([]any)
-	if !ok {
-		return ct, fmt.Errorf("error getting image")
-	}
-	if len(images) == 0 {
-		return ct, fmt.Errorf("no image specified")
-	}
-	image := images[0].(map[string]any)
+	c.NodeID = tfc.NodeID
+	c.ClusterFQDN = tfc.ClusterFQDN
+	c.ID = tfc.ID
+	c.Command = tfc.Command
+	c.Description = tfc.Description
+	c.Enabled = tfc.Enabled
+	c.ExecType = tfc.ExecType
+	c.Hostname = tfc.Hostname
+	c.Image.Repository = tfc.Image[0].Repository
+	c.Image.Tag = tfc.Image[0].Tag
+	c.Name = tfc.Name
+	c.Privileged = tfc.Privileged
+	c.RequireConnectivity = tfc.RequireConnectivity
+	c.StopTime = tfc.StopTime
+	c.UseInit = tfc.UseInit
+	c.User = tfc.User
 
-	ct.Image.Tag = image["tag"].(string)
-	ct.Image.Repository = image["repository"].(string)
-	cc := &ct.Config
+	cc := &c.Config
 
-	cc.Capabilities.AddCaps = make([]string, 0)
-	if caps, ok := d.GetOk("add_caps"); ok {
-		for _, c := range caps.([]any) {
-			cc.Capabilities.AddCaps = append(cc.Capabilities.AddCaps, c.(string))
-		}
-	}
+	cc.Capabilities.AddCaps = append(cc.Capabilities.AddCaps, tfc.AddCaps...)
+	cc.Capabilities.DropCaps = append(cc.Capabilities.AddCaps, tfc.DropCaps...)
 
-	cc.Capabilities.DropCaps = make([]string, 0)
-	if caps, ok := d.GetOk("drop_caps"); ok {
-		for _, c := range caps.([]any) {
-			cc.Capabilities.DropCaps = append(cc.Capabilities.DropCaps, c.(string))
-		}
-	}
-
-	cc.Variables = make([]tg.ContainerVar, 0)
-	if vars, ok := d.GetOk("variables"); ok {
-		for k, v := range vars.(map[string]any) {
-			cc.Variables = append(cc.Variables, tg.ContainerVar{Name: k, Value: v.(string)})
-		}
+	for k, v := range tfc.Variables {
+		cc.Variables = append(cc.Variables, tg.ContainerVar{Name: k, Value: v})
 	}
 
-	if lfs, ok := d.GetOk("log_max_file_size"); ok {
-		cc.Logging.MaxFileSize = lfs.(int)
-	}
+	cc.Logging.MaxFileSize = tfc.LogMaxFileSize
+	cc.Logging.NumFiles = tfc.LogMaxNumFiles
 
-	if lnf, ok := d.GetOk("log_max_num_files"); ok {
-		cc.Logging.NumFiles = lnf.(int)
-	}
-
-	healthchecks, ok := d.Get("healthcheck").([]any)
-	if ok && len(healthchecks) > 0 {
-		healthcheck := healthchecks[0].(map[string]any)
+	if len(tfc.Healthcheck) > 0 {
+		hc := tfc.Healthcheck[0]
 		cc.HealthCheck = &tg.HealthCheck{
-			Command:     healthcheck["command"].(string),
-			Interval:    healthcheck["interval"].(int),
-			Timeout:     healthcheck["timeout"].(int),
-			StartPeriod: healthcheck["start_period"].(int),
-			Retries:     healthcheck["retries"].(int),
+			Command:     hc.Command,
+			Interval:    hc.Interval,
+			Timeout:     hc.Timeout,
+			StartPeriod: hc.StartPeriod,
+			Retries:     hc.Retries,
 		}
 	}
 
-	limits, ok := d.Get("limits").([]any)
-	if ok && len(limits) > 0 {
-		limit := limits[0].(map[string]any)
+	if len(tfc.Limits) > 0 {
+		limit := tfc.Limits[0]
 		cc.Limits = &tg.ContainerLimits{
-			CPUMax:  limit["cpu_max"].(int),
-			IORBPS:  limit["io_rbps"].(int),
-			IOWBPS:  limit["io_wbps"].(int),
-			IORIOPS: limit["io_riops"].(int),
-			IOWIOPS: limit["io_wiops"].(int),
-			MemMax:  limit["mem_max"].(int),
-			MemHigh: limit["mem_high"].(int),
+			CPUMax:  limit.CPUMax,
+			IORBPS:  limit.IORBPS,
+			IOWBPS:  limit.IOWBPS,
+			IORIOPS: limit.IORIOPS,
+			IOWIOPS: limit.IOWIOPS,
+			MemMax:  limit.MemMax,
+			MemHigh: limit.MemHigh,
 		}
-		if limits, ok := limit["limits"].([]any); ok {
-			for _, l := range limits {
-				limit := l.(map[string]any)
-				cc.Limits.Limits = append(cc.Limits.Limits, tg.ULimit{
-					Type: limit["type"].(string),
-					Hard: limit["hard"].(int),
-					Soft: limit["soft"].(int),
-				})
-			}
-		}
-	}
 
-	cc.Mounts = make([]tg.Mount, 0)
-	if mounts, ok := d.Get("mount").([]any); ok {
-		for _, m := range mounts {
-			mount := m.(map[string]any)
-			_, ok := mount["uid"]
-			if !ok {
-				mount["uid"] = uuid.NewString()
-			}
-			cc.Mounts = append(cc.Mounts, tg.Mount{
-				UID:    mount["uid"].(string),
-				Type:   mount["type"].(string),
-				Source: mount["source"].(string),
-				Dest:   mount["dest"].(string),
+		for _, l := range limit.Limits {
+			cc.Limits.Limits = append(cc.Limits.Limits, tg.ULimit{
+				Type: l.Type,
+				Hard: l.Hard,
+				Soft: l.Soft,
 			})
 		}
-		if err := d.Set("mount", mounts); err != nil {
-			return ct, fmt.Errorf("error updating mount: %w", err)
-		}
 	}
 
-	cc.PortMappings = make([]tg.PortMapping, 0)
-	if mappings, ok := d.Get("port_mapping").([]any); ok {
-		for _, m := range mappings {
-			mapping := m.(map[string]any)
-			_, ok := mapping["uid"]
-			if !ok {
-				mapping["uid"] = uuid.NewString()
-			}
-			cc.PortMappings = append(cc.PortMappings, tg.PortMapping{
-				UID:           mapping["uid"].(string),
-				Protocol:      mapping["protocol"].(string),
-				IFace:         mapping["iface"].(string),
-				HostPort:      mapping["host_port"].(int),
-				ContainerPort: mapping["container_port"].(int),
-			})
+	for _, m := range tfc.Mounts {
+		mount := tg.Mount{
+			UID:    m.UID,
+			Type:   m.Type,
+			Source: m.Source,
+			Dest:   m.Dest,
 		}
-		if err := d.Set("port_mapping", mappings); err != nil {
-			return ct, fmt.Errorf("error updating port_mapping: %w", err)
+		if m.UID == "" {
+			m.UID = uuid.NewString()
 		}
+		cc.Mounts = append(cc.Mounts, mount)
 	}
 
-	cc.VirtualNetworks = make([]tg.ContainerVirtualNetwork, 0)
-	if vnets, ok := d.Get("virtual_network").([]any); ok {
-		for _, m := range vnets {
-			vnet := m.(map[string]any)
-			_, ok := vnet["uid"]
-			if !ok {
-				vnet["uid"] = uuid.NewString()
-			}
-			cc.VirtualNetworks = append(cc.VirtualNetworks, tg.ContainerVirtualNetwork{
-				UID:           vnet["uid"].(string),
-				Network:       vnet["network"].(string),
-				IP:            vnet["ip"].(string),
-				AllowOutbound: vnet["allow_outbound"].(bool),
-			})
+	for _, m := range tfc.PortMappings {
+		pm := tg.PortMapping{
+			UID:           m.UID,
+			Protocol:      m.Protocol,
+			IFace:         m.IFace,
+			HostPort:      m.HostPort,
+			ContainerPort: m.ContainerPort,
 		}
-		if err := d.Set("virtual_network", vnets); err != nil {
-			return ct, fmt.Errorf("error updating virtual_network: %w", err)
+		if pm.UID == "" {
+			pm.UID = uuid.NewString()
 		}
+		cc.PortMappings = append(cc.PortMappings, pm)
 	}
 
-	cc.Interfaces = make([]tg.ContainerInterface, 0)
-	if ifaces, ok := d.Get("interface").([]any); ok {
-		for _, i := range ifaces {
-			iface := i.(map[string]any)
-			_, ok := iface["uid"]
-			if !ok {
-				iface["uid"] = uuid.NewString()
-			}
-			cc.Interfaces = append(cc.Interfaces, tg.ContainerInterface{
-				UID:  iface["uid"].(string),
-				Name: iface["name"].(string),
-				Dest: iface["dest"].(string),
-			})
+	for _, vn := range tfc.VirtualNetworks {
+		vnet := tg.ContainerVirtualNetwork{
+			UID:           vn.UID,
+			Network:       vn.Network,
+			IP:            vn.IP,
+			AllowOutbound: vn.AllowOutbound,
 		}
-		if err := d.Set("interface", ifaces); err != nil {
-			return ct, fmt.Errorf("error updating interface: %w", err)
+		if vnet.UID == "" {
+			vnet.UID = uuid.NewString()
 		}
+		cc.VirtualNetworks = append(cc.VirtualNetworks, vnet)
 	}
 
-	if vrf, ok := d.GetOk("vrf"); ok {
-		cc.VRF = &tg.ContainerVRF{Name: vrf.(string)}
+	for _, i := range tfc.Interfaces {
+		iface := tg.ContainerInterface{
+			UID:  i.UID,
+			Name: i.Name,
+			Dest: i.Dest,
+		}
+		if iface.UID == "" {
+			iface.UID = uuid.NewString()
+		}
+		cc.Interfaces = append(cc.Interfaces, iface)
 	}
 
-	return ct, nil
+	if tfc.VRF != "" {
+		cc.VRF = &tg.ContainerVRF{Name: tfc.VRF}
+	}
+
+	return c, nil
 }
 
 func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	ct, err := cr.marshalResourceData(ctx, d)
+	ct, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -807,7 +910,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	ct, err := cr.marshalResourceData(ctx, d)
+	ct, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -826,7 +929,7 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta an
 func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	ct, err := cr.marshalResourceData(ctx, d)
+	ct, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -841,7 +944,7 @@ func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta an
 func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	ct, err := cr.marshalResourceData(ctx, d)
+	ct, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -851,7 +954,7 @@ func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	if err := cr.unmarshalResourceData(ctx, ct, d); err != nil {
+	if err := cr.convertToTFConfig(ctx, ct, d); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -70,19 +70,12 @@ func (f *filter) match(n tg.Node) bool {
 }
 
 func nodeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// use the meta value to retrieve your client from the provider configure method
-	// client := meta.(*apiClient)
-
-	//nodes := make([]map[string]any, 0)
-	//nodes = append(nodes, map[string]any{"uid": "59838ae6-a2b2-4c45-b7be-9378f0b265f5"})
-
-	// TODO set this to hash the filters
 	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
 
 	tgc := meta.(*tg.Client)
 
 	f := filter{}
-	err := hcl.MarshalResourceData(d, &f)
+	err := hcl.DecodeResourceData(d, &f)
 	if err != nil {
 		return diag.FromErr(err)
 	}

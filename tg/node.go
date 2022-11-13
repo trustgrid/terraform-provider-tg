@@ -25,8 +25,8 @@ func (snmp *SNMPConfig) ID() string {
 }
 
 type GatewayClient struct {
-	Name    string `json:"name"`
-	Enabled bool   `json:"enabled"`
+	Name    string `tf:"name" json:"name"`
+	Enabled bool   `tf:"enabled" json:"enabled"`
 }
 
 type GatewayConfig struct {
@@ -43,7 +43,7 @@ type GatewayConfig struct {
 
 	Cert string `tf:"cert" json:"cert,omitempty"`
 
-	Clients []GatewayClient `json:"clients,omitempty"`
+	Clients []GatewayClient `tf:"client" json:"clients,omitempty"`
 }
 
 type ZTNAConfig struct {
@@ -157,8 +157,8 @@ type VRF struct {
 }
 
 type NetworkConfig struct {
-	DarkMode   bool `tf:"dark_mode" json:"darkMode"`
-	Forwarding bool `tf:"forwarding" json:"forwarding"`
+	DarkMode   bool `json:"darkMode"`
+	Forwarding bool `json:"forwarding"`
 
 	Tunnels []NetworkTunnel `json:"tunnels,omitempty"`
 

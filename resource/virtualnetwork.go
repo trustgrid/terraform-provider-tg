@@ -72,7 +72,7 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -89,7 +89,7 @@ func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, me
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -108,7 +108,7 @@ func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, me
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -123,7 +123,7 @@ func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 

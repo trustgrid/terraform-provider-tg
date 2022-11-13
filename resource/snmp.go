@@ -85,7 +85,7 @@ func SNMP() *schema.Resource {
 func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	snmp := tg.SNMPConfig{}
-	err := hcl.MarshalResourceData(d, &snmp)
+	err := hcl.DecodeResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -105,28 +105,23 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 	tgc := meta.(*tg.Client)
 
 	snmp := tg.SNMPConfig{}
-	err := hcl.MarshalResourceData(d, &snmp)
+	err := hcl.DecodeResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	// return diag.FromErr(fmt.Errorf("limits: '%s':'%s' - url: %s", limits.NodeID, limits.ClusterID, limits.url()))
 	n := tg.Node{}
 	err = tgc.Get(ctx, "/node/"+snmp.NodeID, &n)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = hcl.UnmarshalResourceData(&n.Config.SNMP, d)
+	err = hcl.EncodeResourceData(&n.Config.SNMP, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	d.SetId(snmp.ID())
-	if err := d.Set("node_id", snmp.NodeID); err != nil {
-		return diag.FromErr(err)
-	}
-
 	if snmp.AuthPassphrase != "" {
 		if err := d.Set("auth_passphrase", snmp.AuthPassphrase); err != nil {
 			return diag.FromErr(err)
@@ -150,7 +145,7 @@ func snmpDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 	tgc := meta.(*tg.Client)
 
 	snmp := tg.SNMPConfig{}
-	err := hcl.MarshalResourceData(d, &snmp)
+	err := hcl.DecodeResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}

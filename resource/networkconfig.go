@@ -435,267 +435,310 @@ func NetworkConfig() *schema.Resource {
 	}
 }
 
-func (nr *network) unmarshalResourceData(ctx context.Context, c tg.NetworkConfig, d *schema.ResourceData) error {
-	if err := hcl.UnmarshalResourceData(&c, d); err != nil {
-		return err
+type HCLNetworkTunnel struct {
+	Enabled       bool   `tf:"enabled"`
+	Name          string `tf:"name"`
+	IKE           int    `tf:"ike,omitempty"`
+	IKECipher     string `tf:"ike_cipher,omitempty"`
+	IKEGroup      int    `tf:"ike_group,omitempty"`
+	RekeyInterval int    `tf:"rekey_interval,omitempty"`
+	IP            string `tf:"ip,omitempty"`
+	Destination   string `tf:"destination,omitempty"`
+	IPSecCipher   string `tf:"ipsec_cipher,omitempty"`
+	PSK           string `tf:"psk,omitempty"`
+	VRF           string `tf:"vrf,omitempty"`
+	Type          string `tf:"type"`
+	MTU           int    `tf:"mtu"`
+	NetworkID     int    `tf:"network_id"`
+	LocalID       string `tf:"local_id,omitempty"`
+	RemoteID      string `tf:"remote_id,omitempty"`
+	DPDRetries    int    `tf:"dpd_retries,omitempty"`
+	DPDInterval   int    `tf:"dpd_interval,omitempty"`
+	IFace         string `tf:"iface,omitempty"`
+	PFS           int    `tf:"pfs"` // TODO we should omit this when appropriate
+	ReplayWindow  int    `tf:"replay_window,omitempty"`
+}
+
+type HCLNetworkInterface struct {
+	NIC       string   `tf:"nic"`
+	Routes    []string `tf:"routes,omitempty"`
+	ClusterIP string   `tf:"cluster_ip,omitempty"`
+	DHCP      bool     `tf:"dhcp"`
+	Gateway   string   `tf:"gateway"`
+	IP        string   `tf:"ip"`
+	Mode      string   `tf:"mode,omitempty"`
+	DNS       []string `tf:"dns,omitempty"`
+	Duplex    string   `tf:"duplex,omitempty"`
+	Speed     int      `tf:"speed,omitempty"`
+}
+
+type HCLVRFACL struct {
+	Action      string `tf:"action"`
+	Description string `tf:"description"`
+	Protocol    string `tf:"protocol"`
+	Source      string `tf:"source"`
+	Dest        string `tf:"dest"`
+	Line        int    `tf:"line"`
+}
+
+type HCLVRFRoute struct {
+	Dest        string `tf:"dest"`
+	Dev         string `tf:"dev"`
+	Description string `tf:"description"`
+	Metric      int    `tf:"metric"`
+}
+
+type HCLVRFNAT struct {
+	Source     string `tf:"source,omitempty"`
+	Dest       string `tf:"dest,omitempty"`
+	Masquerade bool   `tf:"masquerade"`
+	ToSource   string `tf:"to_source,omitempty"`
+	ToDest     string `tf:"to_dest,omitempty"`
+}
+
+type HCLVRFRule struct {
+	Protocol    string `tf:"protocol"`
+	Line        int    `tf:"line"`
+	Action      string `tf:"action"`
+	Description string `tf:"description,omitempty"`
+	Source      string `tf:"source,omitempty"`
+	VRF         string `tf:"vrf,omitempty"`
+	Dest        string `tf:"dest,omitempty"`
+}
+
+type HCLVRF struct {
+	Name       string        `tf:"name"`
+	Forwarding bool          `tf:"forwarding"`
+	ACLs       []HCLVRFACL   `tf:"acls,omitempty"`
+	Routes     []HCLVRFRoute `tf:"routes,omitempty"`
+	NATs       []HCLVRFNAT   `tf:"nats,omitempty"`
+	Rules      []HCLVRFRule  `tf:"rules,omitempty"`
+}
+
+type HCLNetworkConfigData struct {
+	DarkMode   bool `tf:"dark_mode"`
+	Forwarding bool `tf:"forwarding"`
+
+	Tunnels []HCLNetworkTunnel `tf:"tunnel"`
+
+	Interfaces []HCLNetworkInterface `tf:"interface"`
+
+	VRFs []HCLVRF
+}
+
+func (nr *network) convertToTFConfig(ctx context.Context, c tg.NetworkConfig, d *schema.ResourceData) error {
+	nc := HCLNetworkConfigData{
+		DarkMode:   c.DarkMode,
+		Forwarding: c.Forwarding,
 	}
 
-	tunnels := make([]any, 0)
 	for _, t := range c.Tunnels {
-		tunnel := make(map[string]any)
-		tunnel["enabled"] = t.Enabled
-		tunnel["name"] = t.Name
-		tunnel["ike"] = t.IKE
-		tunnel["ike_cipher"] = t.IKECipher
-		tunnel["ike_group"] = t.IKEGroup
-		tunnel["rekey_interval"] = t.RekeyInterval
-		tunnel["ip"] = t.IP
-		tunnel["destination"] = t.Destination
-		tunnel["ipsec_cipher"] = t.IPSecCipher
-		tunnel["psk"] = t.PSK
-		tunnel["vrf"] = t.VRF
-		tunnel["type"] = t.Type
-		tunnel["mtu"] = t.MTU
-		tunnel["network_id"] = t.NetworkID
-		tunnel["local_id"] = t.LocalID
-		tunnel["remote_id"] = t.RemoteID
-		tunnel["dpd_retries"] = t.DPDRetries
-		tunnel["dpd_interval"] = t.DPDInterval
-		tunnel["iface"] = t.IFace
-		tunnel["pfs"] = t.PFS
-		tunnel["replay_window"] = t.ReplayWindow
-
-		tunnels = append(tunnels, tunnel)
-	}
-	if err := d.Set("tunnel", tunnels); err != nil {
-		return fmt.Errorf("error setting tunnels: %w", err)
+		nc.Tunnels = append(nc.Tunnels, HCLNetworkTunnel{
+			Enabled:       t.Enabled,
+			Name:          t.Name,
+			IKE:           t.IKE,
+			IKECipher:     t.IKECipher,
+			IKEGroup:      t.IKEGroup,
+			RekeyInterval: t.RekeyInterval,
+			IP:            t.IP,
+			Destination:   t.Destination,
+			IPSecCipher:   t.IPSecCipher,
+			PSK:           t.PSK,
+			VRF:           t.VRF,
+			Type:          t.Type,
+			MTU:           t.MTU,
+			NetworkID:     t.NetworkID,
+			LocalID:       t.LocalID,
+			RemoteID:      t.RemoteID,
+			DPDRetries:    t.DPDRetries,
+			DPDInterval:   t.DPDInterval,
+			IFace:         t.IFace,
+			PFS:           t.PFS,
+			ReplayWindow:  t.ReplayWindow,
+		})
 	}
 
-	ifaces := make([]any, 0)
 	for _, i := range c.Interfaces {
-		iface := make(map[string]any)
-		iface["nic"] = i.NIC
-		iface["cluster_ip"] = i.ClusterIP
-		iface["routes"] = make([]string, 0)
+		iface := HCLNetworkInterface{
+			NIC:       i.NIC,
+			ClusterIP: i.ClusterIP,
+			DHCP:      i.DHCP,
+			Gateway:   i.Gateway,
+			IP:        i.IP,
+			Mode:      i.Mode,
+			Duplex:    i.Duplex,
+			Speed:     i.Speed,
+			DNS:       i.DNS,
+		}
+
 		for _, r := range i.Routes {
-			iface["routes"] = append(iface["routes"].([]string), r.Route)
+			iface.Routes = append(iface.Routes, r.Route)
 		}
-		iface["dhcp"] = i.DHCP
-		iface["gateway"] = i.Gateway
-		iface["ip"] = i.IP
-		iface["mode"] = i.Mode
-		iface["duplex"] = i.Duplex
-		iface["speed"] = i.Speed
-		iface["dns"] = make([]string, 0)
-		for _, d := range i.DNS {
-			iface["dns"] = append(iface["dns"].([]string), d)
-		}
-
-		ifaces = append(ifaces, iface)
-	}
-	if err := d.Set("interface", ifaces); err != nil {
-		return fmt.Errorf("error setting interfaces: %w", err)
+		nc.Interfaces = append(nc.Interfaces, iface)
 	}
 
-	vrfs := make([]any, 0)
 	for _, v := range c.VRFs {
-		out := make(map[string]any)
-		out["name"] = v.Name
-		out["forwarding"] = v.Forwarding
+		vrf := HCLVRF{
+			Name:       v.Name,
+			Forwarding: v.Forwarding,
+		}
 
-		out["acl"] = make([]map[string]any, 0)
 		for _, a := range v.ACLs {
-			out["acl"] = append(out["acl"].([]map[string]any), map[string]any{
-				"action":      a.Action,
-				"description": a.Description,
-				"dest":        a.Dest,
-				"line":        a.Line,
-				"protocol":    a.Protocol,
-				"source":      a.Source,
+			vrf.ACLs = append(vrf.ACLs, HCLVRFACL{
+				Action:      a.Action,
+				Description: a.Description,
+				Protocol:    a.Protocol,
+				Source:      a.Source,
+				Dest:        a.Dest,
+				Line:        a.Line,
 			})
 		}
 
-		out["nat"] = make([]map[string]any, 0)
 		for _, n := range v.NATs {
-			out["nat"] = append(out["nat"].([]map[string]any), map[string]any{
-				"dest":       n.Dest,
-				"source":     n.Source,
-				"to_source":  n.ToSource,
-				"to_dest":    n.ToDest,
-				"masquerade": n.Masquerade,
+			vrf.NATs = append(vrf.NATs, HCLVRFNAT{
+				Source:     n.Source,
+				Dest:       n.Dest,
+				Masquerade: n.Masquerade,
+				ToSource:   n.ToSource,
+				ToDest:     n.ToDest,
 			})
 		}
 
-		out["rule"] = make([]map[string]any, 0)
 		for _, r := range v.Rules {
-			out["rule"] = append(out["rule"].([]map[string]any), map[string]any{
-				"action":      r.Action,
-				"description": r.Description,
-				"dest":        r.Dest,
-				"line":        r.Line,
-				"protocol":    r.Protocol,
-				"source":      r.Source,
-				"vrf":         r.VRF,
+			vrf.Rules = append(vrf.Rules, HCLVRFRule{
+				Protocol:    r.Protocol,
+				Line:        r.Line,
+				Action:      r.Action,
+				Description: r.Description,
+				Source:      r.Source,
+				VRF:         r.VRF,
+				Dest:        r.Dest,
 			})
 		}
 
-		out["route"] = make([]map[string]any, 0)
 		for _, r := range v.Routes {
-			out["route"] = append(out["route"].([]map[string]any), map[string]any{
-				"dest":        r.Dest,
-				"dev":         r.Dev,
-				"metric":      r.Metric,
-				"description": r.Description,
+			vrf.Routes = append(vrf.Routes, HCLVRFRoute{
+				Dest:        r.Dest,
+				Dev:         r.Dev,
+				Description: r.Description,
+				Metric:      r.Metric,
 			})
 		}
-
-		vrfs = append(vrfs, out)
 	}
-	if err := d.Set("vrf", vrfs); err != nil {
-		return fmt.Errorf("error setting VRFs: %w", err)
+
+	if err := hcl.EncodeResourceData(&nc, d); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (nr *network) marshalResourceData(ctx context.Context, d *schema.ResourceData) (tg.NetworkConfig, error) {
-	nc := tg.NetworkConfig{}
+func (nr *network) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.NetworkConfig, error) {
+	data := HCLNetworkConfigData{}
 
-	if err := hcl.MarshalResourceData(d, &nc); err != nil {
-		return nc, err
+	if err := hcl.DecodeResourceData(d, &data); err != nil {
+		return tg.NetworkConfig{}, err
 	}
 
-	nc.Tunnels = make([]tg.NetworkTunnel, 0)
-	if tunnels, ok := d.GetOk("tunnel"); ok {
-		for _, t := range tunnels.([]any) {
-			tunnel := t.(map[string]any)
+	nc := tg.NetworkConfig{
+		DarkMode:   data.DarkMode,
+		Forwarding: data.Forwarding,
+	}
 
-			nc.Tunnels = append(nc.Tunnels, tg.NetworkTunnel{
-				Enabled:       tunnel["enabled"].(bool),
-				Name:          tunnel["name"].(string),
-				IKE:           tunnel["ike"].(int),
-				IKECipher:     tunnel["ike_cipher"].(string),
-				IKEGroup:      tunnel["ike_group"].(int),
-				RekeyInterval: tunnel["rekey_interval"].(int),
-				IP:            tunnel["ip"].(string),
-				Destination:   tunnel["destination"].(string),
-				IPSecCipher:   tunnel["ipsec_cipher"].(string),
-				PSK:           tunnel["psk"].(string),
-				VRF:           tunnel["vrf"].(string),
-				Type:          tunnel["type"].(string),
-				MTU:           tunnel["mtu"].(int),
-				NetworkID:     tunnel["network_id"].(int),
-				LocalID:       tunnel["local_id"].(string),
-				RemoteID:      tunnel["remote_id"].(string),
-				DPDRetries:    tunnel["dpd_retries"].(int),
-				DPDInterval:   tunnel["dpd_interval"].(int),
-				IFace:         tunnel["iface"].(string),
-				PFS:           tunnel["pfs"].(int),
-				ReplayWindow:  tunnel["replay_window"].(int),
+	for _, t := range data.Tunnels {
+		nc.Tunnels = append(nc.Tunnels, tg.NetworkTunnel{
+			Enabled:       t.Enabled,
+			Name:          t.Name,
+			IKE:           t.IKE,
+			IKECipher:     t.IKECipher,
+			IKEGroup:      t.IKEGroup,
+			RekeyInterval: t.RekeyInterval,
+			IP:            t.IP,
+			Destination:   t.Destination,
+			IPSecCipher:   t.IPSecCipher,
+			PSK:           t.PSK,
+			VRF:           t.VRF,
+			Type:          t.Type,
+			MTU:           t.MTU,
+			NetworkID:     t.NetworkID,
+			LocalID:       t.LocalID,
+			RemoteID:      t.RemoteID,
+			DPDRetries:    t.DPDRetries,
+			DPDInterval:   t.DPDInterval,
+			IFace:         t.IFace,
+			PFS:           t.PFS,
+			ReplayWindow:  t.ReplayWindow,
+		})
+	}
+
+	for _, i := range data.Interfaces {
+		iface := tg.NetworkInterface{
+			NIC:       i.NIC,
+			ClusterIP: i.ClusterIP,
+			DHCP:      i.DHCP,
+			Gateway:   i.Gateway,
+			IP:        i.IP,
+			Mode:      i.Mode,
+			Duplex:    i.Duplex,
+			Speed:     i.Speed,
+			DNS:       i.DNS,
+		}
+		for _, r := range i.Routes {
+			iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r})
+		}
+
+		nc.Interfaces = append(nc.Interfaces, iface)
+	}
+
+	for _, v := range data.VRFs {
+		vrf := tg.VRF{
+			Name:       v.Name,
+			Forwarding: v.Forwarding,
+		}
+
+		for _, a := range v.ACLs {
+			vrf.ACLs = append(vrf.ACLs, tg.VRFACL{
+				Action:      a.Action,
+				Description: a.Description,
+				Protocol:    a.Protocol,
+				Source:      a.Source,
+				Dest:        a.Dest,
+				Line:        a.Line,
 			})
 		}
-	}
 
-	nc.Interfaces = make([]tg.NetworkInterface, 0)
-	if interfaces, ok := d.GetOk("interface"); ok {
-		for _, i := range interfaces.([]any) {
-			data := i.(map[string]any)
-
-			iface := tg.NetworkInterface{
-				NIC:       data["nic"].(string),
-				ClusterIP: data["cluster_ip"].(string),
-				DHCP:      data["dhcp"].(bool),
-				Gateway:   data["gateway"].(string),
-				IP:        data["ip"].(string),
-				Mode:      data["mode"].(string),
-				Duplex:    data["duplex"].(string),
-				Speed:     data["speed"].(int),
-				DNS:       make([]string, 0),
-				Routes:    make([]tg.NetworkRoute, 0),
-			}
-
-			if routes, ok := data["routes"].([]any); ok {
-				for _, r := range routes {
-					iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r.(string)})
-				}
-			}
-
-			if dns, ok := data["dns"].([]any); ok {
-				for _, d := range dns {
-					iface.DNS = append(iface.DNS, d.(string))
-				}
-			}
-
-			nc.Interfaces = append(nc.Interfaces, iface)
+		for _, n := range v.NATs {
+			vrf.NATs = append(vrf.NATs, tg.VRFNAT{
+				Source:     n.Source,
+				Dest:       n.Dest,
+				Masquerade: n.Masquerade,
+				ToSource:   n.ToSource,
+				ToDest:     n.ToDest,
+			})
 		}
-	}
 
-	nc.VRFs = make([]tg.VRF, 0)
-	if vrfs, ok := d.GetOk("vrf"); ok {
-		for _, v := range vrfs.([]any) {
-			data := v.(map[string]any)
-
-			vrf := tg.VRF{
-				Name:       data["name"].(string),
-				Forwarding: data["forwarding"].(bool),
-			}
-
-			if acls, ok := data["acl"].([]any); ok {
-				for _, a := range acls {
-					data := a.(map[string]any)
-					vrf.ACLs = append(vrf.ACLs, tg.VRFACL{
-						Action:      data["action"].(string),
-						Description: data["description"].(string),
-						Protocol:    data["protocol"].(string),
-						Source:      data["source"].(string),
-						Dest:        data["dest"].(string),
-						Line:        data["line"].(int),
-					})
-				}
-			}
-
-			if nats, ok := data["nat"].([]any); ok {
-				for _, n := range nats {
-					data := n.(map[string]any)
-					vrf.NATs = append(vrf.NATs, tg.VRFNAT{
-						Source:     data["source"].(string),
-						Dest:       data["dest"].(string),
-						Masquerade: data["masquerade"].(bool),
-						ToSource:   data["to_source"].(string),
-						ToDest:     data["to_dest"].(string),
-					})
-				}
-			}
-
-			if rules, ok := data["rule"].([]any); ok {
-				for _, r := range rules {
-					data := r.(map[string]any)
-					vrf.Rules = append(vrf.Rules, tg.VRFRule{
-						Action:      data["action"].(string),
-						Description: data["description"].(string),
-						Dest:        data["dest"].(string),
-						Line:        data["line"].(int),
-						Protocol:    data["protocol"].(string),
-						Source:      data["source"].(string),
-						VRF:         data["vrf"].(string),
-					})
-				}
-			}
-
-			if routes, ok := data["route"].([]any); ok {
-				for _, r := range routes {
-					data := r.(map[string]any)
-					vrf.Routes = append(vrf.Routes, tg.VRFRoute{
-						Description: data["description"].(string),
-						Dest:        data["dest"].(string),
-						Dev:         data["dev"].(string),
-						Metric:      data["metric"].(int),
-					})
-				}
-			}
-
-			nc.VRFs = append(nc.VRFs, vrf)
+		for _, r := range v.Rules {
+			vrf.Rules = append(vrf.Rules, tg.VRFRule{
+				Protocol:    r.Protocol,
+				Line:        r.Line,
+				Action:      r.Action,
+				Description: r.Description,
+				Source:      r.Source,
+				VRF:         r.VRF,
+				Dest:        r.Dest,
+			})
 		}
+
+		for _, r := range v.Routes {
+			vrf.Routes = append(vrf.Routes, tg.VRFRoute{
+				Description: r.Description,
+				Dest:        r.Dest,
+				Dev:         r.Dev,
+				Metric:      r.Metric,
+			})
+		}
+
+		nc.VRFs = append(nc.VRFs, vrf)
 	}
 
 	return nc, nil
@@ -715,7 +758,7 @@ func (nr *network) endpoint(d *schema.ResourceData) (id string, isCluster bool) 
 
 func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
-	nc, err := nr.marshalResourceData(ctx, d)
+	nc, err := nr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -748,7 +791,7 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 			return diag.FromErr(fmt.Errorf("cannot lookup cluster id=%s isCluster=%t %w", id, isCluster, err))
 		}
 
-		if err := nr.unmarshalResourceData(ctx, n.Config.Network, d); err != nil {
+		if err := nr.convertToTFConfig(ctx, n.Config.Network, d); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -759,7 +802,7 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 			return diag.FromErr(err)
 		}
 
-		if err := nr.unmarshalResourceData(ctx, n.Config.Network, d); err != nil {
+		if err := nr.convertToTFConfig(ctx, n.Config.Network, d); err != nil {
 			return diag.FromErr(err)
 		}
 

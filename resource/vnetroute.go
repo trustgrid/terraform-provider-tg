@@ -88,7 +88,7 @@ func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta an
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -117,7 +117,7 @@ func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta an
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -136,7 +136,7 @@ func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta an
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -155,7 +155,7 @@ func (vn *vnetRoute) Read(ctx context.Context, d *schema.ResourceData, meta any)
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 

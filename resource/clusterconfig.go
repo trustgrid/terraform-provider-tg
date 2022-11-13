@@ -90,7 +90,7 @@ func (cr *clusterconfig) getConfig(ctx context.Context, tgc *tg.Client, uid stri
 func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	cc := tg.ClusterConfig{}
-	if err := hcl.MarshalResourceData(d, &cc); err != nil {
+	if err := hcl.DecodeResourceData(d, &cc); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -113,7 +113,7 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 
 	oldActive, activeSet := d.GetOk("active")
 
-	if err := hcl.UnmarshalResourceData(cc, d); err != nil {
+	if err := hcl.EncodeResourceData(cc, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -138,7 +138,7 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	cc := tg.ClusterConfig{}
-	if err := hcl.MarshalResourceData(d, &cc); err != nil {
+	if err := hcl.DecodeResourceData(d, &cc); err != nil {
 		return diag.FromErr(err)
 	}
 

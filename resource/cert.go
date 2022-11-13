@@ -49,7 +49,7 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
-	if err := hcl.MarshalResourceData(d, &cert); err != nil {
+	if err := hcl.DecodeResourceData(d, &cert); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -66,7 +66,7 @@ func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
-	if err := hcl.MarshalResourceData(d, &cert); err != nil {
+	if err := hcl.DecodeResourceData(d, &cert); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -81,7 +81,7 @@ func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
-	if err := hcl.MarshalResourceData(d, &cert); err != nil {
+	if err := hcl.DecodeResourceData(d, &cert); err != nil {
 		return diag.FromErr(err)
 	}
 

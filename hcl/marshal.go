@@ -5,89 +5,84 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/sirupsen/logrus"
+	"github.com/mitchellh/mapstructure"
 )
 
-// TODO flip these names
+// DecodeResourceData decodes TF resource data (HCL+schema filters/etc) into the given struct,
+// using the `tf` tag. If a field doesn't have a `tf` tag, it won't be populated.
+func DecodeResourceData(d *schema.ResourceData, target any) error {
+	fields := make(map[string]any)
 
-func marshalMap(in reflect.Value, out *reflect.Value) error {
-	for i := 0; i < out.NumField(); i++ {
-		field := out.Type().FieldByIndex([]int{i}) //reflect.TypeOf(out).FieldByIndex([]int{i})
+	for i := 0; i < reflect.TypeOf(target).Elem().NumField(); i++ {
+		field := reflect.TypeOf(target).Elem().FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
 		if tf != "" {
-			f := out.FieldByIndex([]int{i}) //reflect.ValueOf(out).Elem().FieldByIndex([]int{i})
-			if f.CanSet() {
-				if reflect.ValueOf(in.MapIndex(reflect.ValueOf(tf))).IsValid() {
-					val := in.MapIndex(reflect.ValueOf(tf)).Elem()
-					f.Set(val)
-				}
+			v, ok := d.GetOk(tf)
+			if ok {
+				fields[tf] = v
 			}
 		}
 	}
-	return nil
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName: "tf",
+		Result:  target,
+	})
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(fields)
 }
 
-// MarshalResourceData converts a TF ResourceData into the given struct,
-// using the tf tags to write what where.
-func MarshalResourceData(d *schema.ResourceData, out any) error {
-	for i := 0; i < reflect.TypeOf(out).Elem().NumField(); i++ {
-		field := reflect.TypeOf(out).Elem().FieldByIndex([]int{i})
+func convertToMap(in any) (map[string]any, error) {
+	out := make(map[string]any)
+
+	for i := 0; i < reflect.TypeOf(in).NumField(); i++ {
+		field := reflect.TypeOf(in).FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
-		if tf != "" {
-			f := reflect.ValueOf(out).Elem().FieldByIndex([]int{i})
-			if f.CanSet() && f.IsValid() {
-				tfVal := reflect.ValueOf(d.Get(tf))
-				//f.Index(0).Set(reflect.ValueOf(d.Get(tf)).Index(0))
-				tp := field.Type.Kind()
-				switch tp {
-				case reflect.Slice:
-					ref := reflect.MakeSlice(reflect.SliceOf(field.Type).Elem(), 0, 0)
-					for i := 0; i < tfVal.Len(); i++ {
-						val := tfVal.Index(i).Elem()
-						switch val.Kind() {
-						case reflect.Map:
-							target := reflect.New(field.Type.Elem()).Elem()
-							if err := marshalMap(val, &target); err != nil {
-								return fmt.Errorf("error setting %s: %w", tf, err)
-							}
-							ref = reflect.Append(ref, target)
-						default:
-							ref = reflect.Append(ref, val)
-						}
-					}
-
-					f.Set(ref)
-
-				case reflect.Pointer:
-					pv := reflect.New(tfVal.Type())
-					pv.Elem().Set(tfVal)
-					f.Set(pv)
-
-				default:
-					logrus.Infof("kind: %v %v %s", tp, f, tf)
-					if tfVal.IsValid() {
-						f.Set(tfVal)
-					}
-				}
-			}
+		if tf == "" {
+			continue
 		}
 
+		switch field.Type.Kind() {
+		case reflect.Slice:
+			slice := make([]any, 0)
+			for j := 0; j < reflect.ValueOf(in).FieldByIndex([]int{i}).Len(); j++ {
+				e, err := convertToMap(reflect.ValueOf(in).FieldByIndex([]int{i}).Index(j).Interface())
+				if err != nil {
+					return out, fmt.Errorf("error converting slice element %d: %w", j, err)
+				}
+				slice = append(slice, e)
+			}
+			out[tf] = slice
+		default:
+			out[tf] = reflect.ValueOf(in).FieldByIndex([]int{i}).Interface()
+		}
 	}
-	return nil
+
+	return out, nil
 }
 
-// UnmarshalResourceData sets the values on the given ResourceData according to the struct's
+// EncodeResourceData sets the values on the given ResourceData according to the struct's
 // tf tags.
-func UnmarshalResourceData(in any, d *schema.ResourceData) error {
-	for i := 0; i < reflect.TypeOf(in).Elem().NumField(); i++ {
-		field := reflect.TypeOf(in).Elem().FieldByIndex([]int{i})
-		tf := field.Tag.Get("tf")
-		if tf != "" {
-			if err := d.Set(tf, reflect.ValueOf(in).Elem().FieldByIndex([]int{i}).Interface()); err != nil {
-				return fmt.Errorf("error setting %s: %w", tf, err)
-			}
-		}
+func EncodeResourceData(in any, d *schema.ResourceData) error {
+	var out map[string]any
+	var err error
+
+	if reflect.TypeOf(in).Kind() == reflect.Pointer {
+		out, err = convertToMap(reflect.ValueOf(in).Elem())
+	} else {
+		out, err = convertToMap(in)
+	}
+	if err != nil {
+		return err
 	}
 
+	for k, v := range out {
+		if err := d.Set(k, v); err != nil {
+			return fmt.Errorf("error setting %s to %v: %w", k, v, err)
+		}
+	}
 	return nil
 }

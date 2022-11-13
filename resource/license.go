@@ -57,7 +57,7 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 
 	tg := meta.(*tg.Client)
 	l := licenseData{}
-	err := hcl.MarshalResourceData(d, &l)
+	err := hcl.DecodeResourceData(d, &l)
 	if err != nil {
 		return diag.FromErr(err)
 	}

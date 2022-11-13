@@ -46,7 +46,7 @@ func orgRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnos
 		return diag.FromErr(err)
 	}
 
-	if err := hcl.UnmarshalResourceData(&org, d); err != nil {
+	if err := hcl.EncodeResourceData(&org, d); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(org.UID)

@@ -69,7 +69,7 @@ func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -86,7 +86,7 @@ func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -101,7 +101,7 @@ func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -116,7 +116,7 @@ func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 
