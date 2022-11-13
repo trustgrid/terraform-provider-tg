@@ -6,8 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// TODO rename these files
-
 func TestDecode_Simple(t *testing.T) {
 	var unset struct {
 		Int    int     `tf:"int"`
