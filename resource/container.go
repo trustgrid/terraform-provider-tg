@@ -584,7 +584,7 @@ func (cr *container) convertToTFConfig(ctx context.Context, c tg.Container, d *s
 
 	if c.Config.HealthCheck != nil {
 		hc := c.Config.HealthCheck
-		tfc.Healthcheck = []HCLContainerHealthCheck{
+		tfc.Healthchecks = []HCLContainerHealthCheck{
 			{
 				Command:     hc.Command,
 				Interval:    hc.Interval,
@@ -740,11 +740,10 @@ type HCLContainer struct {
 	User                string              `tf:"user"`
 	VRF                 string              `tf:"vrf"`
 
-	AddCaps   []string          `tf:"add_caps"`
-	DropCaps  []string          `tf:"drop_caps"`
-	Variables map[string]string `tf:"variables"`
-	// TODO pluralize
-	Healthcheck []HCLContainerHealthCheck `tf:"healthcheck"`
+	AddCaps      []string                  `tf:"add_caps"`
+	DropCaps     []string                  `tf:"drop_caps"`
+	Variables    map[string]string         `tf:"variables"`
+	Healthchecks []HCLContainerHealthCheck `tf:"healthcheck"`
 
 	LogMaxFileSize int `tf:"log_max_file_size"`
 	LogMaxNumFiles int `tf:"log_max_num_files"`
@@ -793,8 +792,8 @@ func (cr *container) decodeTFConfig(ctx context.Context, d *schema.ResourceData)
 	cc.Logging.MaxFileSize = tfc.LogMaxFileSize
 	cc.Logging.NumFiles = tfc.LogMaxNumFiles
 
-	if len(tfc.Healthcheck) > 0 {
-		hc := tfc.Healthcheck[0]
+	if len(tfc.Healthchecks) > 0 {
+		hc := tfc.Healthchecks[0]
 		cc.HealthCheck = &tg.HealthCheck{
 			Command:     hc.Command,
 			Interval:    hc.Interval,

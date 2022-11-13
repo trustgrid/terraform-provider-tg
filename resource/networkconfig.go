@@ -455,7 +455,7 @@ type HCLNetworkTunnel struct {
 	DPDRetries    int    `tf:"dpd_retries,omitempty"`
 	DPDInterval   int    `tf:"dpd_interval,omitempty"`
 	IFace         string `tf:"iface,omitempty"`
-	PFS           int    `tf:"pfs"` // TODO we should omit this when appropriate
+	PFS           int    `tf:"pfs"`
 	ReplayWindow  int    `tf:"replay_window,omitempty"`
 }
 
