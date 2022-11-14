@@ -112,10 +112,10 @@ resource "tg_cluster" "cluster-1" {
   name = "tf-cluster1"
 }
 
-resource "tg_cluster_member" "member-1" {
-  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
-  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-}
+#resource "tg_cluster_member" "member-1" {
+#  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+#  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+#}
 
 resource "tg_node_cluster_config" "cluster-gossip" {
   node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"

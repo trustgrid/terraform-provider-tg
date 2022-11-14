@@ -101,7 +101,7 @@ type HCLNetworkConfigData struct {
 
 	Interfaces []HCLNetworkInterface `tf:"interface"`
 
-	VRFs []HCLVRF
+	VRFs []HCLVRF `tf:"vrf"`
 }
 
 func NetworkConfig() *schema.Resource {
