@@ -92,10 +92,10 @@ func CPULimits() *schema.Resource {
 	}
 }
 
-func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tg := meta.(*tg.Client)
 	limits := cpuLimitData{}
-	err := hcl.MarshalResourceData(d, &limits)
+	err := hcl.DecodeResourceData(d, &limits)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -111,11 +111,11 @@ func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta interface
 	return diag.Diagnostics{}
 }
 
-func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tg := meta.(*tg.Client)
 
 	limits := cpuLimitData{}
-	err := hcl.MarshalResourceData(d, &limits)
+	err := hcl.DecodeResourceData(d, &limits)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -126,7 +126,7 @@ func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta interface{}
 		return diag.FromErr(err)
 	}
 
-	err = hcl.UnmarshalResourceData(&limits, d)
+	err = hcl.EncodeResourceData(&limits, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -139,17 +139,17 @@ func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return diag.Diagnostics{}
 }
 
-func cpuLimitsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func cpuLimitsUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return cpuLimitsCreate(ctx, d, meta)
 }
 
-var empty = map[string]interface{}{}
+var empty = map[string]any{}
 
-func cpuLimitsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func cpuLimitsDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tg := meta.(*tg.Client)
 
 	limits := cpuLimitData{}
-	err := hcl.MarshalResourceData(d, &limits)
+	err := hcl.DecodeResourceData(d, &limits)
 	if err != nil {
 		return diag.FromErr(err)
 	}

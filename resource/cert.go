@@ -45,11 +45,11 @@ func Cert() *schema.Resource {
 	}
 }
 
-func certCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
-	if err := hcl.MarshalResourceData(d, &cert); err != nil {
+	if err := hcl.DecodeResourceData(d, &cert); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -62,11 +62,11 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func certUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
-	if err := hcl.MarshalResourceData(d, &cert); err != nil {
+	if err := hcl.DecodeResourceData(d, &cert); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -77,11 +77,11 @@ func certUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func certDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cert := tg.Cert{}
-	if err := hcl.MarshalResourceData(d, &cert); err != nil {
+	if err := hcl.DecodeResourceData(d, &cert); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -92,7 +92,7 @@ func certDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func certRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	certs := make([]tg.Cert, 0)

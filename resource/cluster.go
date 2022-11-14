@@ -38,7 +38,7 @@ func Cluster() *schema.Resource {
 	}
 }
 
-func (cr *cluster) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *cluster) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	cluster := tg.Cluster{
 		Name: d.Get("name").(string),
@@ -58,7 +58,7 @@ func (cr *cluster) Create(ctx context.Context, d *schema.ResourceData, meta inte
 	return diag.Diagnostics{}
 }
 
-func (cr *cluster) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *cluster) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	var cluster tg.Cluster
 
@@ -69,7 +69,7 @@ func (cr *cluster) Read(ctx context.Context, d *schema.ResourceData, meta interf
 	return diag.Diagnostics{}
 }
 
-func (cr *cluster) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (cr *cluster) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	if err := tgc.Delete(ctx, "/cluster/"+d.Id(), nil); err != nil {
 		return diag.FromErr(fmt.Errorf("error issuing delete to /cluster/%s: %w", d.Id(), err))

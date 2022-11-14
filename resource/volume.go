@@ -65,11 +65,11 @@ func (vr *volume) volumeURL(v tg.Volume) string {
 	return vr.urlRoot(v) + "/" + v.Name
 }
 
-func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -82,11 +82,11 @@ func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta inter
 	return diag.Diagnostics{}
 }
 
-func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -97,11 +97,11 @@ func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta inter
 	return nil
 }
 
-func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -112,11 +112,11 @@ func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta inter
 	return diag.Diagnostics{}
 }
 
-func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	v := tg.Volume{}
-	if err := hcl.MarshalResourceData(d, &v); err != nil {
+	if err := hcl.DecodeResourceData(d, &v); err != nil {
 		return diag.FromErr(err)
 	}
 

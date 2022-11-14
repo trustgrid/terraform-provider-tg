@@ -68,11 +68,11 @@ func vnetCommit(ctx context.Context, tgc *tg.Client, network string) error {
 	return nil
 }
 
-func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -85,11 +85,11 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 	return diag.Diagnostics{}
 }
 
-func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -104,11 +104,11 @@ func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, me
 	return nil
 }
 
-func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -119,11 +119,11 @@ func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, me
 	return diag.Diagnostics{}
 }
 
-func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	vnet := tg.VirtualNetwork{}
-	if err := hcl.MarshalResourceData(d, &vnet); err != nil {
+	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -36,7 +35,7 @@ func NewClient(ctx context.Context, apiKey, apiSecret, apiHost string) (*Client,
 	return client, nil
 }
 
-func (tg *Client) Delete(ctx context.Context, url string, payload interface{}) error {
+func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
@@ -60,7 +59,7 @@ func (tg *Client) Delete(ctx context.Context, url string, payload interface{}) e
 	}
 	defer r.Body.Close()
 	if r.StatusCode != 200 {
-		reply, err := ioutil.ReadAll(r.Body)
+		reply, err := io.ReadAll(r.Body)
 		if err != nil {
 			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
 		}
@@ -70,7 +69,7 @@ func (tg *Client) Delete(ctx context.Context, url string, payload interface{}) e
 	return nil
 }
 
-func (tg *Client) Post(ctx context.Context, url string, payload interface{}) error {
+func (tg *Client) Post(ctx context.Context, url string, payload any) error {
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
@@ -94,7 +93,7 @@ func (tg *Client) Post(ctx context.Context, url string, payload interface{}) err
 	}
 	defer r.Body.Close()
 	if r.StatusCode != 200 {
-		reply, err := ioutil.ReadAll(r.Body)
+		reply, err := io.ReadAll(r.Body)
 		if err != nil {
 			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
 		}
@@ -104,7 +103,7 @@ func (tg *Client) Post(ctx context.Context, url string, payload interface{}) err
 	return nil
 }
 
-func (tg *Client) Put(ctx context.Context, url string, payload interface{}) error {
+func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
@@ -128,7 +127,7 @@ func (tg *Client) Put(ctx context.Context, url string, payload interface{}) erro
 	}
 	defer r.Body.Close()
 	if r.StatusCode != 200 {
-		reply, err := ioutil.ReadAll(r.Body)
+		reply, err := io.ReadAll(r.Body)
 		if err != nil {
 			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
 		}
@@ -159,7 +158,7 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 	return r.Body, nil
 }
 
-func (tg *Client) Get(ctx context.Context, url string, out interface{}) error {
+func (tg *Client) Get(ctx context.Context, url string, out any) error {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
 	if err != nil {
 		return err
@@ -175,14 +174,14 @@ func (tg *Client) Get(ctx context.Context, url string, out interface{}) error {
 	}
 	defer r.Body.Close()
 	if r.StatusCode != 200 {
-		reply, err := ioutil.ReadAll(r.Body)
+		reply, err := io.ReadAll(r.Body)
 		if err != nil {
 			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
 		}
 		return fmt.Errorf("non-200 from portal: %d - %s\n%s", r.StatusCode, req.URL.String(), reply)
 	}
 
-	reply, err := ioutil.ReadAll(r.Body)
+	reply, err := io.ReadAll(r.Body)
 	if err != nil {
 		return fmt.Errorf("error reading reply: %s", err)
 	}

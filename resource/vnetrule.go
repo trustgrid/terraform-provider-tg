@@ -110,11 +110,11 @@ func (vn *vnetAccessRule) findRule(ctx context.Context, tgc *tg.Client, rule tg.
 	return tg.VNetAccessRule{}, fmt.Errorf("no rule found")
 }
 
-func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	rule := tg.VNetAccessRule{}
-	if err := hcl.MarshalResourceData(d, &rule); err != nil {
+	if err := hcl.DecodeResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -139,11 +139,11 @@ func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, me
 	return diag.Diagnostics{}
 }
 
-func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	rule := tg.VNetAccessRule{}
-	if err := hcl.MarshalResourceData(d, &rule); err != nil {
+	if err := hcl.DecodeResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -158,11 +158,11 @@ func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, me
 	return nil
 }
 
-func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	rule := tg.VNetAccessRule{}
-	if err := hcl.MarshalResourceData(d, &rule); err != nil {
+	if err := hcl.DecodeResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -177,11 +177,11 @@ func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, me
 	return diag.Diagnostics{}
 }
 
-func (vn *vnetAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	rule := tg.VNetAccessRule{}
-	if err := hcl.MarshalResourceData(d, &rule); err != nil {
+	if err := hcl.DecodeResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
 

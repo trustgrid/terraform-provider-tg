@@ -47,8 +47,8 @@ func Node() *schema.Resource {
 }
 
 type filter struct {
-	Tags        map[string]interface{} `tf:"include_tags"`
-	ExcludeTags map[string]interface{} `tf:"exclude_tags"`
+	Tags        map[string]any `tf:"include_tags"`
+	ExcludeTags map[string]any `tf:"exclude_tags"`
 }
 
 func (f *filter) match(n tg.Node) bool {
@@ -69,20 +69,13 @@ func (f *filter) match(n tg.Node) bool {
 	return true
 }
 
-func nodeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// use the meta value to retrieve your client from the provider configure method
-	// client := meta.(*apiClient)
-
-	//nodes := make([]map[string]interface{}, 0)
-	//nodes = append(nodes, map[string]interface{}{"uid": "59838ae6-a2b2-4c45-b7be-9378f0b265f5"})
-
-	// TODO set this to hash the filters
+func nodeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
 
 	tgc := meta.(*tg.Client)
 
 	f := filter{}
-	err := hcl.MarshalResourceData(d, &f)
+	err := hcl.DecodeResourceData(d, &f)
 	if err != nil {
 		return diag.FromErr(err)
 	}

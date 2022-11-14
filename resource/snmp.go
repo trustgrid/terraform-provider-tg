@@ -82,10 +82,10 @@ func SNMP() *schema.Resource {
 	}
 }
 
-func snmpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	snmp := tg.SNMPConfig{}
-	err := hcl.MarshalResourceData(d, &snmp)
+	err := hcl.DecodeResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -101,32 +101,27 @@ func snmpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	return diag.Diagnostics{}
 }
 
-func snmpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	snmp := tg.SNMPConfig{}
-	err := hcl.MarshalResourceData(d, &snmp)
+	err := hcl.DecodeResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	// return diag.FromErr(fmt.Errorf("limits: '%s':'%s' - url: %s", limits.NodeID, limits.ClusterID, limits.url()))
 	n := tg.Node{}
 	err = tgc.Get(ctx, "/node/"+snmp.NodeID, &n)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = hcl.UnmarshalResourceData(&n.Config.SNMP, d)
+	err = hcl.EncodeResourceData(&n.Config.SNMP, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	d.SetId(snmp.ID())
-	if err := d.Set("node_id", snmp.NodeID); err != nil {
-		return diag.FromErr(err)
-	}
-
 	if snmp.AuthPassphrase != "" {
 		if err := d.Set("auth_passphrase", snmp.AuthPassphrase); err != nil {
 			return diag.FromErr(err)
@@ -142,15 +137,15 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) dia
 	return diag.Diagnostics{}
 }
 
-func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return snmpCreate(ctx, d, meta)
 }
 
-func snmpDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func snmpDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	snmp := tg.SNMPConfig{}
-	err := hcl.MarshalResourceData(d, &snmp)
+	err := hcl.DecodeResourceData(d, &snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -25,8 +25,8 @@ func (snmp *SNMPConfig) ID() string {
 }
 
 type GatewayClient struct {
-	Name    string `json:"name"`
-	Enabled bool   `json:"enabled"`
+	Name    string `tf:"name" json:"name"`
+	Enabled bool   `tf:"enabled" json:"enabled"`
 }
 
 type GatewayConfig struct {
@@ -43,7 +43,7 @@ type GatewayConfig struct {
 
 	Cert string `tf:"cert" json:"cert,omitempty"`
 
-	Clients []GatewayClient `json:"clients,omitempty"`
+	Clients []GatewayClient `tf:"client" json:"clients,omitempty"`
 }
 
 type ZTNAConfig struct {
@@ -72,6 +72,101 @@ type ClusterConfig struct {
 	Active bool `tf:"active" json:"master"`
 }
 
+type NetworkTunnel struct {
+	Enabled       bool   `json:"enabled"`
+	Name          string `json:"name"`
+	IKE           int    `json:"ike,omitempty"`
+	IKECipher     string `json:"ikeCipher,omitempty"`
+	IKEGroup      int    `json:"ikeGroup,omitempty"`
+	RekeyInterval int    `json:"rekeyInterval,omitempty"`
+	IP            string `json:"ip,omitempty"`
+	Destination   string `json:"destination,omitempty"`
+	IPSecCipher   string `json:"ipsecCipher,omitempty"`
+	PSK           string `json:"psk,omitempty"`
+	VRF           string `json:"vrf,omitempty"`
+	Type          string `json:"type"`
+	MTU           int    `json:"mtu"`
+	NetworkID     int    `json:"networkId"`
+	LocalID       string `json:"localId,omitempty"`
+	RemoteID      string `json:"remoteId,omitempty"`
+	DPDRetries    int    `json:"dpdRetries,omitempty"`
+	DPDInterval   int    `json:"dpdInterval,omitempty"`
+	IFace         string `json:"iface,omitempty"`
+	PFS           int    `json:"pfs"` // TODO we should omit this when appropriate
+	ReplayWindow  int    `json:"replayWindow,omitempty"`
+}
+
+type NetworkRoute struct {
+	Route string `json:"route"`
+}
+
+type NetworkInterface struct {
+	NIC       string         `json:"nic"`
+	Routes    []NetworkRoute `json:"routes,omitempty"`
+	ClusterIP string         `json:"clusterIP,omitempty"`
+	DHCP      bool           `json:"dhcp"`
+	Gateway   string         `json:"gateway"`
+	IP        string         `json:"ip"`
+	Mode      string         `json:"mode,omitempty"`
+	DNS       []string       `json:"dns,omitempty"`
+	Duplex    string         `json:"duplex,omitempty"`
+	Speed     int            `json:"speed,omitempty"`
+}
+
+type VRFACL struct {
+	Action      string `json:"action"`
+	Description string `json:"description"`
+	Protocol    string `json:"protocol"`
+	Source      string `json:"source"`
+	Dest        string `json:"dest"`
+	Line        int    `json:"line"`
+}
+
+type VRFRoute struct {
+	Dest        string `json:"dest"`
+	Dev         string `json:"dev"`
+	Description string `json:"description"`
+	Metric      int    `json:"metric"`
+}
+
+type VRFNAT struct {
+	Source     string `json:"source,omitempty"`
+	Dest       string `json:"dest,omitempty"`
+	Masquerade bool   `json:"masquerade"`
+	ToSource   string `json:"toSource,omitempty"`
+	ToDest     string `json:"toDest,omitempty"`
+}
+
+type VRFRule struct {
+	Protocol    string `json:"protocol"`
+	Line        int    `json:"line"`
+	Action      string `json:"action"`
+	Description string `json:"description,omitempty"`
+	Source      string `json:"source,omitempty"`
+	VRF         string `json:"vrf,omitempty"`
+	Dest        string `json:"dest,omitempty"`
+}
+
+type VRF struct {
+	Name       string     `json:"name"`
+	Forwarding bool       `json:"forwarding"`
+	ACLs       []VRFACL   `json:"acls,omitempty"`
+	Routes     []VRFRoute `json:"routes,omitempty"`
+	NATs       []VRFNAT   `json:"nats,omitempty"`
+	Rules      []VRFRule  `json:"rules,omitempty"`
+}
+
+type NetworkConfig struct {
+	DarkMode   bool `json:"darkMode"`
+	Forwarding bool `json:"forwarding"`
+
+	Tunnels []NetworkTunnel `json:"tunnels,omitempty"`
+
+	Interfaces []NetworkInterface `json:"interfaces,omitempty"`
+
+	VRFs []VRF `json:"vrfs,omitempty"`
+}
+
 type Node struct {
 	UID     string            `json:"uid"`
 	Name    string            `json:"name"`
@@ -83,6 +178,7 @@ type Node struct {
 		SNMP    SNMPConfig    `json:"snmp"`
 		ZTNA    ZTNAConfig    `json:"apigw"`
 		Cluster ClusterConfig `json:"cluster"`
+		Network NetworkConfig `json:"network"`
 	} `json:"config"`
 }
 

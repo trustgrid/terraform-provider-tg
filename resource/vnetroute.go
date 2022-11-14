@@ -84,11 +84,11 @@ func (vn *vnetRoute) findRoute(ctx context.Context, tgc *tg.Client, route tg.VNe
 	return tg.VNetRoute{}, fmt.Errorf("no route found")
 }
 
-func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -113,11 +113,11 @@ func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta in
 	return diag.Diagnostics{}
 }
 
-func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -132,11 +132,11 @@ func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta in
 	return nil
 }
 
-func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -151,11 +151,11 @@ func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta in
 	return diag.Diagnostics{}
 }
 
-func (vn *vnetRoute) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (vn *vnetRoute) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	route := tg.VNetRoute{}
-	if err := hcl.MarshalResourceData(d, &route); err != nil {
+	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
 

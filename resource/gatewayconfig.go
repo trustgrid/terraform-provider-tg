@@ -106,9 +106,9 @@ func GatewayConfig() *schema.Resource {
 	}
 }
 
-func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
-	gw, err := gc.marshalResourceData(ctx, d)
+	gw, err := gc.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -123,10 +123,10 @@ func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, met
 	return diag.Diagnostics{}
 }
 
-func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw, err := gc.marshalResourceData(ctx, d)
+	gw, err := gc.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -137,7 +137,7 @@ func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	if err := gc.unmarshalResourceData(ctx, n.Config.Gateway, d); err != nil {
+	if err := gc.convertToTFConfig(ctx, n.Config.Gateway, d); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(gw.NodeID)
@@ -148,14 +148,14 @@ func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 	return diag.Diagnostics{}
 }
 
-func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return gc.Create(ctx, d, meta)
 }
 
-func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw, err := gc.marshalResourceData(ctx, d)
+	gw, err := gc.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -168,41 +168,12 @@ func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, met
 	return diag.Diagnostics{}
 }
 
-func (gc *gatewayConfig) marshalResourceData(ctx context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {
+func (gc *gatewayConfig) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {
 	gw := tg.GatewayConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
-	if err != nil {
-		return gw, err
-	}
-
-	if clients, ok := d.Get("client").([]interface{}); ok {
-		for _, c := range clients {
-			client := c.(map[string]interface{})
-			gw.Clients = append(gw.Clients, tg.GatewayClient{
-				Name:    client["name"].(string),
-				Enabled: client["enabled"].(bool),
-			})
-		}
-	}
-
-	return gw, nil
+	err := hcl.DecodeResourceData(d, &gw)
+	return gw, err
 }
 
-func (gc *gatewayConfig) unmarshalResourceData(ctx context.Context, config tg.GatewayConfig, d *schema.ResourceData) error {
-	if err := hcl.UnmarshalResourceData(&config, d); err != nil {
-		return err
-	}
-
-	clients := make([]interface{}, 0)
-	for _, c := range config.Clients {
-		client := make(map[string]interface{})
-		client["name"] = c.Name
-		client["enabled"] = c.Enabled
-		clients = append(clients, client)
-	}
-	if err := d.Set("client", clients); err != nil {
-		return fmt.Errorf("clients=%+v error setting client: %w", clients, err)
-	}
-
-	return nil
+func (gc *gatewayConfig) convertToTFConfig(ctx context.Context, config tg.GatewayConfig, d *schema.ResourceData) error {
+	return hcl.EncodeResourceData(&config, d)
 }

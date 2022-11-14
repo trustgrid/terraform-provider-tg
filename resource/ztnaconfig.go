@@ -75,10 +75,10 @@ func ZTNAConfig() *schema.Resource {
 	}
 }
 
-func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	gw := tg.ZTNAConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
+	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -93,11 +93,11 @@ func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta interfac
 	return diag.Diagnostics{}
 }
 
-func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	gw := tg.ZTNAConfig{}
-	err := hcl.MarshalResourceData(d, &gw)
+	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -108,22 +108,19 @@ func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{
 		return diag.FromErr(err)
 	}
 
-	if err := hcl.UnmarshalResourceData(&n.Config.ZTNA, d); err != nil {
+	if err := hcl.EncodeResourceData(&n.Config.ZTNA, d); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(gw.NodeID)
-	if err := d.Set("node_id", gw.NodeID); err != nil {
-		return diag.FromErr(err)
-	}
 
 	return diag.Diagnostics{}
 }
 
-func ztnaConfigUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ztnaConfigUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return ztnaConfigCreate(ctx, d, meta)
 }
 
-func ztnaConfigDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ztnaConfigDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	if err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", d.Id()), map[string]any{"enabled": false, "wireguardEnabled": false}); err != nil {

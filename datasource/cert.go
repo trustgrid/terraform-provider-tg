@@ -25,7 +25,7 @@ func Cert() *schema.Resource {
 	}
 }
 
-func certRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	certs := make([]tg.Cert, 0)
@@ -47,7 +47,7 @@ func certRead(ctx context.Context, d *schema.ResourceData, meta interface{}) dia
 		return diag.Errorf("certificate not found")
 	}
 
-	if err := hcl.UnmarshalResourceData(&cert, d); err != nil {
+	if err := hcl.EncodeResourceData(&cert, d); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(cert.FQDN)
