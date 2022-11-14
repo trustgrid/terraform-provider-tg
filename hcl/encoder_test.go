@@ -378,15 +378,40 @@ func TestEncode_NestedStruct(t *testing.T) {
 		Enabled bool   `tf:"enabled"`
 	}
 	type Config struct {
+		NodeID  string   `tf:"node_id"`
 		Clients []Client `tf:"client"`
 	}
 
-	config := Config{}
+	config := Config{NodeID: "5"}
 	config.Clients = append(config.Clients, Client{Name: "client1", Enabled: true})
 
 	d := res.TestResourceData()
 
 	if err := EncodeResourceData(config, d); err != nil {
 		t.Errorf("error encoding data: %s", err)
+	}
+
+	if d.Get("node_id") != "5" {
+		t.Errorf("error encoding data; node_id should have been 5 but was: %s", d.Get("node_id"))
+	}
+
+	clients := d.Get("client").([]interface{})
+	if clients[0].(map[string]any)["name"] != "client1" {
+		t.Errorf("error encoding data; client name should have been client1 but was %s", clients[0].(map[string]any)["name"])
+	}
+
+	d = res.TestResourceData()
+
+	if err := EncodeResourceData(&config, d); err != nil {
+		t.Errorf("error encoding data: %s", err)
+	}
+
+	if d.Get("node_id") != "5" {
+		t.Errorf("error encoding data; node_id should have been 5 but was: %s", d.Get("node_id"))
+	}
+
+	clients = d.Get("client").([]interface{})
+	if clients[0].(map[string]any)["name"] != "client1" {
+		t.Errorf("error encoding data; client name should have been client1 but was %s", clients[0].(map[string]any)["name"])
 	}
 }

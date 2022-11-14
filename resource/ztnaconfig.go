@@ -83,7 +83,7 @@ func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", gw.NodeID), &gw)
+	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", d.Id()), &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -96,22 +96,16 @@ func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) dia
 func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	gw := tg.ZTNAConfig{}
-	err := hcl.DecodeResourceData(d, &gw)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
 	n := tg.Node{}
-	err = tgc.Get(ctx, "/node/"+gw.NodeID, &n)
+	err := tgc.Get(ctx, "/node/"+d.Id(), &n)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	n.Config.ZTNA.NodeID = d.Id()
 	if err := hcl.EncodeResourceData(&n.Config.ZTNA, d); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(gw.NodeID)
 
 	return diag.Diagnostics{}
 }
