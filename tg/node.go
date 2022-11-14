@@ -104,7 +104,7 @@ type NetworkInterface struct {
 	NIC       string         `json:"nic"`
 	Routes    []NetworkRoute `json:"routes,omitempty"`
 	ClusterIP string         `json:"clusterIP,omitempty"`
-	DHCP      bool           `json:"dhcp"`
+	DHCP      bool           `json:"dhcp,omitempty"`
 	Gateway   string         `json:"gateway,omitempty"`
 	IP        string         `json:"ip,omitempty"`
 	Mode      string         `json:"mode,omitempty"`
