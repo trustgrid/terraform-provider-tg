@@ -773,6 +773,8 @@ func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any)
 		}
 	}
 
+	d.SetId(id)
+
 	return diag.Diagnostics{}
 }
 
