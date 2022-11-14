@@ -87,10 +87,10 @@ type HCLVRFRule struct {
 type HCLVRF struct {
 	Name       string        `tf:"name"`
 	Forwarding bool          `tf:"forwarding"`
-	ACLs       []HCLVRFACL   `tf:"acls,omitempty"`
-	Routes     []HCLVRFRoute `tf:"routes,omitempty"`
-	NATs       []HCLVRFNAT   `tf:"nats,omitempty"`
-	Rules      []HCLVRFRule  `tf:"rules,omitempty"`
+	ACLs       []HCLVRFACL   `tf:"acl,omitempty"`
+	Routes     []HCLVRFRoute `tf:"route,omitempty"`
+	NATs       []HCLVRFNAT   `tf:"nat,omitempty"`
+	Rules      []HCLVRFRule  `tf:"rule,omitempty"`
 }
 
 type HCLNetworkConfigData struct {
@@ -624,6 +624,8 @@ func (nr *network) convertToTFConfig(ctx context.Context, c tg.NetworkConfig, d 
 				Metric:      r.Metric,
 			})
 		}
+
+		nc.VRFs = append(nc.VRFs, vrf)
 	}
 
 	return hcl.EncodeResourceData(&nc, d)

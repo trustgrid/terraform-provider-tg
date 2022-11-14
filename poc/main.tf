@@ -127,6 +127,7 @@ resource "tg_node_cluster_config" "cluster-gossip" {
   active      = true
 }
 
+
 resource "tg_network_config" "network-1" {
   node_id    = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
   dark_mode  = true
