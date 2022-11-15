@@ -57,7 +57,7 @@ resource "tg_virtual_network_route" "route1" {
   dest         = "node1-profiled"
   network_cidr = "10.10.10.14/32"
   metric       = 12
-  description  = "a route"
+  description  = "a route2"
 }
 
 resource "tg_gateway_config" "test" {
@@ -112,10 +112,10 @@ resource "tg_cluster" "cluster-1" {
   name = "tf-cluster1"
 }
 
-resource "tg_cluster_member" "member-1" {
-  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
-  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-}
+#resource "tg_cluster_member" "member-1" {
+#  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+#  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+#}
 
 resource "tg_node_cluster_config" "cluster-gossip" {
   node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
@@ -349,3 +349,10 @@ resource "tg_container_volume" "myvol" {
 #   }
 # }
 
+
+resource "tg_virtual_network_attachment" "tftest1" {
+  node_id         = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  network         = resource.tg_virtual_network.testaringo.name
+  ip              = "10.10.14.4"
+  validation_cidr = "10.10.14.0/24"
+}
