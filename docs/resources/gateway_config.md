@@ -58,6 +58,7 @@ resource "tg_gateway_config" "private-gateway" {
 
 - `cert` (String) Gateway TLS certificate
 - `client` (Block List) Private gateway clients (see [below for nested schema](#nestedblock--client))
+- `connect_to_public` (Boolean) Allow connectivity to public gateways
 - `enabled` (Boolean) Enable the gateway plugin
 - `host` (String) Host IP
 - `maxmbps` (Number) Max gateway throughput

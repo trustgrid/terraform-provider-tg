@@ -72,6 +72,8 @@ resource "tg_gateway_config" "test" {
   maxmbps     = 100
   cert        = "locapp.dev.trustgrid.io"
 
+  connect_to_public = false
+
   client {
     name    = "2aug1245test"
     enabled = true
