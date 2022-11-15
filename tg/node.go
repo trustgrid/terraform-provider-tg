@@ -101,16 +101,17 @@ type NetworkRoute struct {
 }
 
 type NetworkInterface struct {
-	NIC       string         `json:"nic"`
-	Routes    []NetworkRoute `json:"routes,omitempty"`
-	ClusterIP string         `json:"clusterIP,omitempty"`
-	DHCP      bool           `json:"dhcp,omitempty"`
-	Gateway   string         `json:"gateway,omitempty"`
-	IP        string         `json:"ip,omitempty"`
-	Mode      string         `json:"mode,omitempty"`
-	DNS       []string       `json:"dns,omitempty"`
-	Duplex    string         `json:"duplex,omitempty"`
-	Speed     int            `json:"speed,omitempty"`
+	NIC         string         `json:"nic"`
+	Routes      []NetworkRoute `json:"routes,omitempty"`
+	CloudRoutes []NetworkRoute `json:"cloudRoutes,omitempty"`
+	ClusterIP   string         `json:"clusterIP,omitempty"`
+	DHCP        bool           `json:"dhcp,omitempty"`
+	Gateway     string         `json:"gateway,omitempty"`
+	IP          string         `json:"ip,omitempty"`
+	Mode        string         `json:"mode,omitempty"`
+	DNS         []string       `json:"dns,omitempty"`
+	Duplex      string         `json:"duplex,omitempty"`
+	Speed       int            `json:"speed,omitempty"`
 }
 
 type VRFACL struct {
