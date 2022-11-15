@@ -38,16 +38,17 @@ type HCLNetworkTunnel struct {
 }
 
 type HCLNetworkInterface struct {
-	NIC       string   `tf:"nic"`
-	Routes    []string `tf:"routes,omitempty"`
-	ClusterIP string   `tf:"cluster_ip,omitempty"`
-	DHCP      bool     `tf:"dhcp"`
-	Gateway   string   `tf:"gateway"`
-	IP        string   `tf:"ip"`
-	Mode      string   `tf:"mode,omitempty"`
-	DNS       []string `tf:"dns,omitempty"`
-	Duplex    string   `tf:"duplex,omitempty"`
-	Speed     int      `tf:"speed,omitempty"`
+	NIC         string   `tf:"nic"`
+	Routes      []string `tf:"routes,omitempty"`
+	CloudRoutes []string `tf:"cloud_routes,omitempty"`
+	ClusterIP   string   `tf:"cluster_ip,omitempty"`
+	DHCP        bool     `tf:"dhcp"`
+	Gateway     string   `tf:"gateway"`
+	IP          string   `tf:"ip"`
+	Mode        string   `tf:"mode,omitempty"`
+	DNS         []string `tf:"dns,omitempty"`
+	Duplex      string   `tf:"duplex,omitempty"`
+	Speed       int      `tf:"speed,omitempty"`
 }
 
 type HCLVRFACL struct {
@@ -352,6 +353,15 @@ func NetworkConfig() *schema.Resource {
 								ValidateFunc: validation.IsCIDR,
 							},
 						},
+						"cloud_routes": {
+							Description: "Cluster interface routes",
+							Type:        schema.TypeList,
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.IsCIDR,
+							},
+						},
 						"dhcp": {
 							Description: "Enable DHCP",
 							Type:        schema.TypeBool,
@@ -574,6 +584,9 @@ func (nr *network) convertToTFConfig(ctx context.Context, c tg.NetworkConfig, d 
 		for _, r := range i.Routes {
 			iface.Routes = append(iface.Routes, r.Route)
 		}
+		for _, r := range i.CloudRoutes {
+			iface.CloudRoutes = append(iface.CloudRoutes, r.Route)
+		}
 		nc.Interfaces = append(nc.Interfaces, iface)
 	}
 
@@ -683,6 +696,9 @@ func (nr *network) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (
 		}
 		for _, r := range i.Routes {
 			iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r})
+		}
+		for _, r := range i.CloudRoutes {
+			iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r})
 		}
 
 		nc.Interfaces = append(nc.Interfaces, iface)

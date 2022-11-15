@@ -52,10 +52,12 @@ resource "tg_network_config" "network-1" {
   }
 
   interface {
-    nic     = "ens192"
-    dhcp    = false
-    gateway = "10.20.10.1"
-    ip      = "10.20.10.50/24"
+    nic          = "ens192"
+    dhcp         = false
+    gateway      = "10.20.10.1"
+    ip           = "10.20.10.50/24"
+    routes       = ["10.10.10.0/24"]
+    cloud_routes = ["10.10.14.0/24"]
   }
 
   interface {
@@ -158,6 +160,7 @@ Required:
 
 Optional:
 
+- `cloud_routes` (List of String) Cluster interface routes
 - `cluster_ip` (String) Cluster IP
 - `dhcp` (Boolean) Enable DHCP
 - `dns` (List of String) DNS servers
