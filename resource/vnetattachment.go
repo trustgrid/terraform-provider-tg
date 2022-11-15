@@ -16,13 +16,21 @@ type vnetAttachment struct {
 
 type HCLVnetAttachment struct {
 	NodeID         string `tf:"node_id"`
+	ClusterFQDN    string `tf:"cluster_fqdn"`
 	NetworkName    string `tf:"network"`
 	IP             string `tf:"ip"`
 	ValidationCIDR string `tf:"validation_cidr"`
 }
 
-func (va *HCLVnetAttachment) url() string {
-	return fmt.Sprintf("/v2/node/%s/vpn/%s", va.NodeID, va.NetworkName)
+func (h *HCLVnetAttachment) resourceURL() string {
+	return h.url() + "/" + h.NetworkName
+}
+
+func (h *HCLVnetAttachment) url() string {
+	if h.NodeID != "" {
+		return fmt.Sprintf("/v2/node/%s/vpn", h.NodeID)
+	}
+	return fmt.Sprintf("/v2/cluster/%s/vpn", h.ClusterFQDN)
 }
 
 func VNetAttachment() *schema.Resource {
@@ -37,11 +45,19 @@ func VNetAttachment() *schema.Resource {
 		CreateContext: r.Create,
 
 		Schema: map[string]*schema.Schema{
-			// TODO cluster fqdn
 			"node_id": {
-				Description: "Node ID",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Node ID",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
+			},
+			"cluster_fqdn": {
+				Description:  "Cluster FQDN",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"network": {
 				Description: "Virtual network name",
@@ -49,11 +65,11 @@ func VNetAttachment() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			// TODO not required for clusters
 			"ip": {
 				Description:  "Management IP",
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				RequiredWith: []string{"node_id"},
 				ValidateFunc: validation.IsIPv4Address,
 			},
 			"validation_cidr": {
@@ -69,22 +85,22 @@ func VNetAttachment() *schema.Resource {
 func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	va := HCLVnetAttachment{}
-	if err := hcl.DecodeResourceData(d, &va); err != nil {
+	tf := HCLVnetAttachment{}
+	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgva := tg.VNetAttachment{
-		IP:          va.IP,
-		Route:       va.ValidationCIDR,
-		NetworkName: va.NetworkName,
+		IP:          tf.IP,
+		Route:       tf.ValidationCIDR,
+		NetworkName: tf.NetworkName,
 	}
 
-	if err := tgc.Post(ctx, "/v2/node/"+va.NodeID+"/vpn", &tgva); err != nil {
+	if err := tgc.Post(ctx, tf.url(), &tgva); err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(va.NetworkName)
+	d.SetId(tf.NetworkName)
 
 	return diag.Diagnostics{}
 }
@@ -103,7 +119,7 @@ func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, me
 		NetworkName: va.NetworkName,
 	}
 
-	if err := tgc.Put(ctx, va.url(), &tgva); err != nil {
+	if err := tgc.Put(ctx, va.resourceURL(), &tgva); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -118,7 +134,7 @@ func (vn *vnetAttachment) Delete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, va.url(), nil); err != nil {
+	if err := tgc.Delete(ctx, va.resourceURL(), nil); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -134,7 +150,7 @@ func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	vnet := tg.VNetAttachment{}
-	if err := tgc.Get(ctx, va.url(), &vnet); err != nil {
+	if err := tgc.Get(ctx, va.resourceURL(), &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 

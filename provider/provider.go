@@ -56,6 +56,7 @@ func New(version string) func() *schema.Provider {
 				"tg_virtual_network_route":       resource.VNetRoute(),
 				"tg_virtual_network_access_rule": resource.VNetAccessRule(),
 				"tg_virtual_network_attachment":  resource.VNetAttachment(),
+				"tg_vpn_interface":               resource.VPNInterface(),
 				"tg_cluster":                     resource.Cluster(),
 				"tg_cluster_member":              resource.ClusterMember(),
 				"tg_node_cluster_config":         resource.ClusterConfig(),

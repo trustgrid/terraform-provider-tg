@@ -112,10 +112,10 @@ resource "tg_cluster" "cluster-1" {
   name = "tf-cluster1"
 }
 
-#resource "tg_cluster_member" "member-1" {
-#  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
-#  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-#}
+resource "tg_cluster_member" "member-1" {
+  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+}
 
 resource "tg_node_cluster_config" "cluster-gossip" {
   node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
@@ -127,17 +127,19 @@ resource "tg_node_cluster_config" "cluster-gossip" {
   active      = true
 }
 
-resource "tg_network_config" "cluster-net1" {
-  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+#resource "tg_network_config" "cluster-net1" {
+#  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
 
-  interface {
-    nic        = "ens160"
-    cluster_ip = "10.20.10.1"
-  }
-}
+#  interface {
+#    nic        = "ens160"
+#    cluster_ip = "10.20.10.1"
+#  }
+#}
 
 resource "tg_network_config" "network-1" {
-  node_id    = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  #node_id    = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+
   dark_mode  = true
   forwarding = true
 
@@ -174,21 +176,21 @@ resource "tg_network_config" "network-1" {
   }
 
   interface {
-    nic     = "ens192"
-    dhcp    = false
-    gateway = "10.20.10.1"
-    ip      = "10.20.10.50/24"
+    nic = "ens192"
+    #dhcp    = false
+    #gateway = "10.20.10.1"
+    #ip      = "10.20.10.50/24"
   }
 
   interface {
-    nic     = "ens160"
-    duplex  = "full"
-    dhcp    = true
-    mode    = "auto"
-    ip      = "172.16.22.50/24"
-    dns     = ["172.16.11.4"]
-    gateway = "172.16.22.1"
-    speed   = 1000
+    nic = "ens160"
+    #duplex  = "full"
+    #dhcp    = true
+    #mode    = "auto"
+    #ip      = "172.16.22.50/24"
+    #dns     = ["172.16.11.4"]
+    #gateway = "172.16.22.1"
+    #speed   = 1000
   }
 
   vrf {
@@ -351,8 +353,34 @@ resource "tg_container_volume" "myvol" {
 
 
 resource "tg_virtual_network_attachment" "tftest1" {
-  node_id         = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-  network         = resource.tg_virtual_network.testaringo.name
-  ip              = "10.10.14.4"
+  #node_id         = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+  network      = resource.tg_virtual_network.testaringo.name
+  #ip              = "10.10.14.4"
   validation_cidr = "10.10.14.0/24"
+}
+
+resource "tg_vpn_interface" "ipsec1" {
+  #  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
+  network      = resource.tg_virtual_network.testaringo.name
+
+  interface_name = "ipsec1"
+  inside_nat {
+    network_cidr = "10.0.1.0/24"
+    local_cidr   = "2.2.2.0/24"
+    description  = "inside NAT2"
+  }
+  inside_nat {
+    network_cidr = "10.0.2.0/24"
+    local_cidr   = "2.2.3.0/24"
+    description  = "another inside NAT"
+  }
+  #outside_nat {
+  #  network_cidr = "192.168.2.0/24"
+  #  local_cidr   = "192.168.1.0/24"
+  #  description  = "outside NAT"
+  #  proxy_arp    = true
+  #}
+  description = "ipsec1 iface"
 }

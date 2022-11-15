@@ -61,9 +61,9 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 	if r.StatusCode != 200 {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
+			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
 		}
-		return fmt.Errorf("non-200 from portal: %d\npayload:\n%s\n\nreply:\n%s", r.StatusCode, string(body), reply)
+		return fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
 
 	return nil
@@ -95,9 +95,9 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) error {
 	if r.StatusCode != 200 {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
+			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
 		}
-		return fmt.Errorf("non-200 from portal: %d\npayload:\n%s\n\nreply:\n%s", r.StatusCode, string(body), reply)
+		return fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
 
 	return nil
@@ -129,9 +129,9 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 	if r.StatusCode != 200 {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
+			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
 		}
-		return fmt.Errorf("non-200 from portal: %d\npayload:\n%s\n\nreply:\n%s", r.StatusCode, string(body), reply)
+		return fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
 
 	return nil
@@ -152,7 +152,7 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 	}
 
 	if r.StatusCode != 200 {
-		return r.Body, fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
+		return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
 	}
 
 	return r.Body, nil
@@ -176,9 +176,9 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 	if r.StatusCode != 200 {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal: %d; couldn't read body: %s", r.StatusCode, err)
+			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
 		}
-		return fmt.Errorf("non-200 from portal: %d - %s\n%s", r.StatusCode, req.URL.String(), reply)
+		return fmt.Errorf("non-200 from portal (%s): %d - %s\n%s", url, r.StatusCode, req.URL.String(), reply)
 	}
 
 	reply, err := io.ReadAll(r.Body)
