@@ -171,6 +171,8 @@ func (h *HCLVPNInterface) toTGVPNInterface() tg.VPNInterface {
 		Description:     h.Description,
 		InDefaultRoute:  h.InDefaultRoute,
 		OutDefaultRoute: h.OutDefaultRoute,
+		InsideNATs:      make([]tg.VPNInterfaceNAT, 0),
+		OutsideNATs:     make([]tg.VPNInterfaceNAT, 0),
 	}
 
 	for _, nat := range h.InsideNATs {
