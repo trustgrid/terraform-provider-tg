@@ -3,6 +3,7 @@ package hcl
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mitchellh/mapstructure"
@@ -17,6 +18,8 @@ func DecodeResourceData(d *schema.ResourceData, target any) error {
 		field := reflect.TypeOf(target).Elem().FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
 		if tf != "" {
+			vals := strings.Split(tf, ",")
+			tf = vals[0]
 			v, ok := d.GetOk(tf)
 			if ok {
 				fields[tf] = v
@@ -44,16 +47,24 @@ func convertToMap(in any) (map[string]any, error) {
 		if tf == "" {
 			continue
 		}
+		vals := strings.Split(tf, ",")
+		tf = vals[0]
 
 		switch field.Type.Kind() {
 		case reflect.Slice:
 			slice := make([]any, 0)
 			for j := 0; j < reflect.ValueOf(in).FieldByIndex([]int{i}).Len(); j++ {
-				e, err := convertToMap(reflect.ValueOf(in).FieldByIndex([]int{i}).Index(j).Interface())
-				if err != nil {
-					return out, fmt.Errorf("error converting slice element %d: %w", j, err)
+				el := reflect.ValueOf(in).FieldByIndex([]int{i}).Index(j)
+				switch el.Kind() {
+				case reflect.Struct:
+					e, err := convertToMap(reflect.ValueOf(in).FieldByIndex([]int{i}).Index(j).Interface())
+					if err != nil {
+						return out, fmt.Errorf("error converting slice element %d: %w", j, err)
+					}
+					slice = append(slice, e)
+				default:
+					slice = append(slice, el.Interface())
 				}
-				slice = append(slice, e)
 			}
 			out[tf] = slice
 		default:
@@ -71,7 +82,7 @@ func EncodeResourceData(in any, d *schema.ResourceData) error {
 	var err error
 
 	if reflect.TypeOf(in).Kind() == reflect.Pointer {
-		out, err = convertToMap(reflect.ValueOf(in).Elem())
+		out, err = convertToMap(reflect.ValueOf(in).Elem().Interface())
 	} else {
 		out, err = convertToMap(in)
 	}
