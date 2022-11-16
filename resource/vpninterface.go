@@ -285,11 +285,16 @@ func (vn *vpnInterface) Read(ctx context.Context, d *schema.ResourceData, meta a
 		return diag.FromErr(err)
 	}
 
+	found := false
 	for _, iface := range ifaces {
 		if iface.InterfaceName == tf.InterfaceName {
+			found = true
 			tf.updateFromTGVPNInterface(iface)
 			break
 		}
+	}
+	if !found {
+		d.SetId("")
 	}
 
 	if err := hcl.EncodeResourceData(tf, d); err != nil {
