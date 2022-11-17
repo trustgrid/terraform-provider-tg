@@ -59,7 +59,7 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 
 	d.SetId(cert.FQDN)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -74,7 +74,7 @@ func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -89,7 +89,7 @@ func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -111,10 +111,8 @@ func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 	}
 
 	if cert.FQDN == "" {
-		return diag.Errorf("certificate not found")
+		d.SetId("")
 	}
 
-	d.SetId(cert.FQDN)
-
-	return diag.Diagnostics{}
+	return nil
 }

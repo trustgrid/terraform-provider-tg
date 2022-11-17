@@ -82,7 +82,7 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 
 	d.SetId(vnet.Name)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -116,7 +116,7 @@ func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -129,18 +129,23 @@ func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta
 
 	vnets := make([]tg.VirtualNetwork, 0)
 
-	if err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets); err != nil {
+	err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	found := false
 	for _, v := range vnets {
 		if v.Name == vnet.Name {
+			found = true
 			vnet = v
 			break
 		}
 	}
 
-	d.SetId(vnet.Name)
+	if !found {
+		d.SetId("")
+	}
 
-	return diag.Diagnostics{}
+	return nil
 }

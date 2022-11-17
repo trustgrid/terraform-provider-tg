@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -100,14 +101,18 @@ func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, met
 
 	d.SetId(d.Get("node_id").(string))
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
-	if err != nil {
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -127,7 +132,7 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -135,6 +140,9 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 	existing, err := cr.getConfig(ctx, tgc, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
+	}
+	if existing == nil {
+		existing = &tg.ClusterConfig{}
 	}
 
 	cc := tg.ClusterConfig{}
@@ -147,13 +155,16 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (cr *clusterconfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
-	if err != nil {
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -163,5 +174,5 @@ func (cr *clusterconfig) Delete(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

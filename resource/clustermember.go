@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -65,7 +66,7 @@ func (nr *clustermember) Create(ctx context.Context, d *schema.ResourceData, met
 
 	d.SetId(uid)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (nr *clustermember) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -73,7 +74,11 @@ func (nr *clustermember) Read(ctx context.Context, d *schema.ResourceData, meta 
 
 	n := tg.Node{}
 	err := tgc.Get(ctx, "/node/"+d.Id(), &n)
-	if err != nil {
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -81,7 +86,7 @@ func (nr *clustermember) Read(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (nr *clustermember) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -93,7 +98,7 @@ func (nr *clustermember) Update(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (nr *clustermember) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -103,5 +108,5 @@ func (nr *clustermember) Delete(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

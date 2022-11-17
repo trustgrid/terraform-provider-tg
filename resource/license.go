@@ -49,7 +49,7 @@ func License() *schema.Resource {
 
 func licenseNoop(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tflog.Debug(ctx, "hi from licensenoop")
-	return diag.Diagnostics{}
+	return nil
 }
 
 func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -91,5 +91,5 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 		}
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

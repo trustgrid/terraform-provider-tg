@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -793,7 +794,7 @@ func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any)
 
 	d.SetId(id)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -803,7 +804,12 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	if isCluster {
 		n := tg.Cluster{}
-		if err := tgc.Get(ctx, "/cluster/"+id, &n); err != nil {
+		err := tgc.Get(ctx, "/cluster/"+id, &n)
+		switch {
+		case errors.Is(err, tg.ErrNotFound):
+			d.SetId("")
+			return nil
+		case err != nil:
 			return diag.FromErr(fmt.Errorf("cannot lookup cluster id=%s isCluster=%t %w", id, isCluster, err))
 		}
 
@@ -811,10 +817,15 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 			return diag.FromErr(err)
 		}
 
-		return diag.Diagnostics{}
+		return nil
 	} else {
 		n := tg.Node{}
-		if err := tgc.Get(ctx, "/node/"+id, &n); err != nil {
+		err := tgc.Get(ctx, "/node/"+id, &n)
+		switch {
+		case errors.Is(err, tg.ErrNotFound):
+			d.SetId("")
+			return nil
+		case err != nil:
 			return diag.FromErr(err)
 		}
 
@@ -822,7 +833,7 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 			return diag.FromErr(err)
 		}
 
-		return diag.Diagnostics{}
+		return nil
 	}
 }
 
@@ -833,5 +844,5 @@ func (nr *network) Update(ctx context.Context, d *schema.ResourceData, meta any)
 func (nr *network) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Noop
 
-	return diag.Diagnostics{}
+	return nil
 }

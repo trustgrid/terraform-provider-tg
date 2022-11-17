@@ -49,8 +49,7 @@ func orgRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnos
 	if err := hcl.EncodeResourceData(&org, d); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(org.UID)
 	tflog.Debug(ctx, "orgRead: returning", map[string]any{"domain": org.Domain})
 
-	return diag.Diagnostics{}
+	return nil
 }

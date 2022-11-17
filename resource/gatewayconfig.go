@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -126,7 +127,7 @@ func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, met
 
 	d.SetId(gw.NodeID)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -139,7 +140,11 @@ func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 
 	n := tg.Node{}
 	err = tgc.Get(ctx, "/node/"+gw.NodeID, &n)
-	if err != nil {
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -151,7 +156,7 @@ func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -171,7 +176,7 @@ func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (gc *gatewayConfig) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {

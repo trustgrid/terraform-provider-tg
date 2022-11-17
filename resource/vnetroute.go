@@ -2,7 +2,7 @@ package resource
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -64,7 +64,8 @@ func VNetRoute() *schema.Resource {
 
 func (vn *vnetRoute) findRoute(ctx context.Context, tgc *tg.Client, route tg.VNetRoute) (tg.VNetRoute, error) {
 	routes := []tg.VNetRoute{}
-	if err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route", &routes); err != nil {
+	err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route", &routes)
+	if err != nil {
 		return tg.VNetRoute{}, err
 	}
 
@@ -81,7 +82,7 @@ func (vn *vnetRoute) findRoute(ctx context.Context, tgc *tg.Client, route tg.VNe
 		}
 	}
 
-	return tg.VNetRoute{}, fmt.Errorf("no route found")
+	return tg.VNetRoute{}, tg.ErrNotFound
 }
 
 func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -110,7 +111,7 @@ func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -148,23 +149,30 @@ func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *vnetRoute) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	route := tg.VNetRoute{}
-	if err := hcl.DecodeResourceData(d, &route); err != nil {
+	tf := tg.VNetRoute{}
+	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	route, err := vn.findRoute(ctx, tgc, route)
-	if err != nil {
+	route, err := vn.findRoute(ctx, tgc, tf)
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
-	d.SetId(route.UID)
+	route.NetworkName = tf.NetworkName
+	if err := hcl.EncodeResourceData(route, d); err != nil {
+		return diag.FromErr(err)
+	}
 
-	return diag.Diagnostics{}
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,15 +19,18 @@ type Client struct {
 	Domain string
 }
 
+var ErrNotFound = errors.New("not found")
+
 func NewClient(ctx context.Context, apiKey, apiSecret, apiHost string) (*Client, error) {
 	client := &Client{
 		APIKey:    apiKey,
 		APISecret: apiSecret,
 		APIHost:   apiHost,
 	}
-	org := Org{}
 
-	if err := client.Get(ctx, "/org/mine", &org); err != nil {
+	org := Org{}
+	err := client.Get(ctx, "/org/mine", &org)
+	if err != nil {
 		return client, fmt.Errorf("error retrieving org info: %w", err)
 	}
 
@@ -152,6 +156,9 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 	}
 
 	if r.StatusCode != 200 {
+		if r.StatusCode == 404 {
+			return r.Body, ErrNotFound
+		}
 		return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
 	}
 
@@ -177,6 +184,9 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
 			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
+		}
+		if r.StatusCode == 404 {
+			return ErrNotFound
 		}
 		return fmt.Errorf("non-200 from portal (%s): %d - %s\n%s", url, r.StatusCode, req.URL.String(), reply)
 	}

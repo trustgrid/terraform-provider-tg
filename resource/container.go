@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -903,7 +904,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -937,19 +938,23 @@ func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	ct, err := cr.decodeTFConfig(ctx, d)
+	tf, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ct, err = cr.getContainer(ctx, tgc, ct)
-	if err != nil {
+	ct, err := cr.getContainer(ctx, tgc, tf)
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -957,7 +962,5 @@ func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	d.SetId(ct.ID)
-
-	return diag.Diagnostics{}
+	return nil
 }

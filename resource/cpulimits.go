@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -108,11 +109,11 @@ func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta any) diag
 	idFromAPI := limits.id()
 	d.SetId(idFromAPI)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tg := meta.(*tg.Client)
+	tgc := meta.(*tg.Client)
 
 	limits := cpuLimitData{}
 	err := hcl.DecodeResourceData(d, &limits)
@@ -120,9 +121,12 @@ func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 		return diag.FromErr(err)
 	}
 
-	err = tg.Get(ctx, limits.url(), &limits)
-
-	if err != nil {
+	err = tgc.Get(ctx, limits.url(), &limits)
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -131,12 +135,11 @@ func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 		return diag.FromErr(err)
 	}
 
-	d.SetId(limits.id())
 	if err := d.Set("node_id", limits.NodeID); err != nil {
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func cpuLimitsUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -159,5 +162,5 @@ func cpuLimitsDelete(ctx context.Context, d *schema.ResourceData, meta any) diag
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

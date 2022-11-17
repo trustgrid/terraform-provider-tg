@@ -16,7 +16,7 @@ provider "tg" {
 data "tg_org" "org" {
 }
 
-data "tg_node" "production" {
+data "tg_nodes" "production" {
   include_tags = {
     prod_status = "Production"
   }
@@ -25,8 +25,24 @@ data "tg_node" "production" {
   }
 }
 
+data "tg_node" "mynode_by_fqdn" {
+  fqdn = "terry-profiled.dev.regression.trustgrid.io"
+}
+
+data "tg_node" "mynode_by_uid" {
+  uid = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+}
+
 resource "tg_license" "edge1" {
   name = "my-edge1-node"
+}
+
+output "fqdn_uid" {
+  value = data.tg_node.mynode_by_fqdn.uid
+}
+
+output "uid_fqdn" {
+  value = data.tg_node.mynode_by_uid.fqdn
 }
 
 output "license" {

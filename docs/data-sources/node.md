@@ -3,12 +3,12 @@
 page_title: "tg_node Data Source - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Fetches nodes from Trustgrid
+  Fetches a node from Trustgrid either by UID or FQDN
 ---
 
 # tg_node (Data Source)
 
-Fetches nodes from Trustgrid
+Fetches a node from Trustgrid either by UID or FQDN
 
 
 
@@ -17,12 +17,11 @@ Fetches nodes from Trustgrid
 
 ### Optional
 
-- `exclude_tags` (Map of String) Exclude Tag Filters
-- `include_tags` (Map of String) Include Tag Filters
+- `fqdn` (String) Node FQDN
+- `uid` (String) Node UID
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `node_ids` (Set of String) List of matching nodes
 
 

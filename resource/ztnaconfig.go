@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -90,7 +91,7 @@ func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) dia
 
 	d.SetId(gw.NodeID)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -98,7 +99,11 @@ func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	n := tg.Node{}
 	err := tgc.Get(ctx, "/node/"+d.Id(), &n)
-	if err != nil {
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -107,7 +112,7 @@ func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func ztnaConfigUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -121,5 +126,5 @@ func ztnaConfigDelete(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

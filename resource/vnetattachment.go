@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -102,7 +103,7 @@ func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, me
 
 	d.SetId(tf.NetworkName)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -138,7 +139,7 @@ func (vn *vnetAttachment) Delete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -150,7 +151,12 @@ func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	vnet := tg.VNetAttachment{}
-	if err := tgc.Get(ctx, va.resourceURL(), &vnet); err != nil {
+	err := tgc.Get(ctx, va.resourceURL(), &vnet)
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -161,5 +167,5 @@ func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

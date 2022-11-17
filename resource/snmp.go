@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -98,7 +99,7 @@ func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 	idFromAPI := snmp.ID()
 	d.SetId(idFromAPI)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -112,7 +113,11 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 
 	n := tg.Node{}
 	err = tgc.Get(ctx, "/node/"+snmp.NodeID, &n)
-	if err != nil {
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
@@ -134,7 +139,7 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 		}
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -155,5 +160,5 @@ func snmpDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
