@@ -44,13 +44,13 @@ func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 	}
 
 	if cert.FQDN == "" {
-		return diag.Errorf("certificate not found")
+		d.SetId("")
+		return nil
 	}
 
 	if err := hcl.EncodeResourceData(&cert, d); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(cert.FQDN)
 
-	return diag.Diagnostics{}
+	return nil
 }

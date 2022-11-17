@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -55,18 +56,23 @@ func (cr *cluster) Create(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	d.SetId(cluster.Name + "." + tgc.Domain)
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (cr *cluster) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	var cluster tg.Cluster
 
-	if err := tgc.Get(ctx, "/cluster/"+d.Id(), &cluster); err != nil {
+	err := tgc.Get(ctx, "/cluster/"+d.Id(), &cluster)
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (cr *cluster) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -75,5 +81,5 @@ func (cr *cluster) Delete(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error issuing delete to /cluster/%s: %w", d.Id(), err))
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

@@ -2,7 +2,7 @@ package resource
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -107,7 +107,7 @@ func (vn *vnetAccessRule) findRule(ctx context.Context, tgc *tg.Client, rule tg.
 		}
 	}
 
-	return tg.VNetAccessRule{}, fmt.Errorf("no rule found")
+	return tg.VNetAccessRule{}, nil
 }
 
 func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -136,7 +136,7 @@ func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -174,23 +174,29 @@ func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *vnetAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	rule := tg.VNetAccessRule{}
-	if err := hcl.DecodeResourceData(d, &rule); err != nil {
+	tf := tg.VNetAccessRule{}
+	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	rule, err := vn.findRule(ctx, tgc, rule)
-	if err != nil {
+	rule, err := vn.findRule(ctx, tgc, tf)
+	switch {
+	case errors.Is(err, tg.ErrNotFound):
+		d.SetId("")
+		return nil
+	case err != nil:
 		return diag.FromErr(err)
 	}
 
-	d.SetId(rule.UID)
-
-	return diag.Diagnostics{}
+	rule.NetworkName = tf.NetworkName
+	if err := hcl.EncodeResourceData(rule, d); err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }

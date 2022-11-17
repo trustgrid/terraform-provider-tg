@@ -98,5 +98,5 @@ func nodeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

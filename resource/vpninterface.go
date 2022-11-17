@@ -269,7 +269,7 @@ func (vn *vpnInterface) Delete(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vn *vpnInterface) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -295,11 +295,12 @@ func (vn *vpnInterface) Read(ctx context.Context, d *schema.ResourceData, meta a
 	}
 	if !found {
 		d.SetId("")
+		return nil
 	}
 
 	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }

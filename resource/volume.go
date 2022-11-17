@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -79,7 +80,7 @@ func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	d.SetId(v.Name)
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -109,7 +110,7 @@ func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	return diag.Diagnostics{}
+	return nil
 }
 
 func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -121,10 +122,12 @@ func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	if err := tgc.Get(ctx, vr.volumeURL(v), &v); err != nil {
+		if errors.Is(err, tg.ErrNotFound) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
-	d.SetId(v.Name)
-
-	return diag.Diagnostics{}
+	return nil
 }
