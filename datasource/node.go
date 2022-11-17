@@ -2,8 +2,6 @@ package datasource
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -11,92 +9,66 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-func Node() *schema.Resource {
-	return &schema.Resource{
-		Description: "Fetches nodes from Trustgrid",
+type dsNode struct{}
 
-		ReadContext: nodeRead,
+type hclNode struct {
+	UID  string `tf:"uid"`
+	FQDN string `tf:"fqdn"`
+}
+
+func Node() *schema.Resource {
+	r := dsNode{}
+	return &schema.Resource{
+		Description: "Fetches a node from Trustgrid either by UID or FQDN",
+
+		ReadContext: r.Read,
 
 		Schema: map[string]*schema.Schema{
-			"include_tags": {
-				Description: "Include Tag Filters",
-				Type:        schema.TypeMap,
-				Optional:    true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"uid": {
+				Description:  "Node UID",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ExactlyOneOf: []string{"uid", "fqdn"},
 			},
-			"exclude_tags": {
-				Description: "Exclude Tag Filters",
-				Type:        schema.TypeMap,
-				Optional:    true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"node_ids": {
-				Type:        schema.TypeSet,
-				Description: "List of matching nodes",
-				Computed:    true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"fqdn": {
+				Description:  "Node FQDN",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ExactlyOneOf: []string{"uid", "fqdn"},
 			},
 		},
 	}
 }
 
-type filter struct {
-	Tags        map[string]any `tf:"include_tags"`
-	ExcludeTags map[string]any `tf:"exclude_tags"`
-}
-
-func (f *filter) match(n tg.Node) bool {
-	for tag, value := range f.Tags {
-		nv := n.Tags[tag]
-		if nv != value {
-			return false
-		}
-	}
-
-	for tag, value := range f.ExcludeTags {
-		nv := n.Tags[tag]
-		if nv == value {
-			return false
-		}
-	}
-
-	return true
-}
-
-func nodeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
-
+func (ds *dsNode) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	f := filter{}
-	err := hcl.DecodeResourceData(d, &f)
+	tf := hclNode{}
+	err := hcl.DecodeResourceData(d, &tf)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	nodes := make([]tg.Node, 0)
-	err = tgc.Get(ctx, "/node", &nodes)
-	if err != nil {
+	url := "/node/" + tf.UID
+	if tf.UID == "" {
+		url = "/node/by-fqdn/" + tf.FQDN
+	}
+
+	node := tg.Node{}
+	if err := tgc.Get(ctx, url, &node); err != nil {
 		return diag.FromErr(err)
 	}
 
-	nodeIDs := make([]string, 0)
-	for _, node := range nodes {
-		if f.match(node) {
-			nodeIDs = append(nodeIDs, node.UID)
-		}
-	}
+	tf.UID = node.UID
+	tf.FQDN = node.FQDN
 
-	err = d.Set("node_ids", nodeIDs)
-	if err != nil {
+	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)
 	}
+
+	d.SetId(tf.UID)
 
 	return nil
 }
