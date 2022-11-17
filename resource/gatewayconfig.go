@@ -83,6 +83,12 @@ func GatewayConfig() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"public", "private", "hub"}, false),
 			},
+			"connect_to_public": {
+				Description: "Allow connectivity to public gateways",
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+			},
 			"client": {
 				Type:        schema.TypeList,
 				Optional:    true,

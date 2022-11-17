@@ -32,11 +32,12 @@ type GatewayClient struct {
 type GatewayConfig struct {
 	NodeID string `tf:"node_id" json:"-"`
 
-	Enabled bool   `tf:"enabled" json:"enabled"`
-	Host    string `tf:"host" json:"host,omitempty"`
-	Port    int    `tf:"port" json:"port,omitempty"`
-	MaxMBPS int    `tf:"maxmbps" json:"maxmbps,omitempty"`
-	Type    string `tf:"type" json:"type"`
+	Enabled         bool   `tf:"enabled" json:"enabled"`
+	Host            string `tf:"host" json:"host,omitempty"`
+	Port            int    `tf:"port" json:"port,omitempty"`
+	MaxMBPS         int    `tf:"maxmbps" json:"maxmbps,omitempty"`
+	ConnectToPublic bool   `tf:"connect_to_public" json:"connectToPublic"`
+	Type            string `tf:"type" json:"type"`
 
 	UDPEnabled bool `tf:"udp_enabled" json:"udpEnabled"`
 	UDPPort    int  `tf:"udp_port" json:"udpPort,omitempty"`
