@@ -12,72 +12,7 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-// TODO add support for wg: vnets and template and allowed dests
-// TODO add support for remote: vrf
-
 type app struct {
-}
-
-type HCLApp struct {
-	ID                  string   `tf:"-"`
-	AppType             string   `tf:"type"`
-	Name                string   `tf:"name"`
-	Description         string   `tf:"description"`
-	EdgeNodeID          string   `tf:"edge_node"`
-	GatewayNodeID       string   `tf:"gateway_node"` //required
-	IDPID               string   `tf:"idp"`
-	IP                  string   `tf:"ip"`
-	Port                int      `tf:"port"`
-	Protocol            string   `tf:"protocol"`
-	Hostname            string   `tf:"hostname"`
-	SessionDuration     int      `tf:"session_duration"`
-	TLSVerificationMode string   `tf:"tls_verification_mode"`
-	TrustMode           string   `tf:"trust_mode"`
-	GroupIDs            []string `tf:"visibility_groups"`
-}
-
-func (h *HCLApp) resourceURL() string {
-	return h.url() + "/" + h.ID
-}
-
-func (h *HCLApp) url() string {
-	return "/v2/application"
-}
-
-func (h *HCLApp) toTG() tg.App {
-	return tg.App{
-		AppType:             h.AppType,
-		Name:                h.Name,
-		Description:         h.Description,
-		EdgeNodeID:          h.EdgeNodeID,
-		GatewayNodeID:       h.GatewayNodeID,
-		IDPID:               h.IDPID,
-		IP:                  h.IP,
-		Port:                h.Port,
-		Protocol:            h.Protocol,
-		Hostname:            h.Hostname,
-		SessionDuration:     h.SessionDuration,
-		TLSVerificationMode: h.TLSVerificationMode,
-		TrustMode:           h.TrustMode,
-		GroupIDs:            h.GroupIDs,
-	}
-}
-
-func (h *HCLApp) updateFromTGApp(a tg.App) {
-	h.AppType = a.AppType
-	h.Name = a.Name
-	h.Description = a.Description
-	h.EdgeNodeID = a.EdgeNodeID
-	h.GatewayNodeID = a.GatewayNodeID
-	h.IDPID = a.IDPID
-	h.IP = a.IP
-	h.Port = a.Port
-	h.Protocol = a.Protocol
-	h.Hostname = a.Hostname
-	h.SessionDuration = a.SessionDuration
-	h.TLSVerificationMode = a.TLSVerificationMode
-	h.TrustMode = a.TrustMode
-	h.GroupIDs = a.GroupIDs
 }
 
 func App() *schema.Resource {
@@ -134,7 +69,7 @@ func App() *schema.Resource {
 			"port": {
 				Description:  "Port",
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.IsPortNumber,
 			},
 			"protocol": {
@@ -163,6 +98,28 @@ func App() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
+			"vrf": {
+				Description: "VRF",
+				Type:        schema.TypeString,
+				Optional:    true,
+			},
+			"virtual_network": {
+				Description: "Virtual network name",
+				Type:        schema.TypeString,
+				Optional:    true,
+			},
+			"virtual_source_ip": {
+				Description:  "Virtual source IP, if using a virtual network",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPv4Address,
+			},
+			"wireguard_template": {
+				Description: "WireGuard Template",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+			},
 			"visibility_groups": {
 				Description: "Visibility Groups",
 				Type:        schema.TypeList,
@@ -178,14 +135,14 @@ func App() *schema.Resource {
 func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLApp{}
+	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	tgapp := tf.toTG()
+	tgapp := tf.ToTG()
 
-	reply, err := tgc.Post(ctx, tf.url(), &tgapp)
+	reply, err := tgc.Post(ctx, tf.URL(), &tgapp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -204,14 +161,13 @@ func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *app) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLApp{}
+	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
-	tf.ID = d.Id()
 
-	tgapp := tf.toTG()
-	if err := tgc.Put(ctx, tf.resourceURL(), &tgapp); err != nil {
+	tgapp := tf.ToTG()
+	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgapp); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -221,13 +177,12 @@ func (r *app) Update(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *app) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLApp{}
+	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
-	tf.ID = d.Id()
 
-	if err := tgc.Delete(ctx, tf.resourceURL(), nil); err != nil {
+	if err := tgc.Delete(ctx, tf.ResourceURL(d.Id()), nil); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -237,14 +192,13 @@ func (r *app) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *app) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLApp{}
+	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
-	tf.ID = d.Id()
 
 	tgapp := tg.App{}
-	err := tgc.Get(ctx, tf.resourceURL(), &tgapp)
+	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgapp)
 	switch {
 	case errors.Is(err, tg.ErrNotFound):
 		d.SetId("")
@@ -253,7 +207,7 @@ func (r *app) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 		return diag.FromErr(err)
 	}
 
-	tf.updateFromTGApp(tgapp)
+	tf.UpdateFromTG(tgapp)
 
 	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)

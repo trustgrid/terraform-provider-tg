@@ -397,9 +397,8 @@ resource "tg_app" "tftest2" {
   gateway_node          = data.tg_node.terry.uid
   ip                    = "2.2.2.2"
   idp                   = "53af39ba-ea6d-48c9-8ee8-a36d7c10c251"
-  port                  = 3389
   protocol              = "http"
-  type                  = "remote"
+  type                  = "web"
   hostname              = "whatevz"
   session_duration      = 60
   tls_verification_mode = "default"
@@ -429,10 +428,9 @@ resource "tg_app_access_rule" "rule1" {
 }
 
 resource "tg_app_access_rule" "deny-everyone" {
-  depends_on = [resource.tg_app_access_rule.rule1]
-  app        = resource.tg_app.tftest2.id
-  action     = "block"
-  name       = "block"
+  app    = resource.tg_app.tftest2.id
+  action = "block"
+  name   = "block"
 
   include {
     everyone = true
@@ -444,9 +442,33 @@ resource "tg_app" "mywgapp" {
   description      = "my app2"
   gateway_node     = data.tg_node.terry.uid
   ip               = "2.2.2.2"
-  idp              = "idp-id"
-  port             = 3389
+  idp              = resource.tg_idp.mygsuite.uid
   session_duration = 60
   protocol         = "wireguard"
   type             = "wireguard"
+}
+
+resource "tg_idp" "mygsuite" {
+  name        = "tfgsuite"
+  type        = "GSuite"
+  description = "from terraform"
+}
+
+resource "tg_app_acl" "allowall" {
+  app         = resource.tg_app.mywgapp.id
+  description = "allow all traffic"
+  ips         = ["0.0.0.0/0"]
+  protocol    = "any"
+}
+
+data "tg_idp" "unused" {
+  uid = "53af39ba-ea6d-48c9-8ee8-a36d7c10c251"
+}
+
+output "idp_name" {
+  value = "foo" #data.tg_idp.unused.name
+}
+
+data "tg_app" "test" {
+  uid = "3b3bf81e-b064-4bf9-858d-74a6a8d31172"
 }

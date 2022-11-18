@@ -26,7 +26,6 @@ type HCLAccessRuleItem struct {
 }
 
 type HCLAccessRule struct {
-	ID         string              `tf:"-"`
 	AppID      string              `tf:"app"`
 	Action     string              `tf:"action"`
 	Name       string              `tf:"name"`
@@ -35,8 +34,8 @@ type HCLAccessRule struct {
 	Requires   []HCLAccessRuleItem `tf:"require"`
 }
 
-func (h *HCLAccessRule) resourceURL() string {
-	return h.url() + "/" + h.ID
+func (h *HCLAccessRule) resourceURL(ID string) string {
+	return h.url() + "/" + ID
 }
 
 func (h *HCLAccessRule) url() string {
@@ -165,7 +164,7 @@ func AppAccessRule() *schema.Resource {
 	r := appAccessRule{}
 
 	return &schema.Resource{
-		Description: "Manage a ZTNA application access rule. You can attach multiple rules to an application, but each rule must use `depends_on` the previous rule to ensure the rules are created in the correct order.",
+		Description: "Manage a ZTNA application access rule.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
@@ -255,10 +254,9 @@ func (r *appAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
-	tf.ID = d.Id()
 
 	tgrule := tf.toTG()
-	if err := tgc.Put(ctx, tf.resourceURL(), &tgrule); err != nil {
+	if err := tgc.Put(ctx, tf.resourceURL(d.Id()), &tgrule); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -272,9 +270,8 @@ func (r *appAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
-	tf.ID = d.Id()
 
-	if err := tgc.Delete(ctx, tf.resourceURL(), nil); err != nil {
+	if err := tgc.Delete(ctx, tf.resourceURL(d.Id()), nil); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -288,10 +285,9 @@ func (r *appAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta a
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
-	tf.ID = d.Id()
 
 	tgrule := tg.AppAccessRule{}
-	err := tgc.Get(ctx, tf.resourceURL(), &tgrule)
+	err := tgc.Get(ctx, tf.resourceURL(d.Id()), &tgrule)
 	switch {
 	case errors.Is(err, tg.ErrNotFound):
 		d.SetId("")

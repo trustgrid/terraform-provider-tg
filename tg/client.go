@@ -9,9 +9,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 type Client struct {
+	writeLock sync.Mutex
+
 	APIKey    string
 	APISecret string
 	APIHost   string
@@ -40,6 +43,9 @@ func NewClient(ctx context.Context, apiKey, apiSecret, apiHost string) (*Client,
 }
 
 func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
+	tg.writeLock.Lock()
+	defer tg.writeLock.Unlock()
+
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
@@ -74,6 +80,9 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 }
 
 func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, error) {
+	tg.writeLock.Lock()
+	defer tg.writeLock.Unlock()
+
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("couldn't marshal body: %s", err)
@@ -101,13 +110,16 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, er
 		return nil, fmt.Errorf("couldn't read body: %w", err)
 	}
 	if r.StatusCode != 200 {
-		return reply, fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
+		return reply, fmt.Errorf("[POST] non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
 
 	return reply, nil
 }
 
 func (tg *Client) Put(ctx context.Context, url string, payload any) error {
+	tg.writeLock.Lock()
+	defer tg.writeLock.Unlock()
+
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
