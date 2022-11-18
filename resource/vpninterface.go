@@ -231,7 +231,7 @@ func (vn *vpnInterface) Create(ctx context.Context, d *schema.ResourceData, meta
 
 	vpn := tf.toTGVPNInterface()
 
-	if err := tgc.Post(ctx, tf.url(), &vpn); err != nil {
+	if _, err := tgc.Post(ctx, tf.url(), &vpn); err != nil {
 		return diag.FromErr(err)
 	}
 

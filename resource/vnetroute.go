@@ -93,7 +93,7 @@ func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route", &route); err != nil {
+	if _, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route", &route); err != nil {
 		return diag.FromErr(err)
 	}
 

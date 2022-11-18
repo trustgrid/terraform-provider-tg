@@ -74,7 +74,7 @@ func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Post(ctx, vr.urlRoot(v), &v); err != nil {
+	if _, err := tgc.Post(ctx, vr.urlRoot(v), &v); err != nil {
 		return diag.FromErr(err)
 	}
 

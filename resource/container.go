@@ -894,7 +894,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 
 	ct.ID = uuid.New().String()
 
-	if err := tgc.Post(ctx, cr.urlRoot(tgc, ct), &ct); err != nil {
+	if _, err := tgc.Post(ctx, cr.urlRoot(tgc, ct), &ct); err != nil {
 		return diag.FromErr(err)
 	}
 

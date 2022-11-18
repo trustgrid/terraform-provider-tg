@@ -25,24 +25,12 @@ data "tg_nodes" "production" {
   }
 }
 
-data "tg_node" "mynode_by_fqdn" {
+data "tg_node" "terry" {
   fqdn = "terry-profiled.dev.regression.trustgrid.io"
-}
-
-data "tg_node" "mynode_by_uid" {
-  uid = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
 }
 
 resource "tg_license" "edge1" {
   name = "my-edge1-node"
-}
-
-output "fqdn_uid" {
-  value = data.tg_node.mynode_by_fqdn.uid
-}
-
-output "uid_fqdn" {
-  value = data.tg_node.mynode_by_uid.fqdn
 }
 
 output "license" {
@@ -401,4 +389,64 @@ resource "tg_vpn_interface" "ipsec1" {
   #  proxy_arp    = true
   #}
   description = "ipsec1 iface"
+}
+
+resource "tg_app" "tftest2" {
+  name                  = "tftest2"
+  description           = "my app2"
+  gateway_node          = data.tg_node.terry.uid
+  ip                    = "2.2.2.2"
+  idp                   = "53af39ba-ea6d-48c9-8ee8-a36d7c10c251"
+  port                  = 3389
+  protocol              = "http"
+  type                  = "remote"
+  hostname              = "whatevz"
+  session_duration      = 60
+  tls_verification_mode = "default"
+  trust_mode            = "discovery"
+}
+
+resource "tg_app_access_rule" "rule1" {
+  app    = resource.tg_app.tftest2.id
+  action = "allow"
+  name   = "bigrule"
+
+  exception {
+    emails   = ["exception@whatever.com"]
+    everyone = true
+  }
+
+  include {
+    ip_ranges = ["0.0.0.0/0"]
+    countries = ["US"]
+  }
+
+  require {
+    emails_ending_in = ["trustgrid.io"]
+    idp_groups       = ["1"]
+    access_groups    = ["mygroup"]
+  }
+}
+
+resource "tg_app_access_rule" "deny-everyone" {
+  depends_on = [resource.tg_app_access_rule.rule1]
+  app        = resource.tg_app.tftest2.id
+  action     = "block"
+  name       = "block"
+
+  include {
+    everyone = true
+  }
+}
+
+resource "tg_app" "mywgapp" {
+  name             = "my-wg-app"
+  description      = "my app2"
+  gateway_node     = data.tg_node.terry.uid
+  ip               = "2.2.2.2"
+  idp              = "idp-id"
+  port             = 3389
+  session_duration = 60
+  protocol         = "wireguard"
+  type             = "wireguard"
 }

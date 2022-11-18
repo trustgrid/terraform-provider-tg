@@ -45,7 +45,7 @@ func (cr *cluster) Create(ctx context.Context, d *schema.ResourceData, meta any)
 		Name: d.Get("name").(string),
 	}
 
-	err := tgc.Post(ctx, "/cluster", &cluster)
+	_, err := tgc.Post(ctx, "/cluster", &cluster)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -118,7 +118,7 @@ func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Post(ctx, vn.urlRoot(tgc, rule), &rule); err != nil {
+	if _, err := tgc.Post(ctx, vn.urlRoot(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
