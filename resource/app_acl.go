@@ -15,38 +15,6 @@ import (
 type appACL struct {
 }
 
-type HCLAppACL struct {
-	AppID       string   `tf:"app"`
-	Description string   `tf:"description"`
-	IPs         []string `tf:"ips"`
-	PortRange   string   `tf:"port_range"`
-	Protocol    string   `tf:"protocol"`
-}
-
-func (h *HCLAppACL) resourceURL(ID string) string {
-	return h.url() + "/" + ID
-}
-
-func (h *HCLAppACL) url() string {
-	return "/v2/application/" + h.AppID + "/acl"
-}
-
-func (h *HCLAppACL) toTG() *tg.AppACL {
-	return &tg.AppACL{
-		Description: h.Description,
-		IPs:         h.IPs,
-		PortRange:   h.PortRange,
-		Protocol:    h.Protocol,
-	}
-}
-
-func (h *HCLAppACL) updateFromTG(r tg.AppACL) {
-	h.Description = r.Description
-	h.IPs = r.IPs
-	h.PortRange = r.PortRange
-	h.Protocol = r.Protocol
-}
-
 func AppACL() *schema.Resource {
 	r := appACL{}
 
@@ -95,14 +63,14 @@ func AppACL() *schema.Resource {
 func (r *appACL) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAppACL{}
+	tf := hcl.AppACL{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	tgrule := tf.toTG()
+	tgrule := tf.ToTG()
 
-	reply, err := tgc.Post(ctx, tf.url(), &tgrule)
+	reply, err := tgc.Post(ctx, tf.URL(), &tgrule)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -121,13 +89,13 @@ func (r *appACL) Create(ctx context.Context, d *schema.ResourceData, meta any) d
 func (r *appACL) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAppACL{}
+	tf := hcl.AppACL{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	tgrule := tf.toTG()
-	if err := tgc.Put(ctx, tf.resourceURL(d.Id()), &tgrule); err != nil {
+	tgrule := tf.ToTG()
+	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgrule); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -137,12 +105,12 @@ func (r *appACL) Update(ctx context.Context, d *schema.ResourceData, meta any) d
 func (r *appACL) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAppACL{}
+	tf := hcl.AppACL{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, tf.resourceURL(d.Id()), nil); err != nil {
+	if err := tgc.Delete(ctx, tf.ResourceURL(d.Id()), nil); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -152,13 +120,13 @@ func (r *appACL) Delete(ctx context.Context, d *schema.ResourceData, meta any) d
 func (r *appACL) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAppACL{}
+	tf := hcl.AppACL{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgacl := tg.AppACL{}
-	err := tgc.Get(ctx, tf.resourceURL(d.Id()), &tgacl)
+	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgacl)
 	switch {
 	case errors.Is(err, tg.ErrNotFound):
 		d.SetId("")
@@ -167,7 +135,7 @@ func (r *appACL) Read(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	tf.updateFromTG(tgacl)
+	tf.UpdateFromTG(tgacl)
 
 	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)

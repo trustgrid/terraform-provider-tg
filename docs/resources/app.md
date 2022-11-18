@@ -61,7 +61,6 @@ resource "tg_app" "mywgapp" {
 - `idp` (String) IDP ID
 - `ip` (String) IP
 - `name` (String) App Name
-- `port` (Number) Port
 - `protocol` (String) Protocol
 - `type` (String) App Type
 
@@ -70,10 +69,15 @@ resource "tg_app" "mywgapp" {
 - `description` (String) Description
 - `edge_node` (String) Edge node ID
 - `hostname` (String) Hostname
+- `port` (Number) Port
 - `session_duration` (Number) Session Duration
 - `tls_verification_mode` (String) TLS Verification Mode
 - `trust_mode` (String) Trust Mode
+- `virtual_network` (String) Virtual network name
+- `virtual_source_ip` (String) Virtual source IP, if using a virtual network
 - `visibility_groups` (List of String) Visibility Groups
+- `vrf` (String) VRF
+- `wireguard_template` (String, Sensitive) WireGuard Template
 
 ### Read-Only
 

@@ -80,7 +80,19 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	d.SetId(vnet.Name)
+	vnets := make([]tg.VirtualNetwork, 0)
+
+	err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	for _, v := range vnets {
+		if v.Name == vnet.Name {
+			d.SetId(fmt.Sprintf("%d", v.ID))
+			break
+		}
+	}
 
 	return nil
 }

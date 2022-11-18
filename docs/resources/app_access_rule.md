@@ -3,12 +3,12 @@
 page_title: "tg_app_access_rule Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Manage a ZTNA application access rule. You can attach multiple rules to an application, but each rule must use depends_on the previous rule to ensure the rules are created in the correct order.
+  Manage a ZTNA application access rule.
 ---
 
 # tg_app_access_rule (Resource)
 
-Manage a ZTNA application access rule. You can attach multiple rules to an application, but each rule must use `depends_on` the previous rule to ensure the rules are created in the correct order.
+Manage a ZTNA application access rule.
 
 ## Example Usage
 

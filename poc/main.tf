@@ -151,7 +151,7 @@ resource "tg_network_config" "network-1" {
 
   tunnel {
     name       = "vnet1"
-    network_id = 1125
+    network_id = data.tg_virtual_network.asdf.id
     vrf        = "vpn"
     type       = "vnet"
     enabled    = true
@@ -466,9 +466,17 @@ data "tg_idp" "unused" {
 }
 
 output "idp_name" {
-  value = "foo" #data.tg_idp.unused.name
+  value = data.tg_idp.unused.name
 }
 
 data "tg_app" "test" {
   uid = "3b3bf81e-b064-4bf9-858d-74a6a8d31172"
+}
+
+data "tg_virtual_network" "asdf" {
+  name = "asdf"
+}
+
+output "asdf-id" {
+  value = data.tg_virtual_network.asdf.id
 }

@@ -14,98 +14,6 @@ import (
 
 type network struct{}
 
-type HCLNetworkTunnel struct {
-	Enabled       bool   `tf:"enabled"`
-	Name          string `tf:"name"`
-	IKE           int    `tf:"ike,omitempty"`
-	IKECipher     string `tf:"ike_cipher,omitempty"`
-	IKEGroup      int    `tf:"ike_group,omitempty"`
-	RekeyInterval int    `tf:"rekey_interval,omitempty"`
-	IP            string `tf:"ip,omitempty"`
-	Destination   string `tf:"destination,omitempty"`
-	IPSecCipher   string `tf:"ipsec_cipher,omitempty"`
-	PSK           string `tf:"psk,omitempty"`
-	VRF           string `tf:"vrf,omitempty"`
-	Type          string `tf:"type"`
-	MTU           int    `tf:"mtu"`
-	NetworkID     int    `tf:"network_id"`
-	LocalID       string `tf:"local_id,omitempty"`
-	RemoteID      string `tf:"remote_id,omitempty"`
-	DPDRetries    int    `tf:"dpd_retries,omitempty"`
-	DPDInterval   int    `tf:"dpd_interval,omitempty"`
-	IFace         string `tf:"iface,omitempty"`
-	PFS           int    `tf:"pfs"`
-	ReplayWindow  int    `tf:"replay_window,omitempty"`
-}
-
-type HCLNetworkInterface struct {
-	NIC         string   `tf:"nic"`
-	Routes      []string `tf:"routes,omitempty"`
-	CloudRoutes []string `tf:"cloud_routes,omitempty"`
-	ClusterIP   string   `tf:"cluster_ip,omitempty"`
-	DHCP        bool     `tf:"dhcp"`
-	Gateway     string   `tf:"gateway"`
-	IP          string   `tf:"ip"`
-	Mode        string   `tf:"mode,omitempty"`
-	DNS         []string `tf:"dns,omitempty"`
-	Duplex      string   `tf:"duplex,omitempty"`
-	Speed       int      `tf:"speed,omitempty"`
-}
-
-type HCLVRFACL struct {
-	Action      string `tf:"action"`
-	Description string `tf:"description"`
-	Protocol    string `tf:"protocol"`
-	Source      string `tf:"source"`
-	Dest        string `tf:"dest"`
-	Line        int    `tf:"line"`
-}
-
-type HCLVRFRoute struct {
-	Dest        string `tf:"dest"`
-	Dev         string `tf:"dev"`
-	Description string `tf:"description"`
-	Metric      int    `tf:"metric"`
-}
-
-type HCLVRFNAT struct {
-	Source     string `tf:"source,omitempty"`
-	Dest       string `tf:"dest,omitempty"`
-	Masquerade bool   `tf:"masquerade"`
-	ToSource   string `tf:"to_source,omitempty"`
-	ToDest     string `tf:"to_dest,omitempty"`
-}
-
-type HCLVRFRule struct {
-	Protocol    string `tf:"protocol"`
-	Line        int    `tf:"line"`
-	Action      string `tf:"action"`
-	Description string `tf:"description,omitempty"`
-	Source      string `tf:"source,omitempty"`
-	VRF         string `tf:"vrf,omitempty"`
-	Dest        string `tf:"dest,omitempty"`
-}
-
-type HCLVRF struct {
-	Name       string        `tf:"name"`
-	Forwarding bool          `tf:"forwarding"`
-	ACLs       []HCLVRFACL   `tf:"acl,omitempty"`
-	Routes     []HCLVRFRoute `tf:"route,omitempty"`
-	NATs       []HCLVRFNAT   `tf:"nat,omitempty"`
-	Rules      []HCLVRFRule  `tf:"rule,omitempty"`
-}
-
-type HCLNetworkConfigData struct {
-	DarkMode   bool `tf:"dark_mode"`
-	Forwarding bool `tf:"forwarding"`
-
-	Tunnels []HCLNetworkTunnel `tf:"tunnel"`
-
-	Interfaces []HCLNetworkInterface `tf:"interface"`
-
-	VRFs []HCLVRF `tf:"vrf"`
-}
-
 func NetworkConfig() *schema.Resource {
 	n := network{}
 
@@ -524,6 +432,18 @@ func NetworkConfig() *schema.Resource {
 							Description:  "PFS",
 							ValidateFunc: validation.IntInSlice([]int{0, 2, 5, 14, 15, 16}),
 						},
+						"remote_subnet": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Interesting traffic remote subnet",
+							ValidateFunc: validation.IsCIDR,
+						},
+						"local_subnet": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Interesting traffic local subnet",
+							ValidateFunc: validation.IsCIDR,
+						},
 						"replay_window": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -537,226 +457,14 @@ func NetworkConfig() *schema.Resource {
 	}
 }
 
-func (nr *network) convertToTFConfig(ctx context.Context, c tg.NetworkConfig, d *schema.ResourceData) error {
-	nc := HCLNetworkConfigData{
-		DarkMode:   c.DarkMode,
-		Forwarding: c.Forwarding,
-	}
-
-	for _, t := range c.Tunnels {
-		nc.Tunnels = append(nc.Tunnels, HCLNetworkTunnel{
-			Enabled:       t.Enabled,
-			Name:          t.Name,
-			IKE:           t.IKE,
-			IKECipher:     t.IKECipher,
-			IKEGroup:      t.IKEGroup,
-			RekeyInterval: t.RekeyInterval,
-			IP:            t.IP,
-			Destination:   t.Destination,
-			IPSecCipher:   t.IPSecCipher,
-			PSK:           t.PSK,
-			VRF:           t.VRF,
-			Type:          t.Type,
-			MTU:           t.MTU,
-			NetworkID:     t.NetworkID,
-			LocalID:       t.LocalID,
-			RemoteID:      t.RemoteID,
-			DPDRetries:    t.DPDRetries,
-			DPDInterval:   t.DPDInterval,
-			IFace:         t.IFace,
-			PFS:           t.PFS,
-			ReplayWindow:  t.ReplayWindow,
-		})
-	}
-
-	for _, i := range c.Interfaces {
-		iface := HCLNetworkInterface{
-			NIC:       i.NIC,
-			ClusterIP: i.ClusterIP,
-			DHCP:      i.DHCP,
-			Gateway:   i.Gateway,
-			IP:        i.IP,
-			Mode:      i.Mode,
-			Duplex:    i.Duplex,
-			Speed:     i.Speed,
-			DNS:       i.DNS,
-		}
-
-		for _, r := range i.Routes {
-			iface.Routes = append(iface.Routes, r.Route)
-		}
-		for _, r := range i.CloudRoutes {
-			iface.CloudRoutes = append(iface.CloudRoutes, r.Route)
-		}
-		nc.Interfaces = append(nc.Interfaces, iface)
-	}
-
-	for _, v := range c.VRFs {
-		vrf := HCLVRF{
-			Name:       v.Name,
-			Forwarding: v.Forwarding,
-		}
-
-		for _, a := range v.ACLs {
-			vrf.ACLs = append(vrf.ACLs, HCLVRFACL{
-				Action:      a.Action,
-				Description: a.Description,
-				Protocol:    a.Protocol,
-				Source:      a.Source,
-				Dest:        a.Dest,
-				Line:        a.Line,
-			})
-		}
-
-		for _, n := range v.NATs {
-			vrf.NATs = append(vrf.NATs, HCLVRFNAT{
-				Source:     n.Source,
-				Dest:       n.Dest,
-				Masquerade: n.Masquerade,
-				ToSource:   n.ToSource,
-				ToDest:     n.ToDest,
-			})
-		}
-
-		for _, r := range v.Rules {
-			vrf.Rules = append(vrf.Rules, HCLVRFRule{
-				Protocol:    r.Protocol,
-				Line:        r.Line,
-				Action:      r.Action,
-				Description: r.Description,
-				Source:      r.Source,
-				VRF:         r.VRF,
-				Dest:        r.Dest,
-			})
-		}
-
-		for _, r := range v.Routes {
-			vrf.Routes = append(vrf.Routes, HCLVRFRoute{
-				Dest:        r.Dest,
-				Dev:         r.Dev,
-				Description: r.Description,
-				Metric:      r.Metric,
-			})
-		}
-
-		nc.VRFs = append(nc.VRFs, vrf)
-	}
-
-	return hcl.EncodeResourceData(&nc, d)
-}
-
 func (nr *network) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.NetworkConfig, error) {
-	data := HCLNetworkConfigData{}
+	tf := hcl.NetworkConfig{}
 
-	if err := hcl.DecodeResourceData(d, &data); err != nil {
+	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return tg.NetworkConfig{}, err
 	}
 
-	nc := tg.NetworkConfig{
-		DarkMode:   data.DarkMode,
-		Forwarding: data.Forwarding,
-	}
-
-	for _, t := range data.Tunnels {
-		nc.Tunnels = append(nc.Tunnels, tg.NetworkTunnel{
-			Enabled:       t.Enabled,
-			Name:          t.Name,
-			IKE:           t.IKE,
-			IKECipher:     t.IKECipher,
-			IKEGroup:      t.IKEGroup,
-			RekeyInterval: t.RekeyInterval,
-			IP:            t.IP,
-			Destination:   t.Destination,
-			IPSecCipher:   t.IPSecCipher,
-			PSK:           t.PSK,
-			VRF:           t.VRF,
-			Type:          t.Type,
-			MTU:           t.MTU,
-			NetworkID:     t.NetworkID,
-			LocalID:       t.LocalID,
-			RemoteID:      t.RemoteID,
-			DPDRetries:    t.DPDRetries,
-			DPDInterval:   t.DPDInterval,
-			IFace:         t.IFace,
-			PFS:           t.PFS,
-			ReplayWindow:  t.ReplayWindow,
-		})
-	}
-
-	for _, i := range data.Interfaces {
-		iface := tg.NetworkInterface{
-			NIC:       i.NIC,
-			ClusterIP: i.ClusterIP,
-			DHCP:      i.DHCP,
-			Gateway:   i.Gateway,
-			IP:        i.IP,
-			Mode:      i.Mode,
-			Duplex:    i.Duplex,
-			Speed:     i.Speed,
-			DNS:       i.DNS,
-		}
-		for _, r := range i.Routes {
-			iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r})
-		}
-		for _, r := range i.CloudRoutes {
-			iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r})
-		}
-
-		nc.Interfaces = append(nc.Interfaces, iface)
-	}
-
-	for _, v := range data.VRFs {
-		vrf := tg.VRF{
-			Name:       v.Name,
-			Forwarding: v.Forwarding,
-		}
-
-		for _, a := range v.ACLs {
-			vrf.ACLs = append(vrf.ACLs, tg.VRFACL{
-				Action:      a.Action,
-				Description: a.Description,
-				Protocol:    a.Protocol,
-				Source:      a.Source,
-				Dest:        a.Dest,
-				Line:        a.Line,
-			})
-		}
-
-		for _, n := range v.NATs {
-			vrf.NATs = append(vrf.NATs, tg.VRFNAT{
-				Source:     n.Source,
-				Dest:       n.Dest,
-				Masquerade: n.Masquerade,
-				ToSource:   n.ToSource,
-				ToDest:     n.ToDest,
-			})
-		}
-
-		for _, r := range v.Rules {
-			vrf.Rules = append(vrf.Rules, tg.VRFRule{
-				Protocol:    r.Protocol,
-				Line:        r.Line,
-				Action:      r.Action,
-				Description: r.Description,
-				Source:      r.Source,
-				VRF:         r.VRF,
-				Dest:        r.Dest,
-			})
-		}
-
-		for _, r := range v.Routes {
-			vrf.Routes = append(vrf.Routes, tg.VRFRoute{
-				Description: r.Description,
-				Dest:        r.Dest,
-				Dev:         r.Dev,
-				Metric:      r.Metric,
-			})
-		}
-
-		nc.VRFs = append(nc.VRFs, vrf)
-	}
-
-	return nc, nil
+	return tf.ToTG(), nil
 }
 
 func (nr *network) endpoint(d *schema.ResourceData) (id string, isCluster bool) {
@@ -802,6 +510,11 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	id, isCluster := nr.endpoint(d)
 
+	var tf hcl.NetworkConfig
+	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+		return diag.FromErr(err)
+	}
+
 	if isCluster {
 		n := tg.Cluster{}
 		err := tgc.Get(ctx, "/cluster/"+id, &n)
@@ -813,11 +526,7 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 			return diag.FromErr(fmt.Errorf("cannot lookup cluster id=%s isCluster=%t %w", id, isCluster, err))
 		}
 
-		if err := nr.convertToTFConfig(ctx, n.Config.Network, d); err != nil {
-			return diag.FromErr(err)
-		}
-
-		return nil
+		tf.UpdateFromTG(n.Config.Network)
 	} else {
 		n := tg.Node{}
 		err := tgc.Get(ctx, "/node/"+id, &n)
@@ -829,12 +538,14 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 			return diag.FromErr(err)
 		}
 
-		if err := nr.convertToTFConfig(ctx, n.Config.Network, d); err != nil {
-			return diag.FromErr(err)
-		}
-
-		return nil
+		tf.UpdateFromTG(n.Config.Network)
 	}
+
+	if err := hcl.EncodeResourceData(tf, d); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
 func (nr *network) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

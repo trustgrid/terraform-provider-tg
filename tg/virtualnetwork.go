@@ -1,6 +1,7 @@
 package tg
 
 type VirtualNetwork struct {
+	ID          int    `json:"id,omitempty"`
 	Name        string `tf:"name" json:"name"`
 	NetworkCIDR string `tf:"network_cidr" json:"networkCidr"`
 	Description string `tf:"description" json:"description"`

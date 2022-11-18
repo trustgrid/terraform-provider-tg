@@ -15,102 +15,6 @@ import (
 type appAccessRule struct {
 }
 
-type HCLAccessRuleItem struct {
-	Emails         []string `tf:"emails"`
-	Everyone       bool     `tf:"everyone"`
-	IPRanges       []string `tf:"ip_ranges"`
-	Countries      []string `tf:"countries"`
-	EmailsEndingIn []string `tf:"emails_ending_in"`
-	IDPGroups      []string `tf:"idp_groups"`
-	AccessGroups   []string `tf:"access_groups"`
-}
-
-type HCLAccessRule struct {
-	AppID      string              `tf:"app"`
-	Action     string              `tf:"action"`
-	Name       string              `tf:"name"`
-	Exceptions []HCLAccessRuleItem `tf:"exception"`
-	Includes   []HCLAccessRuleItem `tf:"include"`
-	Requires   []HCLAccessRuleItem `tf:"require"`
-}
-
-func (h *HCLAccessRule) resourceURL(ID string) string {
-	return h.url() + "/" + ID
-}
-
-func (h *HCLAccessRule) url() string {
-	return "/v2/application/" + h.AppID + "/access-rule"
-}
-
-func (h *HCLAccessRuleItem) toTG() *tg.AppAccessRuleItem {
-	item := tg.AppAccessRuleItem{
-		Emails:         h.Emails,
-		IPRanges:       h.IPRanges,
-		Country:        h.Countries,
-		EmailsEndingIn: h.EmailsEndingIn,
-		IDPGroups:      h.IDPGroups,
-		AccessGroups:   h.AccessGroups,
-	}
-	if h.Everyone {
-		item.Everyone = []string{""}
-	}
-	return &item
-}
-
-func (h *HCLAccessRule) toTG() tg.AppAccessRule {
-	rule := tg.AppAccessRule{
-		Name:   h.Name,
-		Action: h.Action,
-	}
-	for _, i := range h.Includes {
-		rule.Includes = i.toTG()
-	}
-	for _, i := range h.Exceptions {
-		rule.Exceptions = i.toTG()
-	}
-	for _, i := range h.Requires {
-		rule.Requires = i.toTG()
-	}
-
-	return rule
-}
-
-func (h *HCLAccessRuleItem) updateFromTG(item tg.AppAccessRuleItem) {
-	h.Emails = item.Emails
-	h.IPRanges = item.IPRanges
-	h.Countries = item.Country
-	h.EmailsEndingIn = item.EmailsEndingIn
-	h.IDPGroups = item.IDPGroups
-	h.AccessGroups = item.AccessGroups
-	h.Everyone = len(item.Everyone) > 0
-}
-
-func (h *HCLAccessRule) updateFromTGApp(r tg.AppAccessRule) {
-	h.Name = r.Name
-	h.Action = r.Action
-
-	if r.Includes != nil {
-		if len(h.Includes) == 0 {
-			h.Includes = make([]HCLAccessRuleItem, 1)
-		}
-		h.Includes[0].updateFromTG(*r.Includes)
-	}
-
-	if r.Exceptions != nil {
-		if len(h.Exceptions) == 0 {
-			h.Exceptions = make([]HCLAccessRuleItem, 1)
-		}
-		h.Exceptions[0].updateFromTG(*r.Exceptions)
-	}
-
-	if r.Requires != nil {
-		if len(h.Requires) == 0 {
-			h.Requires = make([]HCLAccessRuleItem, 1)
-		}
-		h.Requires[0].updateFromTG(*r.Requires)
-	}
-}
-
 func ruleItemSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"everyone": {
@@ -224,14 +128,14 @@ func AppAccessRule() *schema.Resource {
 func (r *appAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAccessRule{}
+	tf := hcl.AccessRule{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	tgrule := tf.toTG()
+	tgrule := tf.ToTG()
 
-	reply, err := tgc.Post(ctx, tf.url(), &tgrule)
+	reply, err := tgc.Post(ctx, tf.URL(), &tgrule)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -250,13 +154,13 @@ func (r *appAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta
 func (r *appAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAccessRule{}
+	tf := hcl.AccessRule{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	tgrule := tf.toTG()
-	if err := tgc.Put(ctx, tf.resourceURL(d.Id()), &tgrule); err != nil {
+	tgrule := tf.ToTG()
+	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgrule); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -266,12 +170,12 @@ func (r *appAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta
 func (r *appAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAccessRule{}
+	tf := hcl.AccessRule{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, tf.resourceURL(d.Id()), nil); err != nil {
+	if err := tgc.Delete(ctx, tf.ResourceURL(d.Id()), nil); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -281,13 +185,13 @@ func (r *appAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta
 func (r *appAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
-	tf := HCLAccessRule{}
+	tf := hcl.AccessRule{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgrule := tg.AppAccessRule{}
-	err := tgc.Get(ctx, tf.resourceURL(d.Id()), &tgrule)
+	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgrule)
 	switch {
 	case errors.Is(err, tg.ErrNotFound):
 		d.SetId("")
@@ -296,7 +200,7 @@ func (r *appAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta a
 		return diag.FromErr(err)
 	}
 
-	tf.updateFromTGApp(tgrule)
+	tf.UpdateFromTG(tgrule)
 
 	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)

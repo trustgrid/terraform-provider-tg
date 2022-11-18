@@ -95,6 +95,8 @@ type NetworkTunnel struct {
 	IFace         string `json:"iface,omitempty"`
 	PFS           int    `json:"pfs"` // TODO we should omit this when appropriate
 	ReplayWindow  int    `json:"replayWindow,omitempty"`
+	RemoteSubnet  string `json:"remoteSubnet,omitempty"`
+	LocalSubnet   string `json:"localSubnet,omitempty"`
 }
 
 type NetworkRoute struct {
