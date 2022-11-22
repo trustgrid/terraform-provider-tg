@@ -46,6 +46,8 @@ func New(version string) func() *schema.Provider {
 				"tg_node":            datasource.Node(),
 				"tg_nodes":           datasource.Nodes(),
 				"tg_org":             datasource.Org(),
+				"tg_kvm_image":       datasource.KVMImage(),
+				"tg_kvm_volume":      datasource.KVMVolume(),
 				"tg_virtual_network": datasource.VirtualNetwork(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
@@ -60,6 +62,8 @@ func New(version string) func() *schema.Provider {
 				"tg_container_volume":            resource.Volume(),
 				"tg_gateway_config":              resource.GatewayConfig(),
 				"tg_idp":                         resource.IDP(),
+				"tg_kvm_image":                   resource.KVMImage(),
+				"tg_kvm_volume":                  resource.KVMVolume(),
 				"tg_license":                     resource.License(),
 				"tg_network_config":              resource.NetworkConfig(),
 				"tg_node_cluster_config":         resource.ClusterConfig(),

@@ -480,3 +480,40 @@ data "tg_virtual_network" "asdf" {
 output "asdf-id" {
   value = data.tg_virtual_network.asdf.id
 }
+
+resource "tg_kvm_image" "myimage" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+
+  display_name = "myimage"
+  location     = "/root/whatever.qcow2"
+  os           = "win10"
+  description  = "my image2"
+}
+
+resource "tg_kvm_volume" "myvol" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+
+  name           = "myimage"
+  provision_type = "eager"
+  device_type    = "disk"
+  device_bus     = "ide"
+  size           = 10
+}
+
+data "tg_kvm_image" "myimage" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  uid     = resource.tg_kvm_image.myimage.id
+}
+
+output "kvm-img-id" {
+  value = data.tg_kvm_image.myimage.display_name
+}
+
+data "tg_kvm_volume" "myvol" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  name    = "myimage"
+}
+
+output "kvm-vol-size" {
+  value = data.tg_kvm_volume.myvol.size
+}
