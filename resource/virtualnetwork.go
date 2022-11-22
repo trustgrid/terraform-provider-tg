@@ -61,7 +61,7 @@ func vnetCommit(ctx context.Context, tgc *tg.Client, network string) error {
 		return fmt.Errorf("error validating network changes: %w", err)
 	}
 
-	if err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network/"+network+"/change/commit", &reply); err != nil {
+	if _, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network/"+network+"/change/commit", &reply); err != nil {
 		return fmt.Errorf("error committing network changes: %w", err)
 	}
 
@@ -76,11 +76,23 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnet); err != nil {
+	if _, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnet); err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(vnet.Name)
+	vnets := make([]tg.VirtualNetwork, 0)
+
+	err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	for _, v := range vnets {
+		if v.Name == vnet.Name {
+			d.SetId(fmt.Sprintf("%d", v.ID))
+			break
+		}
+	}
 
 	return nil
 }

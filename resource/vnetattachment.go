@@ -97,7 +97,7 @@ func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, me
 		NetworkName: tf.NetworkName,
 	}
 
-	if err := tgc.Post(ctx, tf.url(), &tgva); err != nil {
+	if _, err := tgc.Post(ctx, tf.url(), &tgva); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -44,7 +44,7 @@ func convertToMap(in any) (map[string]any, error) {
 	for i := 0; i < reflect.TypeOf(in).NumField(); i++ {
 		field := reflect.TypeOf(in).FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
-		if tf == "" {
+		if tf == "" || tf == "-" {
 			continue
 		}
 		vals := strings.Split(tf, ",")

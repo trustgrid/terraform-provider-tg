@@ -53,7 +53,7 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Post(ctx, "/v2/certificates", &cert); err != nil {
+	if _, err := tgc.Post(ctx, "/v2/certificates", &cert); err != nil {
 		return diag.FromErr(err)
 	}
 

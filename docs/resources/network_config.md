@@ -194,11 +194,13 @@ Optional:
 - `ip` (String) IP
 - `ipsec_cipher` (String) IPSec Cipher
 - `local_id` (String) Local ID
+- `local_subnet` (String) Interesting traffic local subnet
 - `network_id` (Number) Network ID
 - `pfs` (Number) PFS
 - `psk` (String, Sensitive) PSK
 - `rekey_interval` (Number) Rekey Interval
 - `remote_id` (String) Remote ID
+- `remote_subnet` (String) Interesting traffic remote subnet
 - `replay_window` (Number) Replay Window
 - `vrf` (String) VRF
 

@@ -25,24 +25,12 @@ data "tg_nodes" "production" {
   }
 }
 
-data "tg_node" "mynode_by_fqdn" {
+data "tg_node" "terry" {
   fqdn = "terry-profiled.dev.regression.trustgrid.io"
-}
-
-data "tg_node" "mynode_by_uid" {
-  uid = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
 }
 
 resource "tg_license" "edge1" {
   name = "my-edge1-node"
-}
-
-output "fqdn_uid" {
-  value = data.tg_node.mynode_by_fqdn.uid
-}
-
-output "uid_fqdn" {
-  value = data.tg_node.mynode_by_uid.fqdn
 }
 
 output "license" {
@@ -163,7 +151,7 @@ resource "tg_network_config" "network-1" {
 
   tunnel {
     name       = "vnet1"
-    network_id = 1125
+    network_id = data.tg_virtual_network.asdf.id
     vrf        = "vpn"
     type       = "vnet"
     enabled    = true
@@ -401,4 +389,131 @@ resource "tg_vpn_interface" "ipsec1" {
   #  proxy_arp    = true
   #}
   description = "ipsec1 iface"
+}
+
+resource "tg_app" "tftest2" {
+  name                  = "tftest2"
+  description           = "my app2"
+  gateway_node          = data.tg_node.terry.uid
+  ip                    = "2.2.2.2"
+  idp                   = "53af39ba-ea6d-48c9-8ee8-a36d7c10c251"
+  protocol              = "http"
+  type                  = "web"
+  hostname              = "whatevz"
+  session_duration      = 60
+  tls_verification_mode = "default"
+  trust_mode            = "discovery"
+}
+
+resource "tg_app_access_rule" "rule1" {
+  app    = resource.tg_app.tftest2.id
+  action = "allow"
+  name   = "bigrule"
+
+  exception {
+    emails   = ["exception@whatever.com"]
+    everyone = true
+  }
+
+  include {
+    ip_ranges = ["0.0.0.0/0"]
+    countries = ["US"]
+  }
+
+  require {
+    emails_ending_in = ["trustgrid.io"]
+    idp_groups       = ["1"]
+    access_groups    = ["mygroup"]
+  }
+}
+
+resource "tg_app_access_rule" "deny-everyone" {
+  app    = resource.tg_app.tftest2.id
+  action = "block"
+  name   = "block"
+
+  include {
+    everyone = true
+  }
+}
+
+resource "tg_app" "mywgapp" {
+  name             = "my-wg-app"
+  description      = "my app2"
+  gateway_node     = data.tg_node.terry.uid
+  ip               = "2.2.2.2"
+  idp              = resource.tg_idp.mygsuite.uid
+  session_duration = 60
+  protocol         = "wireguard"
+  type             = "wireguard"
+}
+
+resource "tg_idp" "mygsuite" {
+  name        = "tfgsuite"
+  type        = "GSuite"
+  description = "from terraform"
+}
+
+resource "tg_app_acl" "allowall" {
+  app         = resource.tg_app.mywgapp.id
+  description = "allow all traffic"
+  ips         = ["0.0.0.0/0"]
+  protocol    = "any"
+}
+
+data "tg_idp" "unused" {
+  uid = "53af39ba-ea6d-48c9-8ee8-a36d7c10c251"
+}
+
+output "idp_name" {
+  value = data.tg_idp.unused.name
+}
+
+data "tg_app" "test" {
+  uid = "3b3bf81e-b064-4bf9-858d-74a6a8d31172"
+}
+
+data "tg_virtual_network" "asdf" {
+  name = "asdf"
+}
+
+output "asdf-id" {
+  value = data.tg_virtual_network.asdf.id
+}
+
+resource "tg_kvm_image" "myimage" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+
+  display_name = "myimage"
+  location     = "/root/whatever.qcow2"
+  os           = "win10"
+  description  = "my image2"
+}
+
+resource "tg_kvm_volume" "myvol" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+
+  name           = "myimage"
+  provision_type = "eager"
+  device_type    = "disk"
+  device_bus     = "ide"
+  size           = 10
+}
+
+data "tg_kvm_image" "myimage" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  uid     = resource.tg_kvm_image.myimage.id
+}
+
+output "kvm-img-id" {
+  value = data.tg_kvm_image.myimage.display_name
+}
+
+data "tg_kvm_volume" "myvol" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  name    = "myimage"
+}
+
+output "kvm-vol-size" {
+  value = data.tg_kvm_volume.myvol.size
 }

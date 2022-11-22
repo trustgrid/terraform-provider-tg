@@ -9,9 +9,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 type Client struct {
+	writeLock sync.Mutex
+
 	APIKey    string
 	APISecret string
 	APIHost   string
@@ -40,6 +43,9 @@ func NewClient(ctx context.Context, apiKey, apiSecret, apiHost string) (*Client,
 }
 
 func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
+	tg.writeLock.Lock()
+	defer tg.writeLock.Unlock()
+
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
@@ -73,16 +79,19 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 	return nil
 }
 
-func (tg *Client) Post(ctx context.Context, url string, payload any) error {
+func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, error) {
+	tg.writeLock.Lock()
+	defer tg.writeLock.Unlock()
+
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
-		return fmt.Errorf("couldn't marshal body: %s", err)
+		return nil, fmt.Errorf("couldn't marshal body: %s", err)
 	}
 	b := bytes.NewBuffer(body)
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if payload != nil {
@@ -93,21 +102,24 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) error {
 
 	r, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer r.Body.Close()
+	reply, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't read body: %w", err)
+	}
 	if r.StatusCode != 200 {
-		reply, err := io.ReadAll(r.Body)
-		if err != nil {
-			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
-		}
-		return fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
+		return reply, fmt.Errorf("[POST] non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
 
-	return nil
+	return reply, nil
 }
 
 func (tg *Client) Put(ctx context.Context, url string, payload any) error {
+	tg.writeLock.Lock()
+	defer tg.writeLock.Unlock()
+
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("couldn't marshal body: %s", err)
