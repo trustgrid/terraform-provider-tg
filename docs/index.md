@@ -15,5 +15,6 @@ description: |-
 ### Optional
 
 - `api_host` (String) Trustgrid Portal endpoint. Used for development.
+- `api_jwt` (String, Sensitive) Trustgrid Portal JWT. Used for short-lived authentication. Will use the `TG_JWT` environment variable.
 - `api_key_id` (String) Trustgrid Portal API Key ID. Will use `TG_API_KEY_ID` environment variable if not set.
 - `api_key_secret` (String, Sensitive) Trustgrid Portal API Key secret. Will use `TG_API_KEY_SECRET` environment variable if not set.

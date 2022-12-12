@@ -15,20 +15,29 @@ import (
 type Client struct {
 	writeLock sync.Mutex
 
+	APIHost   string
 	APIKey    string
 	APISecret string
-	APIHost   string
+	JWT       string
 
 	Domain string
 }
 
 var ErrNotFound = errors.New("not found")
 
-func NewClient(ctx context.Context, apiKey, apiSecret, apiHost string) (*Client, error) {
+type ClientParams struct {
+	APIKey    string
+	APISecret string
+	APIHost   string
+	JWT       string
+}
+
+func NewClient(ctx context.Context, params ClientParams) (*Client, error) {
 	client := &Client{
-		APIKey:    apiKey,
-		APISecret: apiSecret,
-		APIHost:   apiHost,
+		APIKey:    params.APIKey,
+		APISecret: params.APISecret,
+		APIHost:   params.APIHost,
+		JWT:       params.JWT,
 	}
 
 	org := Org{}
@@ -40,6 +49,13 @@ func NewClient(ctx context.Context, apiKey, apiSecret, apiHost string) (*Client,
 	client.Domain = org.Domain
 
 	return client, nil
+}
+
+func (tg *Client) authHeader() string {
+	if tg.JWT != "" {
+		return fmt.Sprintf("Bearer %s", tg.JWT)
+	}
+	return fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret)
 }
 
 func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
@@ -60,7 +76,7 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 	if payload != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
+	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
 	r, err := http.DefaultClient.Do(req)
@@ -97,7 +113,7 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, er
 	if payload != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
+	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
 	r, err := http.DefaultClient.Do(req)
@@ -134,7 +150,7 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 	if payload != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
+	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
 	r, err := http.DefaultClient.Do(req)
@@ -160,7 +176,7 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
+	req.Header.Set("Authorization", tg.authHeader())
 
 	r, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -184,7 +200,7 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("trustgrid-token %s:%s", tg.APIKey, tg.APISecret))
+	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
 	r, err := http.DefaultClient.Do(req)
