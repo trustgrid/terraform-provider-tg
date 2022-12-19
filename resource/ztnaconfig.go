@@ -84,7 +84,7 @@ func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", d.Id()), &gw)
+	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", gw.NodeID), &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
