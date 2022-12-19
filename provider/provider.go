@@ -38,6 +38,13 @@ func New(version string) func() *schema.Provider {
 					Sensitive:   false,
 					DefaultFunc: schema.EnvDefaultFunc("TG_API_HOST", "api.trustgrid.io"),
 				},
+				"api_jwt": {
+					Type:        schema.TypeString,
+					Description: "Trustgrid Portal JWT. Used for short-lived authentication. Will use the `TG_JWT` environment variable.",
+					Optional:    true,
+					Sensitive:   true,
+					DefaultFunc: schema.EnvDefaultFunc("TG_JWT", nil),
+				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				"tg_app":             datasource.App(),
@@ -85,7 +92,13 @@ func New(version string) func() *schema.Provider {
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-		c, err := tg.NewClient(ctx, d.Get("api_key_id").(string), d.Get("api_key_secret").(string), d.Get("api_host").(string))
+		c, err := tg.NewClient(ctx, tg.ClientParams{
+			APIKey:    d.Get("api_key_id").(string),
+			APISecret: d.Get("api_key_secret").(string),
+			APIHost:   d.Get("api_host").(string),
+			JWT:       d.Get("api_jwt").(string),
+		})
+
 		if err != nil {
 			return c, diag.FromErr(err)
 		}
