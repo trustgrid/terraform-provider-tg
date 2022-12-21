@@ -173,6 +173,7 @@ type NetworkConfig struct {
 
 type Node struct {
 	UID     string            `json:"uid"`
+	State   string            `json:"state"`
 	Name    string            `json:"name"`
 	FQDN    string            `json:"fqdn"`
 	Cluster string            `json:"cluster"`
@@ -184,6 +185,12 @@ type Node struct {
 		Cluster ClusterConfig `json:"cluster"`
 		Network NetworkConfig `json:"network"`
 	} `json:"config"`
+}
+
+// NodeState exists to allow for the simple PUT API
+// that gets mad if you send a whole node config to it.
+type NodeState struct {
+	State string `json:"state"`
 }
 
 type Org struct {

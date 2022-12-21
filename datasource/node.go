@@ -60,7 +60,9 @@ func (ds *dsNode) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	if tf.Timeout > 0 {
-		ctx, _ = context.WithTimeout(ctx, time.Duration(tf.Timeout)*time.Second)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(tf.Timeout)*time.Second)
+		defer cancel()
 	}
 
 	url := "/node/" + tf.UID

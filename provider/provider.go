@@ -73,6 +73,7 @@ func New(version string) func() *schema.Provider {
 				"tg_kvm_volume":                  resource.KVMVolume(),
 				"tg_license":                     resource.License(),
 				"tg_network_config":              resource.NetworkConfig(),
+				"tg_node_state":                  resource.NodeState(),
 				"tg_node_cluster_config":         resource.ClusterConfig(),
 				"tg_snmp":                        resource.SNMP(),
 				"tg_virtual_network":             resource.VirtualNetwork(),
