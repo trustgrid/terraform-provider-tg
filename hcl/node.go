@@ -16,9 +16,9 @@ func (h *Node) URL() string {
 }
 
 func (h *Node) ToTG() tg.NodeState {
-	state := "enabled"
+	state := "ACTIVE"
 	if !h.Enabled {
-		state = "disabled"
+		state = "INACTIVE"
 	}
 	return tg.NodeState{
 		State: state,
@@ -26,5 +26,5 @@ func (h *Node) ToTG() tg.NodeState {
 }
 
 func (h *Node) UpdateFromTG(a tg.NodeState) {
-	h.Enabled = a.State == "enabled"
+	h.Enabled = a.State == "ACTIVE"
 }
