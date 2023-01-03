@@ -18,6 +18,7 @@ Fetches a node from Trustgrid either by UID or FQDN
 ### Optional
 
 - `fqdn` (String) Node FQDN
+- `timeout` (Number) Timeout for node to become available
 - `uid` (String) Node UID
 
 ### Read-Only

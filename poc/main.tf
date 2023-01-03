@@ -514,6 +514,11 @@ data "tg_kvm_volume" "myvol" {
   name    = "myimage"
 }
 
+resource "tg_node_state" "enable_gw" {
+  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  enabled    = true
+}
+
 output "kvm-vol-size" {
   value = data.tg_kvm_volume.myvol.size
 }
