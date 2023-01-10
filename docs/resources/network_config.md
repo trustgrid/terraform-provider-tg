@@ -49,6 +49,8 @@ resource "tg_network_config" "network-1" {
     ike_cipher     = "aes128-sha1"
     pfs            = 2
     replay_window  = 32
+    local_subnet   = "192.168.50.0/24"
+    remote_subnet  = "10.0.10.0/24"
   }
 
   interface {
