@@ -64,6 +64,22 @@ resource "tg_virtual_network_route" "route1" {
   description  = "a route2"
 }
 
+resource "tg_virtual_network_route" "route2" {
+  network      = resource.tg_virtual_network.testaringo.name
+  dest         = "node1-profiled"
+  network_cidr = "10.10.10.15/32"
+  metric       = 13
+  description  = "a route3"
+}
+
+resource "tg_virtual_network_route" "route3" {
+  network      = resource.tg_virtual_network.testaringo.name
+  dest         = "node1-profiled"
+  network_cidr = "10.10.10.16/32"
+  metric       = 14
+  description  = "a route4"
+}
+
 resource "tg_gateway_config" "test" {
   node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
   enabled = true
@@ -93,6 +109,16 @@ resource "tg_virtual_network_access_rule" "acl1" {
   source      = "0.0.0.0/0"
   protocol    = "icmp"
   description = "ping"
+}
+
+resource "tg_virtual_network_access_rule" "acl2" {
+  action      = "allow"
+  network     = resource.tg_virtual_network.testaringo.name
+  line_number = 12
+  dest        = "0.0.0.0/0"
+  source      = "0.0.0.0/0"
+  protocol    = "any"
+  description = "evs"
 }
 
 resource "tg_ztna_gateway_config" "ztna1" {
@@ -516,7 +542,7 @@ data "tg_kvm_volume" "myvol" {
 
 resource "tg_node_state" "enable_gw" {
   node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
-  enabled    = true
+  enabled = true
 }
 
 output "kvm-vol-size" {

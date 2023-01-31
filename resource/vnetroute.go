@@ -93,6 +93,9 @@ func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	if _, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route", &route); err != nil {
 		return diag.FromErr(err)
 	}
@@ -122,6 +125,9 @@ func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route/"+route.UID, &route); err != nil {
 		return diag.FromErr(err)
 	}
@@ -140,6 +146,9 @@ func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta an
 	if err := hcl.DecodeResourceData(d, &route); err != nil {
 		return diag.FromErr(err)
 	}
+
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
 
 	if err := tgc.Delete(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route/"+route.UID, &route); err != nil {
 		return diag.FromErr(err)
