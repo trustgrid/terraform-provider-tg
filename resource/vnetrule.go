@@ -118,6 +118,9 @@ func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	if _, err := tgc.Post(ctx, vn.urlRoot(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)
 	}
@@ -147,6 +150,9 @@ func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	if err := tgc.Put(ctx, vn.ruleURL(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)
 	}
@@ -165,6 +171,9 @@ func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, me
 	if err := hcl.DecodeResourceData(d, &rule); err != nil {
 		return diag.FromErr(err)
 	}
+
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
 
 	if err := tgc.Delete(ctx, vn.ruleURL(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)

@@ -76,6 +76,9 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	if _, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnet); err != nil {
 		return diag.FromErr(err)
 	}
@@ -105,6 +108,9 @@ func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+vnet.Name, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
@@ -123,6 +129,9 @@ func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, me
 	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
 		return diag.FromErr(err)
 	}
+
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
 
 	if err := tgc.Delete(ctx, "/v2/domain/"+tgc.Domain+"/network/"+vnet.Name, &vnet); err != nil {
 		return diag.FromErr(err)

@@ -13,6 +13,7 @@ import (
 )
 
 type Client struct {
+	Lock      sync.Mutex
 	writeLock sync.Mutex
 
 	APIHost   string
