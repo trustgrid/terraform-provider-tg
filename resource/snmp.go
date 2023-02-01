@@ -96,8 +96,7 @@ func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 		return diag.FromErr(err)
 	}
 
-	idFromAPI := snmp.ID()
-	d.SetId(idFromAPI)
+	d.SetId(snmp.NodeID)
 
 	return nil
 }
@@ -121,12 +120,12 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 		return diag.FromErr(err)
 	}
 
+	n.Config.SNMP.NodeID = snmp.NodeID
 	err = hcl.EncodeResourceData(&n.Config.SNMP, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(snmp.ID())
 	if snmp.AuthPassphrase != "" {
 		if err := d.Set("auth_passphrase", snmp.AuthPassphrase); err != nil {
 			return diag.FromErr(err)
@@ -155,7 +154,8 @@ func snmpDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, snmp.URL(), empty)
+	snmp.Enabled = false
+	err = tgc.Put(ctx, snmp.URL(), snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -20,10 +20,6 @@ func (snmp *SNMPConfig) URL() string {
 	return fmt.Sprintf("/node/%s/config/snmp", snmp.NodeID)
 }
 
-func (snmp *SNMPConfig) ID() string {
-	return "snmp_" + snmp.NodeID
-}
-
 type GatewayClient struct {
 	Name    string `tf:"name" json:"name"`
 	Enabled bool   `tf:"enabled" json:"enabled"`
