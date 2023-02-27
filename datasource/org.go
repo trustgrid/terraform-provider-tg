@@ -3,7 +3,6 @@ package datasource
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
@@ -41,15 +40,15 @@ func orgRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnos
 
 	org := tg.Org{}
 
-	tflog.Debug(ctx, "orgRead: reading org")
 	if err := tgc.Get(ctx, "/org/mine", &org); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := hcl.EncodeResourceData(&org, d); err != nil {
+	if err := hcl.EncodeResourceData(org, d); err != nil {
 		return diag.FromErr(err)
 	}
-	tflog.Debug(ctx, "orgRead: returning", map[string]any{"domain": org.Domain})
+
+	d.SetId(org.UID)
 
 	return nil
 }
