@@ -30,7 +30,11 @@ data "tg_node" "terry" {
 }
 
 resource "tg_license" "edge1" {
-  name = "my-edge1-node"
+  name = "my-edge1-node1"
+}
+
+output "edge1fqdn" {
+  value = resource.tg_license.edge1.fqdn
 }
 
 output "license" {

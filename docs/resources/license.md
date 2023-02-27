@@ -31,6 +31,7 @@ output "license" {
 
 ### Read-Only
 
+- `fqdn` (String) Node FQDN
 - `id` (String) The ID of this resource.
 - `license` (String) License JWT
 - `uid` (String) Node UID

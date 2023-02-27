@@ -38,6 +38,11 @@ func License() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
+			"fqdn": {
+				Description: "Node FQDN",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
 			"license": {
 				Type:        schema.TypeString,
 				Description: "License JWT",
@@ -89,6 +94,8 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 		if err := d.Set("uid", claims.Id); err != nil {
 			return diag.FromErr(err)
 		}
+
+		d.Set("fqdn", l.Name+"."+tg.Domain)
 	}
 
 	return nil
