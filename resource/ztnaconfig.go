@@ -12,20 +12,33 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-func ZTNAConfig() *schema.Resource {
-	return &schema.Resource{
-		Description: "Node ZTNA Gateway Config",
+type ztnaConfig struct{}
 
-		CreateContext: ztnaConfigCreate,
-		ReadContext:   ztnaConfigRead,
-		UpdateContext: ztnaConfigUpdate,
-		DeleteContext: ztnaConfigDelete,
+func ZTNAConfig() *schema.Resource {
+	r := ztnaConfig{}
+
+	return &schema.Resource{
+		Description: "Manage ZTNA Gateway config for a node or cluster.",
+
+		CreateContext: r.Create,
+		ReadContext:   r.Read,
+		UpdateContext: r.Update,
+		DeleteContext: r.Delete,
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node UID",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Node UID - required if cluster_fqdn is not set",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
+			},
+			"cluster_fqdn": {
+				Description:  "Cluster FQDN - required if node_id is not set",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"enabled": {
 				Description: "Enable the gateway plugin",
@@ -76,7 +89,7 @@ func ZTNAConfig() *schema.Resource {
 	}
 }
 
-func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (z *ztnaConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 	gw := tg.ZTNAConfig{}
 	err := hcl.DecodeResourceData(d, &gw)
@@ -84,21 +97,49 @@ func ztnaConfigCreate(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", gw.NodeID), &gw)
+	err = tgc.Put(ctx, z.url(gw), &gw)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(gw.NodeID)
+	if gw.NodeID != "" {
+		d.SetId(gw.NodeID)
+	} else {
+		d.SetId(gw.ClusterFQDN)
+	}
 
 	return nil
 }
 
-func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+func (z *ztnaConfig) url(c tg.ZTNAConfig) string {
+	if c.NodeID != "" {
+		return fmt.Sprintf("/node/%s/config/ztnagw", c.NodeID)
+	}
+	return fmt.Sprintf("/cluster/%s/config/ztnagw", c.ClusterFQDN)
+}
 
-	n := tg.Node{}
-	err := tgc.Get(ctx, "/node/"+d.Id(), &n)
+func (z *ztnaConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	tgc := meta.(*tg.Client)
+	gw := tg.ZTNAConfig{}
+	err := hcl.DecodeResourceData(d, &gw)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	ztna := tg.ZTNAConfig{}
+
+	if gw.NodeID != "" {
+		n := tg.Node{}
+		err = tgc.Get(ctx, "/node/"+d.Id(), &n)
+		ztna = n.Config.ZTNA
+		ztna.NodeID = gw.NodeID
+	} else {
+		c := tg.Cluster{}
+		err = tgc.Get(ctx, "/cluster/"+d.Id(), &c)
+		ztna = c.Config.ZTNA
+		ztna.ClusterFQDN = gw.ClusterFQDN
+	}
+
 	switch {
 	case errors.Is(err, tg.ErrNotFound):
 		d.SetId("")
@@ -107,22 +148,26 @@ func ztnaConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	n.Config.ZTNA.NodeID = d.Id()
-	if err := hcl.EncodeResourceData(&n.Config.ZTNA, d); err != nil {
+	if err := hcl.EncodeResourceData(&ztna, d); err != nil {
 		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func ztnaConfigUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return ztnaConfigCreate(ctx, d, meta)
+func (z *ztnaConfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	return z.Create(ctx, d, meta)
 }
 
-func ztnaConfigDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (z *ztnaConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
+	gw := tg.ZTNAConfig{}
+	err := hcl.DecodeResourceData(d, &gw)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	if err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/apigw", d.Id()), map[string]any{"enabled": false, "wireguardEnabled": false}); err != nil {
+	if err := tgc.Put(ctx, z.url(gw), map[string]any{"enabled": false, "wireguardEnabled": false}); err != nil {
 		return diag.FromErr(err)
 	}
 
