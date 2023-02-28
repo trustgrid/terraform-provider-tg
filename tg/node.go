@@ -44,7 +44,8 @@ type GatewayConfig struct {
 }
 
 type ZTNAConfig struct {
-	NodeID string `tf:"node_id" json:"-"`
+	NodeID      string `tf:"node_id" json:"-"`
+	ClusterFQDN string `tf:"cluster_fqdn" json:"-"`
 
 	Enabled bool   `tf:"enabled" json:"enabled"`
 	Host    string `tf:"host" json:"host"`

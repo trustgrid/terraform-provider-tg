@@ -3,12 +3,12 @@
 page_title: "tg_vpn_interface Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Manage a VPN interface.
+  Manage a VPN interface for a node or a cluster.
 ---
 
 # tg_vpn_interface (Resource)
 
-Manage a VPN interface.
+Manage a VPN interface for a node or a cluster.
 
 ## Example Usage
 
@@ -76,11 +76,11 @@ resource "tg_vpn_interface" "cluster-ipsec" {
 
 ### Optional
 
-- `cluster_fqdn` (String) Cluster FQDN
+- `cluster_fqdn` (String) Cluster FQDN - required if node_id is not specified
 - `description` (String) Description
 - `in_default_route` (Boolean) Inbound traffic not matching a NAT should be allowed on this interface
 - `inside_nat` (Block List) Inside NATs (see [below for nested schema](#nestedblock--inside_nat))
-- `node_id` (String) Node ID
+- `node_id` (String) Node ID - required if cluster_fqdn is not specified
 - `out_default_route` (Boolean) Outbound traffic not matching a NAT should be allowed on this interface
 - `outside_nat` (Block List) Outside NATs (see [below for nested schema](#nestedblock--outside_nat))
 

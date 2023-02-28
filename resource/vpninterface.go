@@ -55,7 +55,7 @@ func VPNInterface() *schema.Resource {
 	r := vpnInterface{}
 
 	return &schema.Resource{
-		Description: "Manage a VPN interface.",
+		Description: "Manage a VPN interface for a node or a cluster.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
@@ -64,14 +64,14 @@ func VPNInterface() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description:  "Node ID",
+				Description:  "Node ID - required if cluster_fqdn is not specified",
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"cluster_fqdn": {
-				Description:  "Cluster FQDN",
+				Description:  "Cluster FQDN - required if node_id is not specified",
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
