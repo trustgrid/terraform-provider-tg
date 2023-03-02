@@ -34,6 +34,11 @@ func App() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"remote", "web", "wireguard"}, false),
 			},
+			"uid": {
+				Description: "App UID",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
 			"name": {
 				Description: "App Name",
 				Type:        schema.TypeString,
@@ -153,6 +158,7 @@ func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 		return diag.FromErr(err)
 	}
 
+	d.Set("uid", response.ID)
 	d.SetId(response.ID)
 
 	return nil
@@ -208,6 +214,7 @@ func (r *app) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 	}
 
 	tf.UpdateFromTG(tgapp)
+	tf.UID = d.Id()
 
 	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)
