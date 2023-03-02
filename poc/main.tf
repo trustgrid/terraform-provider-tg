@@ -563,3 +563,25 @@ resource "tg_node_state" "enable_gw" {
 output "kvm-vol-size" {
   value = data.tg_kvm_volume.myvol.size
 }
+
+data "tg_group" "local" {
+  uid = "1ed85a24-1d88-4334-9ef8-d2925f410ac7"
+}
+
+output "local-group-name" {
+  value = data.tg_group.local.name
+}
+
+resource "tg_group" "tfgroup" {
+  name        = "tf group"
+  description = "from tf"
+}
+
+output "tfgroup-id" {
+  value = resource.tg_group.tfgroup.id
+}
+
+resource "tg_group_member" "someone" {
+  group_id = resource.tg_group.tfgroup.id
+  email    = "someone@trustgrid.io"
+}

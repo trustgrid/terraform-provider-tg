@@ -49,6 +49,7 @@ func New(version string) func() *schema.Provider {
 			DataSourcesMap: map[string]*schema.Resource{
 				"tg_app":             datasource.App(),
 				"tg_cert":            datasource.Cert(),
+				"tg_group":           datasource.Group(),
 				"tg_idp":             datasource.IDP(),
 				"tg_node":            datasource.Node(),
 				"tg_nodes":           datasource.Nodes(),
@@ -68,6 +69,8 @@ func New(version string) func() *schema.Provider {
 				"tg_container":                   resource.Container(),
 				"tg_container_volume":            resource.Volume(),
 				"tg_gateway_config":              resource.GatewayConfig(),
+				"tg_group":                       resource.Group(),
+				"tg_group_member":                resource.GroupMember(),
 				"tg_idp":                         resource.IDP(),
 				"tg_kvm_image":                   resource.KVMImage(),
 				"tg_kvm_volume":                  resource.KVMVolume(),
