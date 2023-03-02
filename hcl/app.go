@@ -5,6 +5,7 @@ import "github.com/trustgrid/terraform-provider-tg/tg"
 type App struct {
 	AppType             string   `tf:"type"`
 	Name                string   `tf:"name"`
+	UID                 string   `tf:"uid"`
 	Description         string   `tf:"description"`
 	EdgeNodeID          string   `tf:"edge_node"`
 	GatewayNodeID       string   `tf:"gateway_node"`
