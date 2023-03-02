@@ -158,7 +158,9 @@ func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 		return diag.FromErr(err)
 	}
 
-	d.Set("uid", response.ID)
+	if err := d.Set("uid", response.ID); err != nil {
+		return diag.FromErr(err)
+	}
 	d.SetId(response.ID)
 
 	return nil

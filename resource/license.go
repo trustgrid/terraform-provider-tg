@@ -95,7 +95,9 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 			return diag.FromErr(err)
 		}
 
-		d.Set("fqdn", l.Name+"."+tg.Domain)
+		if err := d.Set("fqdn", l.Name+"."+tg.Domain); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return nil
