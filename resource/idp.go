@@ -14,6 +14,7 @@ import (
 
 type idp struct{}
 
+// IDP returns a Terraform resource for managing IDPs.
 func IDP() *schema.Resource {
 	r := idp{}
 
@@ -27,7 +28,7 @@ func IDP() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"type": {
-				Description:  "Type",
+				Description:  "Type - one of `GSuite`, `OpenID`, `SAML`, or `AzureAD`",
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -52,6 +53,7 @@ func IDP() *schema.Resource {
 	}
 }
 
+// Create creates a new IDP.
 func (r *idp) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
@@ -75,6 +77,7 @@ func (r *idp) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 	return nil
 }
 
+// Update updates an existing IDP.
 func (r *idp) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
@@ -91,6 +94,7 @@ func (r *idp) Update(ctx context.Context, d *schema.ResourceData, meta any) diag
 	return nil
 }
 
+// Delete deletes an existing IDP.
 func (r *idp) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
@@ -106,6 +110,7 @@ func (r *idp) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag
 	return nil
 }
 
+// Read pulls an IDP from the TG API and updates the Terraform state.
 func (r *idp) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 

@@ -72,6 +72,8 @@ func New(version string) func() *schema.Provider {
 				"tg_group":                       resource.Group(),
 				"tg_group_member":                resource.GroupMember(),
 				"tg_idp":                         resource.IDP(),
+				"tg_idp_openid_config":           resource.IDPOpenIDConfig(),
+				"tg_idp_saml_config":             resource.IDPSAMLConfig(),
 				"tg_kvm_image":                   resource.KVMImage(),
 				"tg_kvm_volume":                  resource.KVMVolume(),
 				"tg_license":                     resource.License(),
