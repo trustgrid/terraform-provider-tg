@@ -18,7 +18,7 @@ Manage an IDP.
 ### Required
 
 - `name` (String) Name
-- `type` (String) Type
+- `type` (String) Type - one of `GSuite`, `OpenID`, `SAML`, or `AzureAD`
 
 ### Optional
 

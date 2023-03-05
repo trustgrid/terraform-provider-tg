@@ -585,3 +585,30 @@ resource "tg_group_member" "someone" {
   group_id = resource.tg_group.tfgroup.id
   email    = "someone@trustgrid.io"
 }
+
+resource "tg_idp" "saml" {
+  name = "tfsaml"
+  type = "SAML"
+}
+
+# resource "tg_idp_saml_config" "saml" {
+#   idp_id    = resource.tg_idp.saml.id
+#   issuer    = "https://whatevz.io"
+#   login_url = "https://whatevz.io"
+#   cert      = "something"
+# }
+
+resource "tg_idp" "openid" {
+  name = "tfopenid"
+  type = "OpenID"
+}
+
+resource "tg_idp_openid_config" "openid" {
+  idp_id             = resource.tg_idp.openid.id
+  issuer             = "https://whatevz.io"
+  client_id          = "myclientid"
+  secret             = "mysecret"
+  auth_endpoint      = "https://foo.com"
+  token_endpoint     = "https://foo.com"
+  user_info_endpoint = "https://foo.com"
+}
