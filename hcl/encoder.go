@@ -75,9 +75,12 @@ func convertToMap(in any) (map[string]any, error) {
 	return out, nil
 }
 
-// EncodeResourceData sets the values on the given ResourceData according to the struct's
-// tf tags.
-func EncodeResourceData(in any, d *schema.ResourceData) error {
+type Setter interface {
+	Set(string, any) error
+}
+
+// EncodeResourceData sets the values on the given Setter (like a TF ResourceData) according to the struct's tf tags.
+func EncodeResourceData(in any, d Setter) error {
 	var out map[string]any
 	var err error
 
