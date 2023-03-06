@@ -612,3 +612,8 @@ resource "tg_idp_openid_config" "openid" {
   token_endpoint     = "https://foo.com"
   user_info_endpoint = "https://foo.com"
 }
+
+#resource "tg_portal_auth" "auth" {
+#  idp_id = resource.tg_idp.openid.id
+#  domain = "regression.dev.trustgrid.io"
+#}
