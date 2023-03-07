@@ -55,6 +55,9 @@ type ZTNAConfig struct {
 	WireguardEndpoint string `tf:"wg_endpoint" json:"wireguardEndpoint"`
 	WireguardPort     int    `tf:"wg_port" json:"wireguardPort"`
 	WireguardEnabled  bool   `tf:"wg_enabled" json:"wireguardEnabled"`
+
+	WireguardPrivateKey string `tf:"wg_key" json:"-"`
+	WireguardPublicKey  string `tf:"wg_public_key" json:"-"`
 }
 
 type ClusterConfig struct {
@@ -168,13 +171,21 @@ type NetworkConfig struct {
 	VRFs []VRF `json:"vrfs,omitempty"`
 }
 
+type PublicKey struct {
+	CRV string `json:"crv"`
+	KID string `json:"kid"`
+	KTY string `json:"kty"`
+	X   string `json:"x"`
+}
+
 type Node struct {
-	UID     string            `json:"uid"`
-	State   string            `json:"state"`
-	Name    string            `json:"name"`
-	FQDN    string            `json:"fqdn"`
-	Cluster string            `json:"cluster"`
-	Tags    map[string]string `json:"tags" `
+	UID     string               `json:"uid"`
+	State   string               `json:"state"`
+	Name    string               `json:"name"`
+	FQDN    string               `json:"fqdn"`
+	Cluster string               `json:"cluster"`
+	Keys    map[string]PublicKey `json:"keys"`
+	Tags    map[string]string    `json:"tags" `
 	Config  struct {
 		Gateway GatewayConfig `json:"gateway"`
 		SNMP    SNMPConfig    `json:"snmp"`

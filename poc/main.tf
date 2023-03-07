@@ -126,14 +126,18 @@ resource "tg_virtual_network_access_rule" "acl2" {
 }
 
 resource "tg_ztna_gateway_config" "ztna1" {
-  node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id     = "59838ae6-a2b2-4c45-b7be-9378f0b265f5"
   enabled     = "true"
-  host        = "10.10.10.10"
+  host        = "10.10.10.101"
   port        = 8553
   cert        = "proxy.dev.trustgrid.io"
   wg_enabled  = true
   wg_port     = 8555
   wg_endpoint = "wg.dev.trustgrid.io"
+}
+
+output "wg_pubkey" {
+  value = resource.tg_ztna_gateway_config.ztna1.wg_public_key
 }
 
 resource "tg_ztna_gateway_config" "clusterztna" {
