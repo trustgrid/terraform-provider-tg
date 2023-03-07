@@ -49,10 +49,12 @@ resource "tg_ztna_gateway_config" "cluster_ztnagw" {
 - `port` (Number) Host Port
 - `wg_enabled` (Boolean) Enable the wireguard gateway feature
 - `wg_endpoint` (String) Wireguard endpoint
+- `wg_key` (String, Sensitive) Wireguard private key (base64) - if not provided, a key will be generated on `create` if wg_enabled is true
 - `wg_port` (Number) Wireguard port
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+- `wg_public_key` (String) Wireguard public key (base64)
 
 
