@@ -51,11 +51,10 @@ func ZTNAConfig() *schema.Resource {
 				Computed:    true,
 			},
 			"host": {
-				Description:  "Host IP",
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IsIPv4Address,
+				Description: "Host IP or FQDN",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
 			},
 			"port": {
 				Description:  "Host Port",

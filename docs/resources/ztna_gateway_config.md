@@ -44,7 +44,7 @@ resource "tg_ztna_gateway_config" "cluster_ztnagw" {
 - `cert` (String) Certificate
 - `cluster_fqdn` (String) Cluster FQDN - required if node_id is not set
 - `enabled` (Boolean) Enable the gateway plugin
-- `host` (String) Host IP
+- `host` (String) Host IP or FQDN
 - `node_id` (String) Node UID - required if cluster_fqdn is not set
 - `port` (Number) Host Port
 - `wg_enabled` (Boolean) Enable the wireguard gateway feature
