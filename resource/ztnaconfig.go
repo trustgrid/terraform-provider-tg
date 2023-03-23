@@ -159,6 +159,10 @@ func (z *ztnaConfig) createWGKey(ctx context.Context, tgc *tg.Client, gw tg.ZTNA
 	return keyReply.X, nil
 }
 
+func (z *ztnaConfig) shouldConfigureZTNA(gw tg.ZTNAConfig) bool {
+	return gw.Host != "" || gw.WireguardEndpoint != ""
+}
+
 // Create writes initial ZTNA config and, if wireguard is enabled and the subject being configured is a node,
 // will either generate a wg key or import the provided one.
 func (z *ztnaConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -169,9 +173,11 @@ func (z *ztnaConfig) Create(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, z.url(gw), &gw)
-	if err != nil {
-		return diag.FromErr(err)
+	if z.shouldConfigureZTNA(gw) {
+		err = tgc.Put(ctx, z.url(gw), &gw)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	if gw.NodeID != "" {
@@ -270,9 +276,11 @@ func (z *ztnaConfig) Update(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, z.url(gw), &gw)
-	if err != nil {
-		return diag.FromErr(err)
+	if z.shouldConfigureZTNA(gw) {
+		err = tgc.Put(ctx, z.url(gw), &gw)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	if gw.NodeID != "" {
