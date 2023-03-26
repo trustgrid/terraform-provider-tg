@@ -30,13 +30,14 @@ resource "tg_service" "tomcat" {
 
 - `host` (String) Host
 - `name` (String)
-- `node_id` (String) Node UID
 - `port` (Number) Port
 - `protocol` (String) Protocol
 
 ### Optional
 
+- `cluster_fqdn` (String) Cluster FQDN - required if node_id not set
 - `description` (String) Description
+- `node_id` (String) Node UID - required if cluster_fqdn not set
 
 ### Read-Only
 

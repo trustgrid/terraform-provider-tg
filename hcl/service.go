@@ -6,6 +6,7 @@ import (
 
 type Service struct {
 	NodeID      string `tf:"node_id"`
+	ClusterFQDN string `tf:"cluster_fqdn"`
 	Name        string `tf:"name"`
 	Host        string `tf:"host"`
 	Port        int    `tf:"port"`

@@ -28,15 +28,17 @@ resource "tg_connector" "tomcat" {
 
 ### Required
 
-- `node` (String) Node name providing the service
-- `node_id` (String) Node UID
+- `node` (String) Node or cluster name providing the service
 - `port` (Number) Port
 - `protocol` (String) Protocol
 - `service` (String) Service name
 
 ### Optional
 
+- `cluster_fqdn` (String) Cluster FQDN - required if node_id not set
 - `description` (String) Description
+- `node_id` (String) Node UID - required if cluster_fqdn not set
+- `rate_limit` (Number) Rate limit in mbps
 
 ### Read-Only
 

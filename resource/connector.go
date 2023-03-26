@@ -28,13 +28,21 @@ func Connector() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node UID",
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
+				Description:  "Node UID - required if cluster_fqdn not set",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
+			},
+			"cluster_fqdn": {
+				Description:  "Cluster FQDN - required if node_id not set",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"node": {
-				Description: "Node name providing the service",
+				Description: "Node or cluster name providing the service",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -56,6 +64,11 @@ func Connector() *schema.Resource {
 				Description:  "Port",
 				ValidateFunc: validation.IsPortNumber,
 			},
+			"rate_limit": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Rate limit in mbps",
+			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -63,6 +76,30 @@ func Connector() *schema.Resource {
 			},
 		},
 	}
+}
+
+func (r *connector) getConfig(ctx context.Context, tgc *tg.Client, tf hcl.Connector) (tg.ConnectorsConfig, error) {
+	if tf.NodeID != "" {
+		node := tg.Node{}
+		if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+			return tg.ConnectorsConfig{}, err
+		}
+		return node.Config.Connectors, nil
+	}
+	cluster := tg.Cluster{}
+	if err := tgc.Get(ctx, fmt.Sprintf("/cluster/%s", tf.ClusterFQDN), &cluster); err != nil {
+		return tg.ConnectorsConfig{}, err
+	}
+	return cluster.Config.Connectors, nil
+}
+
+func (r *connector) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Connector, config tg.ConnectorsConfig) error {
+	url := fmt.Sprintf("/node/%s/config/connectors", tf.NodeID)
+	if tf.NodeID == "" {
+		url = fmt.Sprintf("/cluster/%s/config/connectors", tf.ClusterFQDN)
+	}
+
+	return tgc.Put(ctx, url, config)
 }
 
 func (r *connector) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -78,16 +115,14 @@ func (r *connector) Create(ctx context.Context, d *schema.ResourceData, meta any
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	config := node.Config.Connectors
 	config.Connectors = append(config.Connectors, payload)
 
-	err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/connectors", tf.NodeID), config)
-	if err != nil {
+	if err := r.writeConfig(ctx, tgc, tf, config); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -109,20 +144,18 @@ func (r *connector) Update(ctx context.Context, d *schema.ResourceData, meta any
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	config := node.Config.Connectors
 	for i, conn := range config.Connectors {
 		if conn.ID == d.Id() {
 			config.Connectors[i] = payload
 		}
 	}
 
-	err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/connectors", tf.NodeID), config)
-	if err != nil {
+	if err := r.writeConfig(ctx, tgc, tf, config); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -142,22 +175,21 @@ func (r *connector) Delete(ctx context.Context, d *schema.ResourceData, meta any
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	connectors := make([]tg.Connector, 0)
-	for _, conn := range node.Config.Connectors.Connectors {
+	for _, conn := range config.Connectors {
 		if conn.ID != d.Id() {
 			connectors = append(connectors, conn)
 		}
 	}
 
-	config := tg.ConnectorsConfig{Connectors: connectors}
+	updated := tg.ConnectorsConfig{Connectors: connectors}
 
-	err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/connectors", tf.NodeID), config)
-	if err != nil {
+	if err := r.writeConfig(ctx, tgc, tf, updated); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -173,13 +205,13 @@ func (r *connector) Read(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	found := false
-	for _, conn := range node.Config.Connectors.Connectors {
+	for _, conn := range config.Connectors {
 		if conn.ID == d.Id() {
 			tf.UpdateFromTG(conn)
 			found = true

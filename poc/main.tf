@@ -628,7 +628,7 @@ resource "tg_service" "tomcat" {
   name        = "tomcat"
   port        = 8080
   protocol    = "udp"
-  description = "update"
+  description = "upate"
 }
 
 resource "tg_connector" "tomcat" {
@@ -638,4 +638,5 @@ resource "tg_connector" "tomcat" {
   port        = 8081
   protocol    = "udp"
   description = "date"
+  rate_limit  = 40
 }

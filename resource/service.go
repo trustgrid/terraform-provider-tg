@@ -28,10 +28,18 @@ func Service() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node UID",
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
+				Description:  "Node UID - required if cluster_fqdn not set",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
+			},
+			"cluster_fqdn": {
+				Description:  "Cluster FQDN - required if node_id not set",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -63,6 +71,30 @@ func Service() *schema.Resource {
 	}
 }
 
+func (r *service) getConfig(ctx context.Context, tgc *tg.Client, tf hcl.Service) (tg.ServicesConfig, error) {
+	if tf.NodeID != "" {
+		node := tg.Node{}
+		if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+			return tg.ServicesConfig{}, err
+		}
+		return node.Config.Services, nil
+	}
+	cluster := tg.Cluster{}
+	if err := tgc.Get(ctx, fmt.Sprintf("/cluster/%s", tf.ClusterFQDN), &cluster); err != nil {
+		return tg.ServicesConfig{}, err
+	}
+	return cluster.Config.Services, nil
+}
+
+func (r *service) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Service, config tg.ServicesConfig) error {
+	url := fmt.Sprintf("/node/%s/config/services", tf.NodeID)
+	if tf.NodeID == "" {
+		url = fmt.Sprintf("/cluster/%s/config/services", tf.ClusterFQDN)
+	}
+
+	return tgc.Put(ctx, url, config)
+}
+
 func (r *service) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := meta.(*tg.Client)
 
@@ -76,16 +108,14 @@ func (r *service) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	config := node.Config.Services
 	config.Services = append(config.Services, payload)
 
-	err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/services", tf.NodeID), config)
-	if err != nil {
+	if err := r.writeConfig(ctx, tgc, tf, config); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -107,20 +137,18 @@ func (r *service) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	config := node.Config.Services
 	for i, svc := range config.Services {
 		if svc.ID == d.Id() {
 			config.Services[i] = payload
 		}
 	}
 
-	err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/services", tf.NodeID), config)
-	if err != nil {
+	if err := r.writeConfig(ctx, tgc, tf, config); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -140,22 +168,21 @@ func (r *service) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	services := make([]tg.Service, 0)
-	for _, svc := range node.Config.Services.Services {
+	for _, svc := range config.Services {
 		if svc.ID != d.Id() {
 			services = append(services, svc)
 		}
 	}
 
-	config := tg.ServicesConfig{Services: services}
+	updated := tg.ServicesConfig{Services: services}
 
-	err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/services", tf.NodeID), config)
-	if err != nil {
+	if err := r.writeConfig(ctx, tgc, tf, updated); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -171,13 +198,13 @@ func (r *service) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(err)
 	}
 
-	node := tg.Node{}
-	if err := tgc.Get(ctx, fmt.Sprintf("/node/%s", tf.NodeID), &node); err != nil {
+	config, err := r.getConfig(ctx, tgc, tf)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	found := false
-	for _, svc := range node.Config.Services.Services {
+	for _, svc := range config.Services {
 		if svc.ID == d.Id() {
 			tf.UpdateFromTG(svc)
 			found = true

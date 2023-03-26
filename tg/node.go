@@ -64,6 +64,7 @@ type Connector struct {
 	Protocol    string `json:"protocol"`
 	Port        int    `json:"port"`
 	Service     string `json:"service"`
+	RateLimit   int    `json:"maxmbps,omitempty"`
 	Description string `json:"description"`
 }
 
