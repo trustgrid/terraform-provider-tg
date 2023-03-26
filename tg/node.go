@@ -43,6 +43,34 @@ type GatewayConfig struct {
 	Clients []GatewayClient `tf:"client" json:"clients,omitempty"`
 }
 
+type Service struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Enabled     bool   `json:"enabled"`
+	Host        string `json:"host"`
+	Port        int    `json:"port"`
+	Protocol    string `json:"protocol"`
+	Description string `json:"description"`
+}
+
+type ServicesConfig struct {
+	Services []Service `json:"services"`
+}
+
+type Connector struct {
+	ID          string `json:"id"`
+	Enabled     bool   `json:"enabled"`
+	Node        string `json:"node"`
+	Protocol    string `json:"protocol"`
+	Port        int    `json:"port"`
+	Service     string `json:"service"`
+	Description string `json:"description"`
+}
+
+type ConnectorsConfig struct {
+	Connectors []Connector `json:"connectors"`
+}
+
 type ZTNAConfig struct {
 	NodeID      string `tf:"node_id" json:"-"`
 	ClusterFQDN string `tf:"cluster_fqdn" json:"-"`
@@ -187,11 +215,13 @@ type Node struct {
 	Keys    map[string]PublicKey `json:"keys"`
 	Tags    map[string]string    `json:"tags" `
 	Config  struct {
-		Gateway GatewayConfig `json:"gateway"`
-		SNMP    SNMPConfig    `json:"snmp"`
-		ZTNA    ZTNAConfig    `json:"apigw"`
-		Cluster ClusterConfig `json:"cluster"`
-		Network NetworkConfig `json:"network"`
+		Gateway    GatewayConfig    `json:"gateway"`
+		SNMP       SNMPConfig       `json:"snmp"`
+		ZTNA       ZTNAConfig       `json:"apigw"`
+		Cluster    ClusterConfig    `json:"cluster"`
+		Network    NetworkConfig    `json:"network"`
+		Services   ServicesConfig   `json:"services"`
+		Connectors ConnectorsConfig `json:"connectors"`
 	} `json:"config"`
 }
 
