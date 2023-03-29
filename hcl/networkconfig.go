@@ -28,18 +28,23 @@ type NetworkTunnel struct {
 	LocalSubnet   string `tf:"local_subnet,omitempty"`
 }
 
+type NetworkRoute struct {
+	Route       string `tf:"route"`
+	Description string `tf:"description"`
+}
+
 type NetworkInterface struct {
-	NIC         string   `tf:"nic"`
-	Routes      []string `tf:"routes,omitempty"`
-	CloudRoutes []string `tf:"cloud_routes,omitempty"`
-	ClusterIP   string   `tf:"cluster_ip,omitempty"`
-	DHCP        bool     `tf:"dhcp"`
-	Gateway     string   `tf:"gateway"`
-	IP          string   `tf:"ip"`
-	Mode        string   `tf:"mode,omitempty"`
-	DNS         []string `tf:"dns,omitempty"`
-	Duplex      string   `tf:"duplex,omitempty"`
-	Speed       int      `tf:"speed,omitempty"`
+	NIC         string         `tf:"nic"`
+	Routes      []NetworkRoute `tf:"route,omitempty"`
+	CloudRoutes []NetworkRoute `tf:"cloud_route,omitempty"`
+	ClusterIP   string         `tf:"cluster_ip,omitempty"`
+	DHCP        bool           `tf:"dhcp"`
+	Gateway     string         `tf:"gateway"`
+	IP          string         `tf:"ip"`
+	Mode        string         `tf:"mode,omitempty"`
+	DNS         []string       `tf:"dns,omitempty"`
+	Duplex      string         `tf:"duplex,omitempty"`
+	Speed       int            `tf:"speed,omitempty"`
 }
 
 type VRFACL struct {
@@ -144,10 +149,16 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 		}
 
 		for _, r := range i.Routes {
-			iface.Routes = append(iface.Routes, r.Route)
+			iface.Routes = append(iface.Routes, NetworkRoute{
+				Route:       r.Route,
+				Description: r.Description,
+			})
 		}
 		for _, r := range i.CloudRoutes {
-			iface.CloudRoutes = append(iface.CloudRoutes, r.Route)
+			iface.CloudRoutes = append(iface.CloudRoutes, NetworkRoute{
+				Route:       r.Route,
+				Description: r.Description,
+			})
 		}
 		h.Interfaces = append(h.Interfaces, iface)
 	}
@@ -252,10 +263,10 @@ func (h *NetworkConfig) ToTG() tg.NetworkConfig {
 			DNS:       i.DNS,
 		}
 		for _, r := range i.Routes {
-			iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r})
+			iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
 		}
 		for _, r := range i.CloudRoutes {
-			iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r})
+			iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
 		}
 
 		nc.Interfaces = append(nc.Interfaces, iface)

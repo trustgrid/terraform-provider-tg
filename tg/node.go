@@ -129,7 +129,8 @@ type NetworkTunnel struct {
 }
 
 type NetworkRoute struct {
-	Route string `json:"route"`
+	Route       string `json:"route"`
+	Description string `json:"description,omitempty"`
 }
 
 type NetworkInterface struct {
