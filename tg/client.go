@@ -69,7 +69,7 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 	}
 	b := bytes.NewBuffer(body)
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, er
 	}
 	b := bytes.NewBuffer(body)
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 	}
 	b := bytes.NewBuffer(body)
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 }
 
 func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 }
 
 func (tg *Client) Get(ctx context.Context, url string, out any) error {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
 	if err != nil {
 		return err
 	}
