@@ -5,7 +5,9 @@ type Cluster struct {
 	Name   string `json:"name,omitempty"`
 	FQDN   string `json:"fqdn,omitempty"`
 	Config struct {
-		Network NetworkConfig `json:"network"`
-		ZTNA    ZTNAConfig    `json:"apigw"`
+		Connectors ConnectorsConfig `json:"connectors"`
+		Services   ServicesConfig   `json:"services"`
+		Network    NetworkConfig    `json:"network"`
+		ZTNA       ZTNAConfig       `json:"apigw"`
 	} `json:"config"`
 }
