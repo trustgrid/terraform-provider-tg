@@ -54,12 +54,20 @@ resource "tg_network_config" "network-1" {
   }
 
   interface {
-    nic          = "ens192"
-    dhcp         = false
-    gateway      = "10.20.10.1"
-    ip           = "10.20.10.50/24"
-    routes       = ["10.10.10.0/24"]
-    cloud_routes = ["10.10.14.0/24"]
+    nic     = "ens192"
+    dhcp    = false
+    gateway = "10.20.10.1"
+    ip      = "10.20.10.50/24"
+
+    route {
+      route       = "10.10.10.0/24"
+      description = "interface route"
+    }
+
+    cloud_route {
+      route       = "10.10.14.0/24"
+      description = "a cloud route"
+    }
   }
 
   interface {
@@ -162,7 +170,7 @@ Required:
 
 Optional:
 
-- `cloud_routes` (List of String) Cluster interface routes
+- `cloud_route` (Block List) Cluster interface routes (see [below for nested schema](#nestedblock--interface--cloud_route))
 - `cluster_ip` (String) Cluster IP
 - `dhcp` (Boolean) Enable DHCP
 - `dns` (List of String) DNS servers
@@ -170,8 +178,32 @@ Optional:
 - `gateway` (String) Gateway IP address
 - `ip` (String) IP address
 - `mode` (String) Interface mode
-- `routes` (List of String) Interface routes
+- `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
 - `speed` (Number) Interface speed
+
+<a id="nestedblock--interface--cloud_route"></a>
+### Nested Schema for `interface.cloud_route`
+
+Required:
+
+- `route` (String) Protocol
+
+Optional:
+
+- `description` (String) Description
+
+
+<a id="nestedblock--interface--route"></a>
+### Nested Schema for `interface.route`
+
+Required:
+
+- `route` (String) Protocol
+
+Optional:
+
+- `description` (String) Description
+
 
 
 <a id="nestedblock--tunnel"></a>

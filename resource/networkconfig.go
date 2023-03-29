@@ -253,22 +253,44 @@ func NetworkConfig() *schema.Resource {
 							Description:  "Cluster IP",
 							ValidateFunc: validation.IsIPv4Address,
 						},
-						"routes": {
+						"route": {
 							Description: "Interface routes",
 							Type:        schema.TypeList,
 							Optional:    true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.IsCIDR,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"route": {
+										Description:  "Protocol",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsCIDR,
+									},
+									"description": {
+										Description: "Description",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
+								},
 							},
 						},
-						"cloud_routes": {
+						"cloud_route": {
 							Description: "Cluster interface routes",
 							Type:        schema.TypeList,
 							Optional:    true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.IsCIDR,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"route": {
+										Description:  "Protocol",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsCIDR,
+									},
+									"description": {
+										Description: "Description",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
+								},
 							},
 						},
 						"dhcp": {

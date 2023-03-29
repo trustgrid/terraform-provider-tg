@@ -228,6 +228,16 @@ resource "tg_network_config" "network-1" {
 
   interface {
     nic = "ens192"
+    cloud_route {
+      route       = "10.100.0.0/16"
+      description = "edge network"
+    }
+
+    route {
+      route       = "5.5.5.5/32"
+      description = "whatever"
+    }
+
     #dhcp    = false
     #gateway = "10.20.10.1"
     #ip      = "10.20.10.50/24"
