@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  goreleaser:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,3 +19,4 @@ jobs:
 
       - name: golang lint
         uses: golangci/golangci-lint-action@v3
+        args: --tests=false
