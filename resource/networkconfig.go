@@ -479,7 +479,7 @@ func NetworkConfig() *schema.Resource {
 	}
 }
 
-func (nr *network) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.NetworkConfig, error) {
+func (nr *network) decodeTFConfig(_ context.Context, d *schema.ResourceData) (tg.NetworkConfig, error) {
 	tf := hcl.NetworkConfig{}
 
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -489,20 +489,26 @@ func (nr *network) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (
 	return tf.ToTG(), nil
 }
 
-func (nr *network) endpoint(d *schema.ResourceData) (id string, isCluster bool) {
+func (nr *network) endpoint(d *schema.ResourceData) (string, bool) {
 	nodeid, ok := d.GetOk("node_id")
-	isCluster = false
+	isCluster := false
 	if !ok || nodeid == "" {
-		id = d.Get("cluster_fqdn").(string)
+		id, ok := d.Get("cluster_fqdn").(string)
+		if !ok {
+			panic("network resource: no node_id and no cluster_fqdn")
+		}
 		isCluster = true
-		return
+		return id, isCluster
 	}
-	id = nodeid.(string)
-	return
+	id, ok := nodeid.(string)
+	if !ok {
+		panic("node_id must be a string")
+	}
+	return id, isCluster
 }
 
 func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	nc, err := nr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -528,7 +534,7 @@ func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any)
 }
 
 func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	id, isCluster := nr.endpoint(d)
 
@@ -574,7 +580,7 @@ func (nr *network) Update(ctx context.Context, d *schema.ResourceData, meta any)
 	return nr.Create(ctx, d, meta)
 }
 
-func (nr *network) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (nr *network) Delete(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	// Noop
 
 	return nil

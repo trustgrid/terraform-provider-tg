@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -124,11 +125,14 @@ func App() *schema.Resource {
 }
 
 func (r *app) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.App{}
 
-	id := d.Get("uid").(string)
+	id, ok := d.Get("uid").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("uid must be a string"))
+	}
 
 	tgapp := tg.App{}
 	err := tgc.Get(ctx, tf.ResourceURL(id), &tgapp)

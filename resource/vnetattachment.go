@@ -84,7 +84,7 @@ func VNetAttachment() *schema.Resource {
 }
 
 func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := HCLVnetAttachment{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -107,7 +107,7 @@ func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	va := HCLVnetAttachment{}
 	if err := hcl.DecodeResourceData(d, &va); err != nil {
@@ -128,7 +128,7 @@ func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *vnetAttachment) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	va := HCLVnetAttachment{}
 	if err := hcl.DecodeResourceData(d, &va); err != nil {
@@ -143,7 +143,7 @@ func (vn *vnetAttachment) Delete(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	va := HCLVnetAttachment{}
 	if err := hcl.DecodeResourceData(d, &va); err != nil {

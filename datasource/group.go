@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -48,11 +49,14 @@ func Group() *schema.Resource {
 
 // Read will look up a group by the UID provided. Errors if not found.
 func (r *group) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Group{}
 
-	id := d.Get("uid").(string)
+	id, ok := d.Get("uid").(string)
+	if !ok {
+		return diag.FromErr(errors.New("uid must be a string"))
+	}
 
 	tgapp := tg.Group{}
 	err := tgc.Get(ctx, tf.ResourceURL(id), &tgapp)

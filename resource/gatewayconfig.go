@@ -114,7 +114,7 @@ func GatewayConfig() *schema.Resource {
 }
 
 func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	gw, err := gc.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -131,7 +131,7 @@ func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, met
 }
 
 func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	gw, err := gc.decodeTFConfig(ctx, d)
 	if err != nil {
@@ -164,7 +164,7 @@ func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, met
 }
 
 func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	gw, err := gc.decodeTFConfig(ctx, d)
 	if err != nil {
@@ -179,12 +179,12 @@ func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, met
 	return nil
 }
 
-func (gc *gatewayConfig) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {
+func (gc *gatewayConfig) decodeTFConfig(_ context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {
 	gw := tg.GatewayConfig{}
 	err := hcl.DecodeResourceData(d, &gw)
 	return gw, err
 }
 
-func (gc *gatewayConfig) convertToTFConfig(ctx context.Context, config tg.GatewayConfig, d *schema.ResourceData) error {
+func (gc *gatewayConfig) convertToTFConfig(_ context.Context, config tg.GatewayConfig, d *schema.ResourceData) error {
 	return hcl.EncodeResourceData(&config, d)
 }

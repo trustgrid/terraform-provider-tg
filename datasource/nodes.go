@@ -80,7 +80,7 @@ func (f *filter) match(n tg.Node) bool {
 func nodeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
 
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	f := filter{}
 	err := hcl.DecodeResourceData(d, &f)

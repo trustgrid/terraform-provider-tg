@@ -52,7 +52,7 @@ func License() *schema.Resource {
 	}
 }
 
-func licenseNoop(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func licenseNoop(ctx context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	tflog.Debug(ctx, "hi from licensenoop")
 	return nil
 }
@@ -60,7 +60,7 @@ func licenseNoop(ctx context.Context, d *schema.ResourceData, meta any) diag.Dia
 func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	parser := jwt.Parser{ValidMethods: []string{"RS512"}}
 
-	tg := meta.(*tg.Client)
+	tg := tg.GetClient(meta)
 	l := licenseData{}
 	err := hcl.DecodeResourceData(d, &l)
 	if err != nil {
