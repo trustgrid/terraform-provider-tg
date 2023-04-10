@@ -546,20 +546,20 @@ func Container() *schema.Resource {
 	}
 }
 
-func (cr *container) urlRoot(tgc *tg.Client, c tg.Container) string {
+func (cr *container) urlRoot(c tg.Container) string {
 	if c.NodeID != "" {
 		return "/v2/node/" + c.NodeID + "/exec/container"
 	}
 	return "/v2/cluster/" + c.ClusterFQDN + "/exec/container"
 }
 
-func (cr *container) containerURL(tgc *tg.Client, c tg.Container) string {
-	return cr.urlRoot(tgc, c) + "/" + c.ID
+func (cr *container) containerURL(c tg.Container) string {
+	return cr.urlRoot(c) + "/" + c.ID
 }
 
 func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Container) (tg.Container, error) {
 	res := tg.Container{}
-	err := tgc.Get(ctx, cr.containerURL(tgc, c), &res)
+	err := tgc.Get(ctx, cr.containerURL(c), &res)
 	if err != nil {
 		return res, err
 	}
@@ -571,7 +571,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 
 	cc := tg.ContainerConfig{}
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(tgc, c)+"/capability", &cc.Capabilities)
+		err = tgc.Get(ctx, cr.containerURL(c)+"/capability", &cc.Capabilities)
 		if err != nil {
 			return err
 		}
@@ -580,7 +580,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(tgc, c)+"/variable", &cc.Variables)
+		err = tgc.Get(ctx, cr.containerURL(c)+"/variable", &cc.Variables)
 		if err != nil {
 			return err
 		}
@@ -589,7 +589,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(tgc, c)+"/logging", &cc.Logging)
+		err = tgc.Get(ctx, cr.containerURL(c)+"/logging", &cc.Logging)
 		if err != nil {
 			return err
 		}
@@ -598,7 +598,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(tgc, c)+"/mount", &cc.Mounts)
+		err = tgc.Get(ctx, cr.containerURL(c)+"/mount", &cc.Mounts)
 		if err != nil {
 			return err
 		}
@@ -607,7 +607,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(tgc, c)+"/port-mapping", &cc.PortMappings)
+		err = tgc.Get(ctx, cr.containerURL(c)+"/port-mapping", &cc.PortMappings)
 		if err != nil {
 			return err
 		}
@@ -616,7 +616,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(tgc, c)+"/virtual-network", &cc.VirtualNetworks)
+		err = tgc.Get(ctx, cr.containerURL(c)+"/virtual-network", &cc.VirtualNetworks)
 		if err != nil {
 			return err
 		}
@@ -625,7 +625,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(tgc, c)+"/interface", &cc.Interfaces)
+		err = tgc.Get(ctx, cr.containerURL(c)+"/interface", &cc.Interfaces)
 		if err != nil {
 			return err
 		}
@@ -639,10 +639,10 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 }
 
 func (cr *container) writeExtendedConfig(ctx context.Context, tgc *tg.Client, c tg.Container) error {
-	return tgc.Put(ctx, cr.containerURL(tgc, c)+"/config", c.Config)
+	return tgc.Put(ctx, cr.containerURL(c)+"/config", c.Config)
 }
 
-func (cr *container) convertToTFConfig(ctx context.Context, c tg.Container, d *schema.ResourceData) error {
+func (cr *container) convertToTFConfig(c tg.Container, d *schema.ResourceData) error {
 	tfc := HCLContainer{
 		NodeID:      c.NodeID,
 		ClusterFQDN: c.ClusterFQDN,
@@ -669,7 +669,7 @@ func (cr *container) convertToTFConfig(ctx context.Context, c tg.Container, d *s
 	}
 
 	tfc.AddCaps = append(tfc.AddCaps, c.Config.Capabilities.AddCaps...)
-	tfc.DropCaps = append(tfc.AddCaps, c.Config.Capabilities.DropCaps...)
+	tfc.DropCaps = append(tfc.DropCaps, c.Config.Capabilities.DropCaps...)
 
 	for _, v := range c.Config.Variables {
 		tfc.Variables[v.Name] = v.Value
@@ -753,10 +753,10 @@ func (cr *container) convertToTFConfig(ctx context.Context, c tg.Container, d *s
 		})
 	}
 
-	return hcl.EncodeResourceData(&c, d)
+	return hcl.EncodeResourceData(&tfc, d)
 }
 
-func (cr *container) decodeTFConfig(ctx context.Context, d *schema.ResourceData) (tg.Container, error) {
+func (cr *container) decodeTFConfig(_ context.Context, d *schema.ResourceData) (tg.Container, error) {
 	tfc := HCLContainer{}
 	c := tg.Container{}
 
@@ -784,7 +784,7 @@ func (cr *container) decodeTFConfig(ctx context.Context, d *schema.ResourceData)
 	cc := &c.Config
 
 	cc.Capabilities.AddCaps = append(cc.Capabilities.AddCaps, tfc.AddCaps...)
-	cc.Capabilities.DropCaps = append(cc.Capabilities.AddCaps, tfc.DropCaps...)
+	cc.Capabilities.DropCaps = append(cc.Capabilities.DropCaps, tfc.DropCaps...)
 
 	for k, v := range tfc.Variables {
 		cc.Variables = append(cc.Variables, tg.ContainerVar{Name: k, Value: v})
@@ -885,7 +885,7 @@ func (cr *container) decodeTFConfig(ctx context.Context, d *schema.ResourceData)
 }
 
 func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	ct, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
@@ -894,7 +894,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 
 	ct.ID = uuid.New().String()
 
-	if _, err := tgc.Post(ctx, cr.urlRoot(tgc, ct), &ct); err != nil {
+	if _, err := tgc.Post(ctx, cr.urlRoot(ct), &ct); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -908,14 +908,14 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 }
 
 func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	ct, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Put(ctx, cr.containerURL(tgc, ct), &ct); err != nil {
+	if err := tgc.Put(ctx, cr.containerURL(ct), &ct); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -927,14 +927,14 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta an
 }
 
 func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	ct, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, cr.containerURL(tgc, ct), &ct); err != nil {
+	if err := tgc.Delete(ctx, cr.containerURL(ct), &ct); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -942,7 +942,7 @@ func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta an
 }
 
 func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf, err := cr.decodeTFConfig(ctx, d)
 	if err != nil {
@@ -958,7 +958,7 @@ func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	if err := cr.convertToTFConfig(ctx, ct, d); err != nil {
+	if err := cr.convertToTFConfig(ct, d); err != nil {
 		return diag.FromErr(err)
 	}
 

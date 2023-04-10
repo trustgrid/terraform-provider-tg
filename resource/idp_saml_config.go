@@ -56,7 +56,7 @@ func IDPSAMLConfig() *schema.Resource {
 
 // Create updates a SAML IDP configuration. Because this is tied to an IDP, no resource gets created on the TG side.
 func (r *idpSAMLConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDPSAMLConfig{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -79,13 +79,13 @@ func (r *idpSAMLConfig) Update(ctx context.Context, d *schema.ResourceData, meta
 }
 
 // Delete is a noop for SAML config - delete the IDP instead
-func (r *idpSAMLConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (r *idpSAMLConfig) Delete(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	return nil
 }
 
 // Read reads the SAML IDP configuration from the TG API and updates the local state.
 func (r *idpSAMLConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDPSAMLConfig{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

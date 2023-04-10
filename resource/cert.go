@@ -46,7 +46,7 @@ func Cert() *schema.Resource {
 }
 
 func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	cert := tg.Cert{}
 	if err := hcl.DecodeResourceData(d, &cert); err != nil {
@@ -63,7 +63,7 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 }
 
 func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	cert := tg.Cert{}
 	if err := hcl.DecodeResourceData(d, &cert); err != nil {
@@ -78,7 +78,7 @@ func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 }
 
 func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	cert := tg.Cert{}
 	if err := hcl.DecodeResourceData(d, &cert); err != nil {
@@ -93,7 +93,7 @@ func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 }
 
 func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	certs := make([]tg.Cert, 0)
 

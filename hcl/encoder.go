@@ -50,11 +50,13 @@ func convertToMap(in any) (map[string]any, error) {
 		vals := strings.Split(tf, ",")
 		tf = vals[0]
 
+		//exhaustive:ignore
 		switch field.Type.Kind() {
 		case reflect.Slice:
 			slice := make([]any, 0)
 			for j := 0; j < reflect.ValueOf(in).FieldByIndex([]int{i}).Len(); j++ {
 				el := reflect.ValueOf(in).FieldByIndex([]int{i}).Index(j)
+				//exhaustive:ignore
 				switch el.Kind() {
 				case reflect.Struct:
 					e, err := convertToMap(reflect.ValueOf(in).FieldByIndex([]int{i}).Index(j).Interface())

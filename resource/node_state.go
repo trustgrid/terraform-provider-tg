@@ -41,7 +41,7 @@ func NodeState() *schema.Resource {
 }
 
 func (r *nodeState) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Node{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -61,7 +61,7 @@ func (r *nodeState) Create(ctx context.Context, d *schema.ResourceData, meta any
 }
 
 func (r *nodeState) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Node{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -76,12 +76,12 @@ func (r *nodeState) Update(ctx context.Context, d *schema.ResourceData, meta any
 	return nil
 }
 
-func (r *nodeState) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (r *nodeState) Delete(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	return nil
 }
 
 func (r *nodeState) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Node{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

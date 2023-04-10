@@ -52,6 +52,14 @@ func NewClient(ctx context.Context, params ClientParams) (*Client, error) {
 	return client, nil
 }
 
+func GetClient(meta any) *Client {
+	tgc, ok := meta.(*Client)
+	if !ok {
+		panic("meta is not a *tg.Client")
+	}
+	return tgc
+}
+
 func (tg *Client) authHeader() string {
 	if tg.JWT != "" {
 		return fmt.Sprintf("Bearer %s", tg.JWT)
@@ -65,11 +73,11 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
-		return fmt.Errorf("couldn't marshal body: %s", err)
+		return fmt.Errorf("couldn't marshal body: %w", err)
 	}
 	b := bytes.NewBuffer(body)
 
-	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
 	if err != nil {
 		return err
 	}
@@ -85,10 +93,10 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 		return err
 	}
 	defer r.Body.Close()
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
+			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
 		return fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
@@ -102,11 +110,11 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, er
 
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("couldn't marshal body: %s", err)
+		return nil, fmt.Errorf("couldn't marshal body: %w", err)
 	}
 	b := bytes.NewBuffer(body)
 
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +134,7 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, er
 	if err != nil {
 		return nil, fmt.Errorf("couldn't read body: %w", err)
 	}
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		return reply, fmt.Errorf("[POST] non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
 
@@ -139,11 +147,11 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
-		return fmt.Errorf("couldn't marshal body: %s", err)
+		return fmt.Errorf("couldn't marshal body: %w", err)
 	}
 	b := bytes.NewBuffer(body)
 
-	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), b)
 	if err != nil {
 		return err
 	}
@@ -159,10 +167,10 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 		return err
 	}
 	defer r.Body.Close()
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
+			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
 		return fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
@@ -171,7 +179,7 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) error {
 }
 
 func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -184,18 +192,18 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 		return nil, err
 	}
 
-	if r.StatusCode != 200 {
-		if r.StatusCode == 404 {
+	if r.StatusCode != http.StatusOK {
+		if r.StatusCode == http.StatusNotFound {
 			return r.Body, ErrNotFound
 		}
-		return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
+		return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 	}
 
 	return r.Body, nil
 }
 
 func (tg *Client) Get(ctx context.Context, url string, out any) error {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
 	if err != nil {
 		return err
 	}
@@ -209,12 +217,12 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 		return err
 	}
 	defer r.Body.Close()
-	if r.StatusCode != 200 {
+	if r.StatusCode != http.StatusOK {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %s", url, r.StatusCode, err)
+			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
-		if r.StatusCode == 404 {
+		if r.StatusCode == http.StatusNotFound {
 			return ErrNotFound
 		}
 		return fmt.Errorf("non-200 from portal (%s): %d - %s\n%s", url, r.StatusCode, req.URL.String(), reply)
@@ -222,12 +230,12 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 
 	reply, err := io.ReadAll(r.Body)
 	if err != nil {
-		return fmt.Errorf("error reading reply: %s", err)
+		return fmt.Errorf("error reading reply: %w", err)
 	}
 
 	err = json.Unmarshal(reply, out)
 	if err != nil {
-		return fmt.Errorf("error decoding json: %s\n\nreply:\n%s", err, string(reply))
+		return fmt.Errorf("error decoding json: %w\n\nreply:\n%s", err, string(reply))
 	}
 
 	return nil

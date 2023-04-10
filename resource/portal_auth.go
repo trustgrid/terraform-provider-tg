@@ -41,7 +41,7 @@ func PortalAuth() *schema.Resource {
 
 // Create configures Portal authentication - it's the same as update, since this can't be deleted.
 func (r *portalAuth) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.PortalAuth{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -61,7 +61,7 @@ func (r *portalAuth) Create(ctx context.Context, d *schema.ResourceData, meta an
 
 // Update configures Portal authentication
 func (r *portalAuth) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.PortalAuth{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -78,7 +78,7 @@ func (r *portalAuth) Update(ctx context.Context, d *schema.ResourceData, meta an
 
 // Delete sets the Portal authentication provider back to the default Trustgrid provider.
 func (r *portalAuth) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.PortalAuth{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -97,7 +97,7 @@ func (r *portalAuth) Delete(ctx context.Context, d *schema.ResourceData, meta an
 
 // Read pulls the authentication provider configuration from the TG API and updates the Terraform state.
 func (r *portalAuth) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.PortalAuth{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

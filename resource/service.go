@@ -96,7 +96,7 @@ func (r *service) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Servic
 }
 
 func (r *service) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Service{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -125,7 +125,7 @@ func (r *service) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 func (r *service) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Service{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -158,7 +158,7 @@ func (r *service) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 func (r *service) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Service{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -191,7 +191,7 @@ func (r *service) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 func (r *service) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Service{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
