@@ -85,7 +85,7 @@ resource "tg_virtual_network_route" "route3" {
 }
 
 resource "tg_gateway_config" "test" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   enabled = true
   host    = "10.10.10.10"
   port    = 8553
@@ -165,11 +165,11 @@ resource "tg_cluster" "cluster-1" {
 
 resource "tg_cluster_member" "member-1" {
   cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
-  node_id      = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id      = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
 }
 
 resource "tg_node_cluster_config" "cluster-gossip" {
-  node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id     = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   host        = "10.10.10.10"
   port        = 9090
   status_host = "1.1.1.1"
@@ -188,7 +188,7 @@ resource "tg_node_cluster_config" "cluster-gossip" {
 #}
 
 resource "tg_network_config" "network-1" {
-  #node_id    = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  #node_id    = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
 
   dark_mode  = true
@@ -338,7 +338,7 @@ resource "tg_network_config" "network-1" {
 # }
 
 resource "tg_container" "alpine" {
-  node_id     = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id     = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   command     = "ls -lR"
   description = "my alpine container"
   enabled     = "true"
@@ -397,14 +397,14 @@ resource "tg_container" "alpine" {
 }
 
 resource "tg_container_volume" "myvol" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   name    = "myvol"
 }
 
 # resource "tg_cluster" "tf-cluster" {
 #   name = "tf-cluster"
 #   node {
-#     node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+#     node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
 #     active = true
 #   }
 #   node {
@@ -414,7 +414,7 @@ resource "tg_container_volume" "myvol" {
 
 
 resource "tg_virtual_network_attachment" "tftest1" {
-  #node_id         = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  #node_id         = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
   network      = resource.tg_virtual_network.testaringo.name
   #ip              = "10.10.14.4"
@@ -422,7 +422,7 @@ resource "tg_virtual_network_attachment" "tftest1" {
 }
 
 resource "tg_vpn_interface" "ipsec1" {
-  #  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  #  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   cluster_fqdn = resource.tg_cluster.cluster-1.fqdn
   network      = resource.tg_virtual_network.testaringo.name
 
@@ -537,7 +537,7 @@ output "asdf-id" {
 }
 
 resource "tg_kvm_image" "myimage" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
 
   display_name = "myimage"
   location     = "/root/whatever.qcow2"
@@ -546,7 +546,7 @@ resource "tg_kvm_image" "myimage" {
 }
 
 resource "tg_kvm_volume" "myvol" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
 
   name           = "myimage"
   provision_type = "eager"
@@ -556,7 +556,7 @@ resource "tg_kvm_volume" "myvol" {
 }
 
 data "tg_kvm_image" "myimage" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   uid     = resource.tg_kvm_image.myimage.id
 }
 
@@ -565,12 +565,12 @@ output "kvm-img-id" {
 }
 
 data "tg_kvm_volume" "myvol" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   name    = "myimage"
 }
 
 resource "tg_node_state" "enable_gw" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
   enabled = true
 }
 
