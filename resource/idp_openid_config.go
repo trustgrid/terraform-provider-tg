@@ -74,7 +74,7 @@ func IDPOpenIDConfig() *schema.Resource {
 
 // Create updates a OpenID IDP configuration. Because this is tied to an IDP, no resource gets created on the TG side.
 func (r *idpOpenIDConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDPOpenIDConfig{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -97,13 +97,13 @@ func (r *idpOpenIDConfig) Update(ctx context.Context, d *schema.ResourceData, me
 }
 
 // Delete is a noop for OpenID config - delete the IDP instead
-func (r *idpOpenIDConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (r *idpOpenIDConfig) Delete(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	return nil
 }
 
 // Read reads the OpenID IDP configuration from the TG API and updates the local state.
 func (r *idpOpenIDConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDPOpenIDConfig{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

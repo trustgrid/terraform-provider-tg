@@ -55,7 +55,7 @@ func IDP() *schema.Resource {
 
 // Create creates a new IDP.
 func (r *idp) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDP{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -79,7 +79,7 @@ func (r *idp) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 
 // Update updates an existing IDP.
 func (r *idp) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDP{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -96,7 +96,7 @@ func (r *idp) Update(ctx context.Context, d *schema.ResourceData, meta any) diag
 
 // Delete deletes an existing IDP.
 func (r *idp) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDP{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -112,7 +112,7 @@ func (r *idp) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag
 
 // Read pulls an IDP from the TG API and updates the Terraform state.
 func (r *idp) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.IDP{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

@@ -138,7 +138,7 @@ func App() *schema.Resource {
 }
 
 func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -167,7 +167,7 @@ func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 }
 
 func (r *app) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -183,7 +183,7 @@ func (r *app) Update(ctx context.Context, d *schema.ResourceData, meta any) diag
 }
 
 func (r *app) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -198,7 +198,7 @@ func (r *app) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag
 }
 
 func (r *app) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.App{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

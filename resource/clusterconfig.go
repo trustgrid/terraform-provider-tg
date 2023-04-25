@@ -89,7 +89,7 @@ func (cr *clusterconfig) getConfig(ctx context.Context, tgc *tg.Client, uid stri
 }
 
 func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	cc := tg.ClusterConfig{}
 	if err := hcl.DecodeResourceData(d, &cc); err != nil {
 		return diag.FromErr(err)
@@ -105,7 +105,7 @@ func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, met
 }
 
 func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
 	switch {
@@ -136,7 +136,7 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 }
 
 func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	existing, err := cr.getConfig(ctx, tgc, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
@@ -159,7 +159,7 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 }
 
 func (cr *clusterconfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
 	switch {
 	case errors.Is(err, tg.ErrNotFound):

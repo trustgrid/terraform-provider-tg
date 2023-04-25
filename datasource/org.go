@@ -36,7 +36,7 @@ func Org() *schema.Resource {
 }
 
 func orgRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	org := tg.Org{}
 

@@ -86,7 +86,7 @@ func (vn *vnetRoute) findRoute(ctx context.Context, tgc *tg.Client, route tg.VNe
 }
 
 func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	route := tg.VNetRoute{}
 	if err := hcl.DecodeResourceData(d, &route); err != nil {
@@ -118,7 +118,7 @@ func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta an
 }
 
 func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	route := tg.VNetRoute{}
 	if err := hcl.DecodeResourceData(d, &route); err != nil {
@@ -140,7 +140,7 @@ func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta an
 }
 
 func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	route := tg.VNetRoute{}
 	if err := hcl.DecodeResourceData(d, &route); err != nil {
@@ -162,7 +162,7 @@ func (vn *vnetRoute) Delete(ctx context.Context, d *schema.ResourceData, meta an
 }
 
 func (vn *vnetRoute) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := tg.VNetRoute{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

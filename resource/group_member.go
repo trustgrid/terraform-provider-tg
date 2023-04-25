@@ -44,7 +44,7 @@ func GroupMember() *schema.Resource {
 
 // Read checks only to see if the group member exists, since there are no fields that can be updated.
 func (r *groupmember) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.GroupMember{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -75,7 +75,7 @@ func (r *groupmember) Read(ctx context.Context, d *schema.ResourceData, meta any
 
 // Create adds a user to a group.
 func (r *groupmember) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.GroupMember{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -97,7 +97,7 @@ func (r *groupmember) Create(ctx context.Context, d *schema.ResourceData, meta a
 
 // Delete removes a user from a group.
 func (r *groupmember) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.GroupMember{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

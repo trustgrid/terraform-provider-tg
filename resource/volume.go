@@ -67,7 +67,7 @@ func (vr *volume) volumeURL(v tg.Volume) string {
 }
 
 func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	v := tg.Volume{}
 	if err := hcl.DecodeResourceData(d, &v); err != nil {
@@ -84,7 +84,7 @@ func (vr *volume) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	v := tg.Volume{}
 	if err := hcl.DecodeResourceData(d, &v); err != nil {
@@ -99,7 +99,7 @@ func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	v := tg.Volume{}
 	if err := hcl.DecodeResourceData(d, &v); err != nil {
@@ -114,7 +114,7 @@ func (vr *volume) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	v := tg.Volume{}
 	if err := hcl.DecodeResourceData(d, &v); err != nil {

@@ -69,7 +69,7 @@ func vnetCommit(ctx context.Context, tgc *tg.Client, network string) error {
 }
 
 func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	vnet := tg.VirtualNetwork{}
 	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
@@ -101,7 +101,7 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	vnet := tg.VirtualNetwork{}
 	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
@@ -123,7 +123,7 @@ func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	vnet := tg.VirtualNetwork{}
 	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
@@ -141,7 +141,7 @@ func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	vnet := tg.VirtualNetwork{}
 	if err := hcl.DecodeResourceData(d, &vnet); err != nil {

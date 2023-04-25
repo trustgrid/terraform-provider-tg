@@ -55,10 +55,16 @@ func (nr *clustermember) updateCluster(ctx context.Context, tgc *tg.Client, uid 
 }
 
 func (nr *clustermember) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
-	uid := d.Get("node_id").(string)
-	fqdn := d.Get("cluster_fqdn").(string)
+	uid, ok := d.Get("node_id").(string)
+	if !ok {
+		return diag.FromErr(errors.New("node_id must be a string"))
+	}
+	fqdn, ok := d.Get("cluster_fqdn").(string)
+	if !ok {
+		return diag.FromErr(errors.New("cluster_fqdn must be a string"))
+	}
 
 	if err := nr.updateCluster(ctx, tgc, uid, &fqdn); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting cluster fqdn %s: %w", fqdn, err))
@@ -70,7 +76,7 @@ func (nr *clustermember) Create(ctx context.Context, d *schema.ResourceData, met
 }
 
 func (nr *clustermember) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	n := tg.Node{}
 	err := tgc.Get(ctx, "/node/"+d.Id(), &n)
@@ -90,9 +96,12 @@ func (nr *clustermember) Read(ctx context.Context, d *schema.ResourceData, meta 
 }
 
 func (nr *clustermember) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
-	fqdn := d.Get("cluster_fqdn").(string)
+	fqdn, ok := d.Get("cluster_fqdn").(string)
+	if !ok {
+		return diag.FromErr(errors.New("cluster_fqdn must be a string"))
+	}
 
 	if err := nr.updateCluster(ctx, tgc, d.Id(), &fqdn); err != nil {
 		return diag.FromErr(err)
@@ -102,7 +111,7 @@ func (nr *clustermember) Update(ctx context.Context, d *schema.ResourceData, met
 }
 
 func (nr *clustermember) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	if err := nr.updateCluster(ctx, tgc, d.Id(), nil); err != nil {
 		return diag.FromErr(err)

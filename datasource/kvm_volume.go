@@ -68,7 +68,7 @@ func KVMVolume() *schema.Resource {
 }
 
 func (r *kvmVolume) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.KVMVolume{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

@@ -222,7 +222,7 @@ func (h *HCLVPNInterface) updateFromTGVPNInterface(vpn tg.VPNInterface) {
 }
 
 func (vn *vpnInterface) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := HCLVPNInterface{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -241,7 +241,7 @@ func (vn *vpnInterface) Create(ctx context.Context, d *schema.ResourceData, meta
 }
 
 func (vn *vpnInterface) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := HCLVPNInterface{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -258,7 +258,7 @@ func (vn *vpnInterface) Update(ctx context.Context, d *schema.ResourceData, meta
 }
 
 func (vn *vpnInterface) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := HCLVPNInterface{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -273,7 +273,7 @@ func (vn *vpnInterface) Delete(ctx context.Context, d *schema.ResourceData, meta
 }
 
 func (vn *vpnInterface) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := HCLVPNInterface{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

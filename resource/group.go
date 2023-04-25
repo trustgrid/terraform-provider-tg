@@ -52,11 +52,14 @@ func Group() *schema.Resource {
 }
 
 func (r *group) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Group{}
 
-	id := d.Get("uid").(string)
+	id, ok := d.Get("uid").(string)
+	if !ok {
+		return diag.FromErr(errors.New("uid must be a string"))
+	}
 
 	tgapp := tg.Group{}
 	err := tgc.Get(ctx, tf.ResourceURL(id), &tgapp)
@@ -80,7 +83,7 @@ func (r *group) Read(ctx context.Context, d *schema.ResourceData, meta any) diag
 }
 
 func (r *group) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Group{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {
@@ -116,7 +119,7 @@ func (r *group) Create(ctx context.Context, d *schema.ResourceData, meta any) di
 }
 
 func (r *group) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := hcl.Group{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

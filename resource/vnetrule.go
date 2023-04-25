@@ -111,7 +111,7 @@ func (vn *vnetAccessRule) findRule(ctx context.Context, tgc *tg.Client, rule tg.
 }
 
 func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	rule := tg.VNetAccessRule{}
 	if err := hcl.DecodeResourceData(d, &rule); err != nil {
@@ -143,7 +143,7 @@ func (vn *vnetAccessRule) Create(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	rule := tg.VNetAccessRule{}
 	if err := hcl.DecodeResourceData(d, &rule); err != nil {
@@ -165,7 +165,7 @@ func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	rule := tg.VNetAccessRule{}
 	if err := hcl.DecodeResourceData(d, &rule); err != nil {
@@ -187,7 +187,7 @@ func (vn *vnetAccessRule) Delete(ctx context.Context, d *schema.ResourceData, me
 }
 
 func (vn *vnetAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 
 	tf := tg.VNetAccessRule{}
 	if err := hcl.DecodeResourceData(d, &tf); err != nil {

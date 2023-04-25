@@ -166,7 +166,7 @@ func (z *ztnaConfig) shouldConfigureZTNA(gw tg.ZTNAConfig) bool {
 // Create writes initial ZTNA config and, if wireguard is enabled and the subject being configured is a node,
 // will either generate a wg key or import the provided one.
 func (z *ztnaConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	gw := tg.ZTNAConfig{}
 	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
@@ -208,7 +208,7 @@ func (z *ztnaConfig) url(c tg.ZTNAConfig) string {
 
 // Read fetches the ZTNA gateway config and the ZTNA WG key from the TG API
 func (z *ztnaConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	gw := tg.ZTNAConfig{}
 	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
@@ -269,7 +269,7 @@ func (z *ztnaConfig) derivePublicKey(privateKey string) (string, error) {
 // Update sends the local TF config to the TG API for ZTNA config, and if a wireguard private key is provided,
 // imports and updates the key (if needed).
 func (z *ztnaConfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	gw := tg.ZTNAConfig{}
 	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
@@ -311,7 +311,7 @@ func (z *ztnaConfig) Update(ctx context.Context, d *schema.ResourceData, meta an
 
 // Delete blanks out most of the ZTNA gateway config and sets enabled/wireguardEnabled to false
 func (z *ztnaConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := meta.(*tg.Client)
+	tgc := tg.GetClient(meta)
 	gw := tg.ZTNAConfig{}
 	err := hcl.DecodeResourceData(d, &gw)
 	if err != nil {
