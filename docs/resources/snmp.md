@@ -14,7 +14,7 @@ Node SNMP
 
 ```terraform
 resource "tg_snmp" "my_snmp" {
-  node_id = "x59838ae6-a2b2-4c45-b7be-9378f0b265f"
+  node_id = "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fcf"
 
   port               = 161
   interface          = "ens160"
