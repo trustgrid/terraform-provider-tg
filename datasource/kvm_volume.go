@@ -77,8 +77,9 @@ func (r *kvmVolume) Read(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	tgimg := tg.KVMVolume{}
 	err := tgc.Get(ctx, tf.ResourceURL(), &tgimg)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

@@ -54,8 +54,9 @@ func (r *groupmember) Read(ctx context.Context, d *schema.ResourceData, meta any
 	members := []tg.GroupMember{}
 
 	err := tgc.Get(ctx, "/v2/group/"+tf.GroupID+"/members", &members)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

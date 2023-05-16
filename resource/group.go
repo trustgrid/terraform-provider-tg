@@ -63,8 +63,9 @@ func (r *group) Read(ctx context.Context, d *schema.ResourceData, meta any) diag
 
 	tgapp := tg.Group{}
 	err := tgc.Get(ctx, tf.ResourceURL(id), &tgapp)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

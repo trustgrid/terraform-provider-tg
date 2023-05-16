@@ -546,8 +546,9 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 	if isCluster {
 		n := tg.Cluster{}
 		err := tgc.Get(ctx, "/cluster/"+id, &n)
+		var nferr *tg.NotFoundError
 		switch {
-		case errors.Is(err, tg.ErrNotFound):
+		case errors.As(err, &nferr):
 			d.SetId("")
 			return nil
 		case err != nil:
@@ -558,8 +559,9 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 	} else {
 		n := tg.Node{}
 		err := tgc.Get(ctx, "/node/"+id, &n)
+		var nferr *tg.NotFoundError
 		switch {
-		case errors.Is(err, tg.ErrNotFound):
+		case errors.As(err, &nferr):
 			d.SetId("")
 			return nil
 		case err != nil:

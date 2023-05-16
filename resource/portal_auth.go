@@ -106,8 +106,9 @@ func (r *portalAuth) Read(ctx context.Context, d *schema.ResourceData, meta any)
 
 	tgauth := tg.PortalAuth{}
 	err := tgc.Get(ctx, "/org/auth", &tgauth)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

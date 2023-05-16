@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,7 +23,13 @@ type Client struct {
 	Domain string
 }
 
-var ErrNotFound = errors.New("not found")
+type NotFoundError struct {
+	URL string
+}
+
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf("not found: %s", e.URL)
+}
 
 type ClientParams struct {
 	APIKey    string
@@ -194,7 +199,7 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 
 	if r.StatusCode != http.StatusOK {
 		if r.StatusCode == http.StatusNotFound {
-			return r.Body, ErrNotFound
+			return r.Body, &NotFoundError{URL: url}
 		}
 		return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 	}
@@ -223,7 +228,7 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
 		if r.StatusCode == http.StatusNotFound {
-			return ErrNotFound
+			return &NotFoundError{URL: url}
 		}
 		return fmt.Errorf("non-200 from portal (%s): %d - %s\n%s", url, r.StatusCode, req.URL.String(), reply)
 	}

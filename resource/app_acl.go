@@ -127,8 +127,9 @@ func (r *appACL) Read(ctx context.Context, d *schema.ResourceData, meta any) dia
 
 	tgacl := tg.AppACL{}
 	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgacl)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

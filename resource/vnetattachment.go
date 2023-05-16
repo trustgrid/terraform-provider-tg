@@ -152,8 +152,9 @@ func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta
 
 	vnet := tg.VNetAttachment{}
 	err := tgc.Get(ctx, va.resourceURL(), &vnet)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

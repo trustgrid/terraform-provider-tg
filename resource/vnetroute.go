@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -82,7 +83,7 @@ func (vn *vnetRoute) findRoute(ctx context.Context, tgc *tg.Client, route tg.VNe
 		}
 	}
 
-	return tg.VNetRoute{}, tg.ErrNotFound
+	return tg.VNetRoute{}, &tg.NotFoundError{URL: "route " + route.UID}
 }
 
 func (vn *vnetRoute) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -170,8 +171,9 @@ func (vn *vnetRoute) Read(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	route, err := vn.findRoute(ctx, tgc, tf)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

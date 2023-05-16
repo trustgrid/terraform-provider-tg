@@ -950,8 +950,9 @@ func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	ct, err := cr.getContainer(ctx, tgc, tf)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:
