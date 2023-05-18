@@ -18,6 +18,16 @@ type VNetRoute struct {
 	Description string `tf:"description" json:"description"`
 }
 
+type VNetPortForward struct {
+	UID         string `tf:"uid" json:"uid"`
+	NetworkName string `tf:"network" json:"-"`
+
+	Node    string `tf:"node" json:"nodeName"`
+	Service string `tf:"service" json:"serviceName"`
+	IP      string `tf:"ip" json:"ip"`
+	Port    int    `tf:"port" json:"port"`
+}
+
 type VNetAccessRule struct {
 	UID         string `tf:"uid" json:"uid"`
 	NetworkName string `tf:"network" json:"-"`

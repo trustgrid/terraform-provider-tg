@@ -121,8 +121,9 @@ func (r *idp) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 
 	tgidp := tg.IDP{}
 	err := tgc.Get(ctx, tf.ResourceURL(), &tgidp)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

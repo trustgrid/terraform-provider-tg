@@ -140,8 +140,9 @@ func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 
 	n := tg.Node{}
 	err = tgc.Get(ctx, "/node/"+gw.NodeID, &n)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

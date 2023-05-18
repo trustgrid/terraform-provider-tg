@@ -64,8 +64,9 @@ func (cr *cluster) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 	var cluster tg.Cluster
 
 	err := tgc.Get(ctx, "/cluster/"+d.Id(), &cluster)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

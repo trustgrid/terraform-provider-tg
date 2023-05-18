@@ -74,7 +74,8 @@ func (ds *dsNode) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	for {
 		if err := tgc.Get(ctx, url, &node); err != nil {
-			if tf.Timeout > 0 && errors.Is(err, tg.ErrNotFound) {
+			var nferr *tg.NotFoundError
+			if tf.Timeout > 0 && errors.As(err, &nferr) {
 				time.Sleep(30 * time.Second)
 				continue
 			}

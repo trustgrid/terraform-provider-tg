@@ -94,8 +94,9 @@ func (r *idpSAMLConfig) Read(ctx context.Context, d *schema.ResourceData, meta a
 
 	tgidp := tg.IDPSAMLConfig{}
 	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgidp)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

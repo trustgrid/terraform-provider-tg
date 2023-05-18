@@ -122,7 +122,8 @@ func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	if err := tgc.Get(ctx, vr.volumeURL(v), &v); err != nil {
-		if errors.Is(err, tg.ErrNotFound) {
+		var nferr *tg.NotFoundError
+		if errors.As(err, &nferr) {
 			d.SetId("")
 			return nil
 		}

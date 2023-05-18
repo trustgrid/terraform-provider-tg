@@ -80,8 +80,9 @@ func (nr *clustermember) Read(ctx context.Context, d *schema.ResourceData, meta 
 
 	n := tg.Node{}
 	err := tgc.Get(ctx, "/node/"+d.Id(), &n)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

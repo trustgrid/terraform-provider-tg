@@ -112,8 +112,9 @@ func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 
 	n := tg.Node{}
 	err = tgc.Get(ctx, "/node/"+snmp.NodeID, &n)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

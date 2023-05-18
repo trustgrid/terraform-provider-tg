@@ -125,8 +125,9 @@ func (r *kvmImage) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	tgimg := tg.KVMImage{}
 	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgimg)
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:

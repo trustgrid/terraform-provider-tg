@@ -108,8 +108,9 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 	tgc := tg.GetClient(meta)
 
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		d.SetId("")
 		return nil
 	case err != nil:
@@ -161,8 +162,9 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 func (cr *clusterconfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 	cc, err := cr.getConfig(ctx, tgc, d.Id())
+	var nferr *tg.NotFoundError
 	switch {
-	case errors.Is(err, tg.ErrNotFound):
+	case errors.As(err, &nferr):
 		return nil
 	case err != nil:
 		return diag.FromErr(err)
