@@ -2,6 +2,8 @@ package resource
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
 	"github.com/golang-jwt/jwt"
@@ -60,7 +62,7 @@ func licenseNoop(ctx context.Context, _ *schema.ResourceData, _ any) diag.Diagno
 func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	parser := jwt.Parser{ValidMethods: []string{"RS512"}}
 
-	tg := tg.GetClient(meta)
+	tgc := tg.GetClient(meta)
 	l := licenseData{}
 	err := hcl.DecodeResourceData(d, &l)
 	if err != nil {
@@ -68,8 +70,12 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 	}
 
 	if l.License == "" {
-		reply, err := tg.RawGet(ctx, "/node/license?name="+l.Name)
-		if err != nil {
+		reply, err := tgc.RawGet(ctx, "/node/license?name="+l.Name)
+		var verr *tg.ValidationError
+		switch {
+		case errors.As(err, &verr):
+			return diag.FromErr(fmt.Errorf("invalid license - usually this means the name is already taken"))
+		case err != nil:
 			return diag.FromErr(err)
 		}
 
@@ -95,7 +101,7 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 			return diag.FromErr(err)
 		}
 
-		if err := d.Set("fqdn", l.Name+"."+tg.Domain); err != nil {
+		if err := d.Set("fqdn", l.Name+"."+tgc.Domain); err != nil {
 			return diag.FromErr(err)
 		}
 	}
