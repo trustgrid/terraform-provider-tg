@@ -27,6 +27,14 @@ type NotFoundError struct {
 	URL string
 }
 
+type ValidationError struct {
+	URL string
+}
+
+func (e *ValidationError) Error() string {
+	return fmt.Sprintf("validation error: %s", e.URL)
+}
+
 func (e *NotFoundError) Error() string {
 	return fmt.Sprintf("not found: %s", e.URL)
 }
@@ -198,10 +206,14 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 	}
 
 	if r.StatusCode != http.StatusOK {
-		if r.StatusCode == http.StatusNotFound {
+		switch r.StatusCode {
+		case http.StatusNotFound:
 			return r.Body, &NotFoundError{URL: url}
+		case http.StatusUnprocessableEntity:
+			return r.Body, &ValidationError{URL: url}
+		default:
+			return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
-		return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 	}
 
 	return r.Body, nil
