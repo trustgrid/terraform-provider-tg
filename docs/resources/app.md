@@ -83,5 +83,3 @@ resource "tg_app" "mywgapp" {
 
 - `id` (String) The ID of this resource.
 - `uid` (String) App UID
-
-

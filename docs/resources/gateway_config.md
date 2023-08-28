@@ -78,5 +78,3 @@ Required:
 
 - `enabled` (Boolean) Client enabled
 - `name` (String) Client node name
-
-

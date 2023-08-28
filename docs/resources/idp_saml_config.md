@@ -34,5 +34,3 @@ resource "tg_idp_saml_config" "saml" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

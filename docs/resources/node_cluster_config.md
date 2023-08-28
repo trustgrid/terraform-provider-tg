@@ -53,5 +53,3 @@ resource "tg_node_cluster_config" "cluster-passive-member" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

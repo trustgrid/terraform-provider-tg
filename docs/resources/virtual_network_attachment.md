@@ -44,5 +44,3 @@ resource "tg_virtual_network_attachment" "tftest1" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

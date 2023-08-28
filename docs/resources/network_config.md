@@ -312,5 +312,3 @@ Optional:
 - `description` (String) Description
 - `line` (Number) Line
 - `vrf` (String) VRF
-
-

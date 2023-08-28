@@ -29,5 +29,3 @@ Manage a ZTNA application ACL.
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

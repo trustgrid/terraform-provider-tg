@@ -13,6 +13,14 @@ provider "tg" {
   api_host = "api.dev.trustgrid.io" # defaults to api.trustgrid.io
 }
 
+resource "tg_tagging" "gonode" {
+  cluster_fqdn = "ecu-test.dev.regression.trustgrid.io"
+  tags = {
+    one = "boom2"
+    two = "kapow"
+  }
+}
+/*
 data "tg_org" "org" {
 }
 
@@ -111,3 +119,5 @@ resource "tg_virtual_network_port_forward" "pf1" {
   ip = "5.5.5.6"
   port = 5522
 }
+
+*/

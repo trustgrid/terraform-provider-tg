@@ -37,5 +37,3 @@ resource "tg_virtual_network_port_forward" "port_forward1" {
 
 - `id` (String) The ID of this resource.
 - `uid` (String) Unique identifier of the port forward
-
-

@@ -230,5 +230,3 @@ Optional:
 Read-Only:
 
 - `uid` (String) VNet ID (for API use only)
-
-

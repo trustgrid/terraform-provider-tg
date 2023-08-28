@@ -40,5 +40,3 @@ resource "tg_idp_openid_config" "openid" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

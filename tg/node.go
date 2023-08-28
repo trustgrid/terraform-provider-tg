@@ -215,7 +215,7 @@ type Node struct {
 	FQDN    string               `json:"fqdn"`
 	Cluster string               `json:"cluster"`
 	Keys    map[string]PublicKey `json:"keys"`
-	Tags    map[string]string    `json:"tags" `
+	Tags    map[string]string    `json:"tags"`
 	Config  struct {
 		Gateway    GatewayConfig    `json:"gateway"`
 		SNMP       SNMPConfig       `json:"snmp"`

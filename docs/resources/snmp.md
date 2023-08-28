@@ -50,5 +50,3 @@ resource "tg_snmp" "my_snmp" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

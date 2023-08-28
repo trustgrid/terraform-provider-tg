@@ -40,5 +40,3 @@ resource "tg_virtual_network_route" "route1" {
 
 - `id` (String) The ID of this resource.
 - `uid` (String) Unique identifier of the route
-
-

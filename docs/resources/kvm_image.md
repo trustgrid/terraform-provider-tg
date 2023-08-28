@@ -41,5 +41,3 @@ resource "tg_kvm_image" "my-image" {
 
 - `id` (String) The ID of this resource.
 - `uid` (String) Volume ID
-
-

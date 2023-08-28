@@ -56,5 +56,3 @@ resource "tg_ztna_gateway_config" "cluster_ztnagw" {
 
 - `id` (String) The ID of this resource.
 - `wg_public_key` (String) Wireguard public key (base64)
-
-

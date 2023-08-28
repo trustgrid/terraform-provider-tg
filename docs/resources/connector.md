@@ -43,5 +43,3 @@ resource "tg_connector" "tomcat" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

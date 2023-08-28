@@ -27,5 +27,3 @@ Manage a KVM image.
 - `id` (String) The ID of this resource.
 - `location` (String) Location
 - `os` (String) OS
-
-

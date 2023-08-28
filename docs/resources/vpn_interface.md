@@ -113,5 +113,3 @@ Optional:
 
 - `description` (String) Description
 - `proxy_arp` (Boolean) Proxy ARP
-
-

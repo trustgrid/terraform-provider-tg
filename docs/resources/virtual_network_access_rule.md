@@ -45,5 +45,3 @@ resource "tg_virtual_network_access_rule" "acl1" {
 
 - `id` (String) The ID of this resource.
 - `uid` (String) Unique identifier of the rule
-
-

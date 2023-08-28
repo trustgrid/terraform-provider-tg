@@ -25,5 +25,3 @@ Fetches nodes from Trustgrid
 - `id` (String) The ID of this resource.
 - `node_fqdns` (Set of String) List of matching node FQDNs
 - `node_ids` (Set of String) List of matching nodes UIDs
-
-

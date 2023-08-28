@@ -35,5 +35,3 @@ resource "tg_container_volume" "my_volume" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

@@ -25,5 +25,3 @@ Fetches an IDP by ID
 - `id` (String) The ID of this resource.
 - `name` (String) Name
 - `type` (String) Type
-
-
