@@ -3,7 +3,6 @@ package resource
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -139,7 +138,7 @@ func (r *tagging) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 		switch {
 		case errors.As(err, &nferr):
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("url %s not found", url))
+			return nil
 		case err != nil:
 			return diag.FromErr(err)
 		}
