@@ -84,6 +84,7 @@ func New(version string) func() *schema.Provider {
 				"tg_portal_auth":                  resource.PortalAuth(),
 				"tg_service":                      resource.Service(),
 				"tg_snmp":                         resource.SNMP(),
+				"tg_tagging":                      resource.Tagging(),
 				"tg_virtual_network":              resource.VirtualNetwork(),
 				"tg_virtual_network_access_rule":  resource.VNetAccessRule(),
 				"tg_virtual_network_attachment":   resource.VNetAttachment(),

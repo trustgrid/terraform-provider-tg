@@ -30,5 +30,3 @@ resource "tg_portal_auth" "auth" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

@@ -29,5 +29,3 @@ Fetch a KVM volume.
 - `path` (String) Path to the volume
 - `provision_type` (String) Provision type
 - `size` (Number) Volume size, in bytes
-
-

@@ -35,5 +35,3 @@ resource "tg_group" "mygroup" {
 - `id` (String) The ID of this resource.
 - `idp_id` (String) IDP ID - will be blank for local groups
 - `uid` (String) ID
-
-

@@ -42,5 +42,3 @@ resource "tg_service" "tomcat" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

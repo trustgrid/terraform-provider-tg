@@ -21,5 +21,3 @@ Fetches org info from Trustgrid
 - `id` (String) The ID of this resource.
 - `name` (String) Name
 - `uid` (String) UID
-
-

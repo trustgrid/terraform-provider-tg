@@ -25,5 +25,3 @@ Fetch a domain virtual network.
 - `id` (String) The ID of this resource.
 - `network_cidr` (String) Network CIDR
 - `no_nat` (Boolean) Run the virtual network in NONAT mode
-
-

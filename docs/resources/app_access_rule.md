@@ -106,5 +106,3 @@ Optional:
 - `everyone` (Boolean) If true, this rule always matches
 - `idp_groups` (List of String) List of IDP group IDs
 - `ip_ranges` (List of String) List of IP ranges
-
-

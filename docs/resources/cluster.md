@@ -29,5 +29,3 @@ resource "tg_cluster" "mycluster" {
 
 - `fqdn` (String) Cluster FQDN
 - `id` (String) The ID of this resource.
-
-

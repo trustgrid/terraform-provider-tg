@@ -37,5 +37,3 @@ resource "tg_virtual_network" "tg_vnet" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

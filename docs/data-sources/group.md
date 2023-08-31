@@ -31,5 +31,3 @@ data "tg_group" "existing-group" {
 - `id` (String) The ID of this resource.
 - `idp_id` (String) IDP id - either local or the IDP uid
 - `name` (String) Name
-
-

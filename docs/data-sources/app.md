@@ -40,5 +40,3 @@ Fetch a ZTNA application.
 - `visibility_groups` (List of String) Visibility Groups
 - `vrf` (String) VRF
 - `wireguard_template` (String) WireGuard Template
-
-

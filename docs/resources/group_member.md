@@ -30,5 +30,3 @@ resource "tg_group_member" "someone" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

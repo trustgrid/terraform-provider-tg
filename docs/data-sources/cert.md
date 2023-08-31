@@ -28,5 +28,3 @@ data "tg_cert" "cert" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

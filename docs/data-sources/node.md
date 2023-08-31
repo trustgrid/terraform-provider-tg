@@ -24,5 +24,3 @@ Fetches a node from Trustgrid either by UID or FQDN
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

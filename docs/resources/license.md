@@ -35,5 +35,3 @@ output "license" {
 - `id` (String) The ID of this resource.
 - `license` (String) License JWT
 - `uid` (String) Node UID
-
-

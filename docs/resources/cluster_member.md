@@ -39,5 +39,3 @@ resource "tg_cluster_member" "member-2" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-
