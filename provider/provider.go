@@ -47,6 +47,8 @@ func New(version string) func() *schema.Provider {
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
+				"tg_alarm":           datasource.Alarm(),
+				"tg_alarm_channel":   datasource.AlarmChannel(),
 				"tg_app":             datasource.App(),
 				"tg_cert":            datasource.Cert(),
 				"tg_group":           datasource.Group(),
@@ -59,6 +61,8 @@ func New(version string) func() *schema.Provider {
 				"tg_virtual_network": datasource.VirtualNetwork(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
+				"tg_alarm":                        resource.Alarm(),
+				"tg_alarm_channel":                resource.AlarmChannel(),
 				"tg_app":                          resource.App(),
 				"tg_app_access_rule":              resource.AppAccessRule(),
 				"tg_app_acl":                      resource.AppACL(),
