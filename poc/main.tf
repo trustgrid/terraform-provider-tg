@@ -10,16 +10,96 @@ terraform {
 provider "tg" {
   # api_key_id = ... # defaults to envvar TG_API_KEY_ID
   # api_key_secret = ... # defaults to envvar TG_API_KEY_SECRET
-  api_host = "api.dev.trustgrid.io" # defaults to api.trustgrid.io
+  api_host = "xxapi.dev.trustgrid.io" # defaults to api.trustgrid.io
 }
 
-resource "tg_tagging" "gonode" {
-  cluster_fqdn = "ecu-test.dev.regression.trustgrid.io"
+resource "tg_cluster" "blarg" {
+  name = "hi"
+}
+
+data "tg_alarm_channel" "test" {
+  uid = "1a82bafc-bed2-459d-b632-1e01b1327f27"
+} 
+
+output "name" {
+  value = data.tg_alarm_channel.test.name
+}
+
+output "pagerduty" {
+  value = data.tg_alarm_channel.test.pagerduty
+}
+
+output "email" {
+  value = data.tg_alarm_channel.test.emails
+}
+
+resource "tg_tagging" "blam" {
+  node_id = "cd7b4e49-6e00-40b4-8d48-6c33ab6f9ee4"
+
   tags = {
-    one = "boom2"
-    two = "kapow"
+    one = "two"
   }
 }
+
+resource "tg_alarm_channel" "tf_created" {
+  name = "tf-created"
+  emails = ["terry@trustgrid.io", "terry2@trustgrid.io"]
+  pagerduty = "hi"
+  ops_genie = "bye"
+  ms_teams = "http://boo.com"
+  generic_webhook = "https://generic.com"
+  slack {
+    channel = "mychannel"
+    webhook = "http://slack.com"
+  }
+} 
+
+data "tg_alarm" "existing" {
+  uid = "f976ce81-a7bc-45f9-8e3b-ab1d6e14be19"
+}
+
+output "alarm-nodes" {
+  value = data.tg_alarm.existing.nodes
+}
+
+output "alarm-types" {
+  value = data.tg_alarm.existing.uid
+}
+
+output "alarm-tags" {
+  value = data.tg_alarm.existing.tag
+}
+
+output "alarm-tag-op" {
+  value = data.tg_alarm.existing.tag_operator
+}
+
+output "alarm-channels" {
+  value = data.tg_alarm.existing.channels
+}
+
+resource "tg_alarm" "tf-alarm" {
+  name = "tf-alarm"
+  description = "some description"
+  enabled = true
+  channels = [tg_alarm_channel.tf_created.uid]
+  nodes = ["agent2", "docker-tutorial"]
+  types = ["All Peers Disconnected", "All Gateways Disconnected"]
+  operator = "none"
+  tag {
+    name = "prod_status"
+    value = "Production"
+  }
+  tag {
+    name = "ACTUAL_MASTER"
+    value = "true"
+  }
+  tag_operator = "any"
+  threshold = "CRITICAL"
+  freetext = "freetext"
+  expr = "ctx.node.name.contains(\"boo\")"
+}
+
 /*
 data "tg_org" "org" {
 }
