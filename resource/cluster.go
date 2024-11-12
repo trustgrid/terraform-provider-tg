@@ -33,10 +33,13 @@ func Cluster() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 				ValidateFunc: func(i any, _ string) ([]string, []error) {
-					if !lowerCase.MatchString(i.(string)) {
-						return []string{}, []error{fmt.Errorf("must contain only lowercase alphanumeric characters")}
+					if s, ok := i.(string); ok {
+						if !lowerCase.MatchString(s) {
+							return []string{}, []error{fmt.Errorf("must contain only lowercase alphanumeric characters")}
+						}
+						return []string{}, []error{}
 					}
-					return []string{}, []error{}
+					return []string{}, []error{fmt.Errorf("expected name to be a string")}
 				},
 			},
 			"fqdn": {
