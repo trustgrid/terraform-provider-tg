@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,6 +13,8 @@ import (
 
 type cluster struct {
 }
+
+var lowerCase = regexp.MustCompile(`^[a-z0-9-]+$`)
 
 func Cluster() *schema.Resource {
 	c := cluster{}
@@ -29,6 +32,12 @@ func Cluster() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
+				ValidateFunc: func(i any, k string) (s []string, es []error) {
+					if !lowerCase.MatchString(i.(string)) {
+						es = append(es, fmt.Errorf("must contain only lowercase alphanumeric characters"))
+					}
+					return
+				},
 			},
 			"fqdn": {
 				Description: "Cluster FQDN",
