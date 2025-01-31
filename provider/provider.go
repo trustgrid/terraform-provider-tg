@@ -53,6 +53,7 @@ func New(version string) func() *schema.Provider {
 				"tg_cert":            datasource.Cert(),
 				"tg_group":           datasource.Group(),
 				"tg_idp":             datasource.IDP(),
+				"tg_network_config":  datasource.NetworkConfig(),
 				"tg_node":            datasource.Node(),
 				"tg_nodes":           datasource.Nodes(),
 				"tg_org":             datasource.Org(),
