@@ -180,13 +180,14 @@ Optional:
 - `mode` (String) Interface mode
 - `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
 - `speed` (Number) Interface speed
+- `subinterface` (Block List) VLAN interfaces (see [below for nested schema](#nestedblock--interface--subinterface))
 
 <a id="nestedblock--interface--cloud_route"></a>
 ### Nested Schema for `interface.cloud_route`
 
 Required:
 
-- `route` (String) Protocol
+- `route` (String) Destination CIDR
 
 Optional:
 
@@ -198,11 +199,40 @@ Optional:
 
 Required:
 
-- `route` (String) Protocol
+- `route` (String) Destination CIDR
 
 Optional:
 
 - `description` (String) Description
+
+
+<a id="nestedblock--interface--subinterface"></a>
+### Nested Schema for `interface.subinterface`
+
+Required:
+
+- `ip` (String) IP CIDR
+- `vlan_id` (Number) VLAN ID
+
+Optional:
+
+- `additional_ips` (List of String) Additional IP CIDRs
+- `description` (String) Description
+- `route` (Block List) VLAN routes (see [below for nested schema](#nestedblock--interface--subinterface--route))
+- `vrf` (String) VRF
+
+<a id="nestedblock--interface--subinterface--route"></a>
+### Nested Schema for `interface.subinterface.route`
+
+Required:
+
+- `route` (String) Destination CIDR
+
+Optional:
+
+- `description` (String) Description
+- `next` (String) Next IP
+
 
 
 
@@ -218,6 +248,7 @@ Required:
 
 Optional:
 
+- `description` (String) Description
 - `destination` (String) Destination
 - `dpd_interval` (Number) DPD Interval
 - `dpd_retries` (Number) DPD Retries
