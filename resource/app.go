@@ -36,10 +36,9 @@ func App() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"remote", "web", "wireguard"}, false),
 			},
 			"uid": {
-				Description:  "App UID",
-				Type:         schema.TypeString,
-				ValidateFunc: validation.IsUUID,
-				Computed:     true,
+				Description: "App UID",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 			"name": {
 				Description: "App Name",
