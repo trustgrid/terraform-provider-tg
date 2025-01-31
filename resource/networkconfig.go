@@ -251,10 +251,11 @@ func NetworkConfig() *schema.Resource {
 							Description: "NIC name",
 						},
 						"cluster_ip": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Description:  "Cluster IP",
-							ValidateFunc: validation.IsIPv4Address,
+							Type:          schema.TypeString,
+							Optional:      true,
+							Description:   "Cluster IP",
+							ValidateFunc:  validation.IsIPv4Address,
+							ConflictsWith: []string{"node_id"},
 						},
 						"route": {
 							Description: "Interface routes",
@@ -263,10 +264,76 @@ func NetworkConfig() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"route": {
-										Description:  "Protocol",
+										Description:  "Destination CIDR",
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsCIDR,
+									},
+									"description": {
+										Description: "Description",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
+								},
+							},
+						},
+						"subinterface": {
+							Description: "VLAN interfaces",
+							Type:        schema.TypeList,
+							Optional:    true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"vlan_id": {
+										Description:  "VLAN ID",
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(0, 4095),
+									},
+									"ip": {
+										Description:  "IP CIDR",
+										Type:         schema.TypeString,
+										ValidateFunc: validation.IsCIDR,
+										Required:     true,
+									},
+									"vrf": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "VRF",
+									},
+									"additional_ips": {
+										Description: "Additional IP CIDRs",
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsCIDR,
+										},
+									},
+									"route": {
+										Description: "VLAN routes",
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"route": {
+													Description:  "Destination CIDR",
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.IsCIDR,
+												},
+												"next": {
+													Description:  "Next IP",
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.IsIPv4Address,
+												},
+												"description": {
+													Description: "Description",
+													Type:        schema.TypeString,
+													Optional:    true,
+												},
+											},
+										},
 									},
 									"description": {
 										Description: "Description",
@@ -283,7 +350,7 @@ func NetworkConfig() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"route": {
-										Description:  "Protocol",
+										Description:  "Destination CIDR",
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.IsCIDR,
@@ -308,10 +375,11 @@ func NetworkConfig() *schema.Resource {
 							ValidateFunc: validation.IsIPv4Address,
 						},
 						"ip": {
-							Description:  "IP address",
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDR,
+							Description:   "IP address",
+							Type:          schema.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.IsCIDR,
+							ConflictsWith: []string{"cluster_fqdn"},
 						},
 						"mode": {
 							Description:  "Interface mode",
@@ -474,6 +542,11 @@ func NetworkConfig() *schema.Resource {
 							Optional:     true,
 							Description:  "Replay Window",
 							ValidateFunc: validation.IntInSlice([]int{32, 64, 128, 256, 512, 1024, 2048, 4096, 8192}),
+						},
+						"description": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Description",
 						},
 					},
 				},
