@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
 type app struct {
@@ -46,14 +47,16 @@ func App() *schema.Resource {
 				ForceNew:    true,
 			},
 			"edge_node": {
-				Description: "Edge node ID",
-				Type:        schema.TypeString,
-				Optional:    true,
+				Description:  "Edge node ID",
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
+				Optional:     true,
 			},
 			"gateway_node": {
-				Description: "Gateway node ID",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Gateway node ID",
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
+				Required:     true,
 			},
 			"idp": {
 				Description: "IDP ID",
@@ -84,9 +87,10 @@ func App() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"rdp", "ssh", "vnc", "http", "https", "wireguard"}, false),
 			},
 			"hostname": {
-				Description: "Hostname",
-				Type:        schema.TypeString,
-				Optional:    true,
+				Description:  "Hostname",
+				Type:         schema.TypeString,
+				ValidateFunc: validators.IsHostname,
+				Optional:     true,
 			},
 			"session_duration": {
 				Description: "Session Duration",

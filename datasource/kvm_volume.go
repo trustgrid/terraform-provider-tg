@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
@@ -24,9 +25,10 @@ func KVMVolume() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node ID",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Node ID",
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
+				Required:     true,
 			},
 			"name": {
 				Description: "Name",

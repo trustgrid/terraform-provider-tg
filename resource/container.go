@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/validators"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -125,6 +126,7 @@ func Container() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"cluster_fqdn": {
@@ -132,6 +134,7 @@ func Container() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
+				ValidateFunc: validators.IsHostname,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"id": {

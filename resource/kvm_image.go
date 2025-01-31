@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
@@ -28,10 +29,11 @@ func KVMImage() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node ID",
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
+				Description:  "Node ID",
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
+				Required:     true,
+				ForceNew:     true,
 			},
 			"uid": {
 				Description: "Volume ID",

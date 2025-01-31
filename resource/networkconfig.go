@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
 type network struct{}
@@ -29,6 +30,7 @@ func NetworkConfig() *schema.Resource {
 			"node_id": {
 				Description:  "Node ID",
 				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
@@ -36,6 +38,7 @@ func NetworkConfig() *schema.Resource {
 			"cluster_fqdn": {
 				Description:  "Cluster FQDN",
 				Type:         schema.TypeString,
+				ValidateFunc: validators.IsHostname,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
