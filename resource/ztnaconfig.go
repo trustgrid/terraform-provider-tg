@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/validators"
 	"golang.org/x/crypto/curve25519"
 )
 
@@ -39,6 +40,7 @@ func ZTNAConfig() *schema.Resource {
 			"cluster_fqdn": {
 				Description:   "Cluster FQDN - required if node_id is not set",
 				Type:          schema.TypeString,
+				ValidateFunc:  validators.IsHostname,
 				Optional:      true,
 				ForceNew:      true,
 				ExactlyOneOf:  []string{"node_id", "cluster_fqdn"},

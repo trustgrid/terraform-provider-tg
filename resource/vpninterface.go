@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
 type vpnInterface struct {
@@ -66,6 +67,7 @@ func VPNInterface() *schema.Resource {
 			"node_id": {
 				Description:  "Node ID - required if cluster_fqdn is not specified",
 				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
@@ -73,6 +75,7 @@ func VPNInterface() *schema.Resource {
 			"cluster_fqdn": {
 				Description:  "Cluster FQDN - required if node_id is not specified",
 				Type:         schema.TypeString,
+				ValidateFunc: validators.IsHostname,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},

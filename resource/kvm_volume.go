@@ -28,10 +28,11 @@ func KVMVolume() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node ID",
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
+				Description:  "Node ID",
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
+				Required:     true,
+				ForceNew:     true,
 			},
 			"name": {
 				Description: "Name",

@@ -7,7 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
 type clustermember struct {
@@ -26,15 +28,17 @@ func ClusterMember() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
-				Description: "Node ID",
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
+				Description:  "Node ID",
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
+				Required:     true,
+				ForceNew:     true,
 			},
 			"cluster_fqdn": {
-				Description: "Node cluster FQDN",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Node cluster FQDN",
+				Type:         schema.TypeString,
+				ValidateFunc: validators.IsHostname,
+				Required:     true,
 			},
 			"active": {
 				Description: "Whether the node should be the active cluster member",

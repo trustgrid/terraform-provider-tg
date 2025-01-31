@@ -6,8 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
 type tagging struct {
@@ -28,6 +30,7 @@ func Tagging() *schema.Resource {
 			"node_id": {
 				Description:  "Node UID - required if cluster_fqdn not set",
 				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
@@ -35,6 +38,7 @@ func Tagging() *schema.Resource {
 			"cluster_fqdn": {
 				Description:  "Cluster FQDN - required if node_id not set",
 				Type:         schema.TypeString,
+				ValidateFunc: validators.IsHostname,
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
