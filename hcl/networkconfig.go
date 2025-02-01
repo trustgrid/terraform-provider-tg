@@ -26,6 +26,7 @@ type NetworkTunnel struct {
 	ReplayWindow  int    `tf:"replay_window,omitempty"`
 	RemoteSubnet  string `tf:"remote_subnet,omitempty"`
 	LocalSubnet   string `tf:"local_subnet,omitempty"`
+	Description   string `tf:"description,omitempty"`
 }
 
 type NetworkRoute struct {
@@ -33,18 +34,34 @@ type NetworkRoute struct {
 	Description string `tf:"description"`
 }
 
+type VLANRoute struct {
+	Route       string `tf:"route"`
+	Next        string `tf:"next,omitempty"`
+	Description string `tf:"description,omitempty"`
+}
+
+type SubInterface struct {
+	VLANID        int         `tf:"vlan_id"`
+	IP            string      `tf:"ip"`
+	VRF           string      `tf:"vrf,omitempty"`
+	AdditionalIPs []string    `tf:"additional_ips,omitempty"`
+	Routes        []VLANRoute `tf:"route,omitempty"`
+	Description   string      `tf:"description,omitempty"`
+}
+
 type NetworkInterface struct {
-	NIC         string         `tf:"nic"`
-	Routes      []NetworkRoute `tf:"route,omitempty"`
-	CloudRoutes []NetworkRoute `tf:"cloud_route,omitempty"`
-	ClusterIP   string         `tf:"cluster_ip,omitempty"`
-	DHCP        bool           `tf:"dhcp"`
-	Gateway     string         `tf:"gateway"`
-	IP          string         `tf:"ip"`
-	Mode        string         `tf:"mode,omitempty"`
-	DNS         []string       `tf:"dns,omitempty"`
-	Duplex      string         `tf:"duplex,omitempty"`
-	Speed       int            `tf:"speed,omitempty"`
+	NIC           string         `tf:"nic"`
+	Routes        []NetworkRoute `tf:"route,omitempty"`
+	SubInterfaces []SubInterface `tf:"subinterface,omitempty"`
+	CloudRoutes   []NetworkRoute `tf:"cloud_route,omitempty"`
+	ClusterIP     string         `tf:"cluster_ip,omitempty"`
+	DHCP          bool           `tf:"dhcp"`
+	Gateway       string         `tf:"gateway"`
+	IP            string         `tf:"ip"`
+	Mode          string         `tf:"mode,omitempty"`
+	DNS           []string       `tf:"dns,omitempty"`
+	Duplex        string         `tf:"duplex,omitempty"`
+	Speed         int            `tf:"speed,omitempty"`
 }
 
 type VRFACL struct {
@@ -101,6 +118,152 @@ type NetworkConfig struct {
 	VRFs []VRF `tf:"vrf"`
 }
 
+func (v VLANRoute) ToTG() tg.VLANRoute {
+	return tg.VLANRoute{
+		Route:       v.Route,
+		Next:        v.Next,
+		Description: v.Description,
+	}
+}
+
+func (si SubInterface) ToTG() tg.SubInterface {
+	sub := tg.SubInterface{
+		VLANID:        si.VLANID,
+		IP:            si.IP,
+		Description:   si.Description,
+		VRF:           si.VRF,
+		AdditionalIPs: si.AdditionalIPs,
+	}
+
+	for _, r := range si.Routes {
+		sub.Routes = append(sub.Routes, r.ToTG())
+	}
+
+	return sub
+}
+
+func (a VRFACL) ToTG() tg.VRFACL {
+	return tg.VRFACL{
+		Action:      a.Action,
+		Description: a.Description,
+		Protocol:    a.Protocol,
+		Source:      a.Source,
+		Dest:        a.Dest,
+		Line:        a.Line,
+	}
+}
+
+func (r VRFRule) ToTG() tg.VRFRule {
+	return tg.VRFRule{
+		Protocol:    r.Protocol,
+		Line:        r.Line,
+		Action:      r.Action,
+		Description: r.Description,
+		Source:      r.Source,
+		VRF:         r.VRF,
+		Dest:        r.Dest,
+	}
+}
+
+func (n VRFNAT) ToTG() tg.VRFNAT {
+	return tg.VRFNAT{
+		Source:     n.Source,
+		Dest:       n.Dest,
+		Masquerade: n.Masquerade,
+		ToSource:   n.ToSource,
+		ToDest:     n.ToDest,
+	}
+}
+
+func (r VRFRoute) ToTG() tg.VRFRoute {
+	return tg.VRFRoute{
+		Dest:        r.Dest,
+		Dev:         r.Dev,
+		Description: r.Description,
+		Metric:      r.Metric,
+	}
+}
+
+func (v VRF) ToTG() tg.VRF {
+	vrf := tg.VRF{
+		Name:       v.Name,
+		Forwarding: v.Forwarding,
+	}
+
+	for _, a := range v.ACLs {
+		vrf.ACLs = append(vrf.ACLs, a.ToTG())
+	}
+
+	for _, n := range v.NATs {
+		vrf.NATs = append(vrf.NATs, n.ToTG())
+	}
+
+	for _, r := range v.Rules {
+		vrf.Rules = append(vrf.Rules, r.ToTG())
+	}
+
+	for _, r := range v.Routes {
+		vrf.Routes = append(vrf.Routes, r.ToTG())
+	}
+
+	return vrf
+}
+
+func (t NetworkTunnel) ToTG() tg.NetworkTunnel {
+	return tg.NetworkTunnel{
+		Enabled:       t.Enabled,
+		Name:          t.Name,
+		IKE:           t.IKE,
+		IKECipher:     t.IKECipher,
+		IKEGroup:      t.IKEGroup,
+		RekeyInterval: t.RekeyInterval,
+		IP:            t.IP,
+		Destination:   t.Destination,
+		IPSecCipher:   t.IPSecCipher,
+		PSK:           t.PSK,
+		VRF:           t.VRF,
+		Type:          t.Type,
+		MTU:           t.MTU,
+		NetworkID:     t.NetworkID,
+		LocalID:       t.LocalID,
+		RemoteID:      t.RemoteID,
+		DPDRetries:    t.DPDRetries,
+		DPDInterval:   t.DPDInterval,
+		IFace:         t.IFace,
+		PFS:           t.PFS,
+		ReplayWindow:  t.ReplayWindow,
+		RemoteSubnet:  t.RemoteSubnet,
+		LocalSubnet:   t.LocalSubnet,
+		Description:   t.Description,
+	}
+}
+
+func (ni NetworkInterface) ToTG() tg.NetworkInterface {
+	iface := tg.NetworkInterface{
+		NIC:       ni.NIC,
+		ClusterIP: ni.ClusterIP,
+		DHCP:      ni.DHCP,
+		Gateway:   ni.Gateway,
+		IP:        ni.IP,
+		Mode:      ni.Mode,
+		Duplex:    ni.Duplex,
+		Speed:     ni.Speed,
+		DNS:       ni.DNS,
+	}
+	for _, r := range ni.Routes {
+		iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
+	}
+	for _, r := range ni.CloudRoutes {
+		iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
+	}
+
+	for _, sub := range ni.SubInterfaces {
+		iface.SubInterfaces = append(iface.SubInterfaces, sub.ToTG())
+	}
+
+	return iface
+}
+
 func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 	h.DarkMode = c.DarkMode
 	h.Forwarding = c.Forwarding
@@ -131,6 +294,7 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 			ReplayWindow:  t.ReplayWindow,
 			RemoteSubnet:  t.RemoteSubnet,
 			LocalSubnet:   t.LocalSubnet,
+			Description:   t.Description,
 		})
 	}
 
@@ -159,6 +323,23 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 				Route:       r.Route,
 				Description: r.Description,
 			})
+		}
+		for _, sub := range i.SubInterfaces {
+			subiface := SubInterface{
+				VLANID:        sub.VLANID,
+				IP:            sub.IP,
+				Description:   sub.Description,
+				VRF:           sub.VRF,
+				AdditionalIPs: sub.AdditionalIPs,
+			}
+			for _, r := range sub.Routes {
+				subiface.Routes = append(subiface.Routes, VLANRoute{
+					Route:       r.Route,
+					Next:        r.Next,
+					Description: r.Description,
+				})
+			}
+			iface.SubInterfaces = append(iface.SubInterfaces, subiface)
 		}
 		h.Interfaces = append(h.Interfaces, iface)
 	}
@@ -223,104 +404,15 @@ func (h *NetworkConfig) ToTG() tg.NetworkConfig {
 	}
 
 	for _, t := range h.Tunnels {
-		nc.Tunnels = append(nc.Tunnels, tg.NetworkTunnel{
-			Enabled:       t.Enabled,
-			Name:          t.Name,
-			IKE:           t.IKE,
-			IKECipher:     t.IKECipher,
-			IKEGroup:      t.IKEGroup,
-			RekeyInterval: t.RekeyInterval,
-			IP:            t.IP,
-			Destination:   t.Destination,
-			IPSecCipher:   t.IPSecCipher,
-			PSK:           t.PSK,
-			VRF:           t.VRF,
-			Type:          t.Type,
-			MTU:           t.MTU,
-			NetworkID:     t.NetworkID,
-			LocalID:       t.LocalID,
-			RemoteID:      t.RemoteID,
-			DPDRetries:    t.DPDRetries,
-			DPDInterval:   t.DPDInterval,
-			IFace:         t.IFace,
-			PFS:           t.PFS,
-			ReplayWindow:  t.ReplayWindow,
-			RemoteSubnet:  t.RemoteSubnet,
-			LocalSubnet:   t.LocalSubnet,
-		})
+		nc.Tunnels = append(nc.Tunnels, t.ToTG())
 	}
 
 	for _, i := range h.Interfaces {
-		iface := tg.NetworkInterface{
-			NIC:       i.NIC,
-			ClusterIP: i.ClusterIP,
-			DHCP:      i.DHCP,
-			Gateway:   i.Gateway,
-			IP:        i.IP,
-			Mode:      i.Mode,
-			Duplex:    i.Duplex,
-			Speed:     i.Speed,
-			DNS:       i.DNS,
-		}
-		for _, r := range i.Routes {
-			iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
-		}
-		for _, r := range i.CloudRoutes {
-			iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
-		}
-
-		nc.Interfaces = append(nc.Interfaces, iface)
+		nc.Interfaces = append(nc.Interfaces, i.ToTG())
 	}
 
 	for _, v := range h.VRFs {
-		vrf := tg.VRF{
-			Name:       v.Name,
-			Forwarding: v.Forwarding,
-		}
-
-		for _, a := range v.ACLs {
-			vrf.ACLs = append(vrf.ACLs, tg.VRFACL{
-				Action:      a.Action,
-				Description: a.Description,
-				Protocol:    a.Protocol,
-				Source:      a.Source,
-				Dest:        a.Dest,
-				Line:        a.Line,
-			})
-		}
-
-		for _, n := range v.NATs {
-			vrf.NATs = append(vrf.NATs, tg.VRFNAT{
-				Source:     n.Source,
-				Dest:       n.Dest,
-				Masquerade: n.Masquerade,
-				ToSource:   n.ToSource,
-				ToDest:     n.ToDest,
-			})
-		}
-
-		for _, r := range v.Rules {
-			vrf.Rules = append(vrf.Rules, tg.VRFRule{
-				Protocol:    r.Protocol,
-				Line:        r.Line,
-				Action:      r.Action,
-				Description: r.Description,
-				Source:      r.Source,
-				VRF:         r.VRF,
-				Dest:        r.Dest,
-			})
-		}
-
-		for _, r := range v.Routes {
-			vrf.Routes = append(vrf.Routes, tg.VRFRoute{
-				Description: r.Description,
-				Dest:        r.Dest,
-				Dev:         r.Dev,
-				Metric:      r.Metric,
-			})
-		}
-
-		nc.VRFs = append(nc.VRFs, vrf)
+		nc.VRFs = append(nc.VRFs, v.ToTG())
 	}
 
 	return nc

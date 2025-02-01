@@ -126,6 +126,7 @@ type NetworkTunnel struct {
 	ReplayWindow  int    `json:"replayWindow,omitempty"`
 	RemoteSubnet  string `json:"remoteSubnet,omitempty"`
 	LocalSubnet   string `json:"localSubnet,omitempty"`
+	Description   string `json:"description,omitempty"`
 }
 
 type NetworkRoute struct {
@@ -133,18 +134,34 @@ type NetworkRoute struct {
 	Description string `json:"description,omitempty"`
 }
 
+type VLANRoute struct {
+	Route       string `json:"route"`
+	Next        string `json:"next,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+type SubInterface struct {
+	VLANID        int         `json:"vlanID"`
+	IP            string      `json:"ip"`
+	Description   string      `json:"description,omitempty"`
+	VRF           string      `json:"vrf,omitempty"`
+	AdditionalIPs []string    `json:"addIps,omitempty"`
+	Routes        []VLANRoute `json:"routes,omitempty"`
+}
+
 type NetworkInterface struct {
-	NIC         string         `json:"nic"`
-	Routes      []NetworkRoute `json:"routes,omitempty"`
-	CloudRoutes []NetworkRoute `json:"cloudRoutes,omitempty"`
-	ClusterIP   string         `json:"clusterIP,omitempty"`
-	DHCP        bool           `json:"dhcp,omitempty"`
-	Gateway     string         `json:"gateway,omitempty"`
-	IP          string         `json:"ip,omitempty"`
-	Mode        string         `json:"mode,omitempty"`
-	DNS         []string       `json:"dns,omitempty"`
-	Duplex      string         `json:"duplex,omitempty"`
-	Speed       int            `json:"speed,omitempty"`
+	NIC           string         `json:"nic"`
+	Routes        []NetworkRoute `json:"routes,omitempty"`
+	CloudRoutes   []NetworkRoute `json:"cloudRoutes,omitempty"`
+	SubInterfaces []SubInterface `json:"subInterfaces,omitempty"`
+	ClusterIP     string         `json:"clusterIP,omitempty"`
+	DHCP          bool           `json:"dhcp,omitempty"`
+	Gateway       string         `json:"gateway,omitempty"`
+	IP            string         `json:"ip,omitempty"`
+	Mode          string         `json:"mode,omitempty"`
+	DNS           []string       `json:"dns,omitempty"`
+	Duplex        string         `json:"duplex,omitempty"`
+	Speed         int            `json:"speed,omitempty"`
 }
 
 type VRFACL struct {

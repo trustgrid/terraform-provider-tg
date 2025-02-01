@@ -257,6 +257,67 @@ func NetworkConfig() *schema.Resource {
 							Computed:    true,
 							Description: "Cluster IP",
 						},
+						"subinterface": {
+							Description: "VLAN interfaces",
+							Type:        schema.TypeList,
+							Optional:    true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"vlan_id": {
+										Description: "VLAN ID",
+										Type:        schema.TypeInt,
+										Required:    true,
+									},
+									"ip": {
+										Description: "IP CIDR",
+										Type:        schema.TypeString,
+										Required:    true,
+									},
+									"vrf": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "VRF",
+									},
+									"additional_ips": {
+										Description: "Additional IP CIDRs",
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"route": {
+										Description: "VLAN routes",
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"route": {
+													Description: "Destination CIDR",
+													Type:        schema.TypeString,
+													Required:    true,
+												},
+												"next": {
+													Description: "Next IP",
+													Type:        schema.TypeString,
+													Optional:    true,
+												},
+												"description": {
+													Description: "Description",
+													Type:        schema.TypeString,
+													Optional:    true,
+												},
+											},
+										},
+									},
+									"description": {
+										Description: "Description",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
+								},
+							},
+						},
 						"route": {
 							Description: "Interface routes",
 							Type:        schema.TypeList,
@@ -487,6 +548,11 @@ func NetworkConfig() *schema.Resource {
 							Optional:    true,
 							Computed:    true,
 							Description: "Replay Window",
+						},
+						"description": {
+							Description: "Description",
+							Type:        schema.TypeString,
+							Optional:    true,
 						},
 					},
 				},
