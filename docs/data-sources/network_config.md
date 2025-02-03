@@ -47,6 +47,7 @@ Optional:
 
 Read-Only:
 
+- `cluster_route_tables` (List of String) Cluster route tables
 - `dns` (List of String) DNS servers
 - `nic` (String) NIC name
 

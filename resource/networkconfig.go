@@ -363,6 +363,14 @@ func NetworkConfig() *schema.Resource {
 								},
 							},
 						},
+						"cluster_route_tables": {
+							Description: "Cluster route tables",
+							Type:        schema.TypeList,
+							Optional:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 						"dhcp": {
 							Description: "Enable DHCP",
 							Type:        schema.TypeBool,

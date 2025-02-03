@@ -150,18 +150,19 @@ type SubInterface struct {
 }
 
 type NetworkInterface struct {
-	NIC           string         `json:"nic"`
-	Routes        []NetworkRoute `json:"routes,omitempty"`
-	CloudRoutes   []NetworkRoute `json:"cloudRoutes,omitempty"`
-	SubInterfaces []SubInterface `json:"subInterfaces,omitempty"`
-	ClusterIP     string         `json:"clusterIP,omitempty"`
-	DHCP          bool           `json:"dhcp,omitempty"`
-	Gateway       string         `json:"gateway,omitempty"`
-	IP            string         `json:"ip,omitempty"`
-	Mode          string         `json:"mode,omitempty"`
-	DNS           []string       `json:"dns,omitempty"`
-	Duplex        string         `json:"duplex,omitempty"`
-	Speed         int            `json:"speed,omitempty"`
+	NIC                string         `json:"nic"`
+	Routes             []NetworkRoute `json:"routes,omitempty"`
+	CloudRoutes        []NetworkRoute `json:"cloudRoutes,omitempty"`
+	ClusterRouteTables []string       `json:"clusterRouteTables,omitempty"`
+	SubInterfaces      []SubInterface `json:"subInterfaces,omitempty"`
+	ClusterIP          string         `json:"clusterIP,omitempty"`
+	DHCP               bool           `json:"dhcp,omitempty"`
+	Gateway            string         `json:"gateway,omitempty"`
+	IP                 string         `json:"ip,omitempty"`
+	Mode               string         `json:"mode,omitempty"`
+	DNS                []string       `json:"dns,omitempty"`
+	Duplex             string         `json:"duplex,omitempty"`
+	Speed              int            `json:"speed,omitempty"`
 }
 
 type VRFACL struct {
