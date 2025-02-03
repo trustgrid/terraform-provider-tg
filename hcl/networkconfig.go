@@ -50,18 +50,19 @@ type SubInterface struct {
 }
 
 type NetworkInterface struct {
-	NIC           string         `tf:"nic"`
-	Routes        []NetworkRoute `tf:"route,omitempty"`
-	SubInterfaces []SubInterface `tf:"subinterface,omitempty"`
-	CloudRoutes   []NetworkRoute `tf:"cloud_route,omitempty"`
-	ClusterIP     string         `tf:"cluster_ip,omitempty"`
-	DHCP          bool           `tf:"dhcp"`
-	Gateway       string         `tf:"gateway"`
-	IP            string         `tf:"ip"`
-	Mode          string         `tf:"mode,omitempty"`
-	DNS           []string       `tf:"dns,omitempty"`
-	Duplex        string         `tf:"duplex,omitempty"`
-	Speed         int            `tf:"speed,omitempty"`
+	NIC                string         `tf:"nic"`
+	Routes             []NetworkRoute `tf:"route,omitempty"`
+	SubInterfaces      []SubInterface `tf:"subinterface,omitempty"`
+	CloudRoutes        []NetworkRoute `tf:"cloud_route,omitempty"`
+	ClusterRouteTables []string       `tf:"cluster_route_tables,omitempty"`
+	ClusterIP          string         `tf:"cluster_ip,omitempty"`
+	DHCP               bool           `tf:"dhcp"`
+	Gateway            string         `tf:"gateway"`
+	IP                 string         `tf:"ip"`
+	Mode               string         `tf:"mode,omitempty"`
+	DNS                []string       `tf:"dns,omitempty"`
+	Duplex             string         `tf:"duplex,omitempty"`
+	Speed              int            `tf:"speed,omitempty"`
 }
 
 type VRFACL struct {
@@ -257,6 +258,8 @@ func (ni NetworkInterface) ToTG() tg.NetworkInterface {
 		iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
 	}
 
+	iface.ClusterRouteTables = append(iface.ClusterRouteTables, ni.ClusterRouteTables...)
+
 	for _, sub := range ni.SubInterfaces {
 		iface.SubInterfaces = append(iface.SubInterfaces, sub.ToTG())
 	}
@@ -311,6 +314,8 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 			Speed:     i.Speed,
 			DNS:       i.DNS,
 		}
+
+		iface.ClusterRouteTables = append(iface.ClusterRouteTables, i.ClusterRouteTables...)
 
 		for _, r := range i.Routes {
 			iface.Routes = append(iface.Routes, NetworkRoute{
