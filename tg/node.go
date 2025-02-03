@@ -242,6 +242,9 @@ type Node struct {
 		Services   ServicesConfig   `json:"services"`
 		Connectors ConnectorsConfig `json:"connectors"`
 	} `json:"config"`
+	Shadow struct {
+		Reported map[string]any `json:"reported"`
+	} `json:"shadow"`
 }
 
 // NodeState exists to allow for the simple PUT API

@@ -59,6 +59,7 @@ func New(version string) func() *schema.Provider {
 				"tg_org":             datasource.Org(),
 				"tg_kvm_image":       datasource.KVMImage(),
 				"tg_kvm_volume":      datasource.KVMVolume(),
+				"tg_shadow":          datasource.Shadow(),
 				"tg_virtual_network": datasource.VirtualNetwork(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
