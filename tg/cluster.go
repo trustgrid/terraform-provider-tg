@@ -5,6 +5,7 @@ type Cluster struct {
 	Name   string            `json:"name,omitempty"`
 	FQDN   string            `json:"fqdn,omitempty"`
 	Tags   map[string]string `json:"tags"`
+	Device Device            `json:"device"`
 	Config struct {
 		Connectors ConnectorsConfig `json:"connectors"`
 		Services   ServicesConfig   `json:"services"`

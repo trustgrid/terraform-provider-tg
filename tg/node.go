@@ -225,6 +225,15 @@ type PublicKey struct {
 	X   string `json:"x"`
 }
 
+type Device struct {
+	Vendor  string   `json:"vendor"`
+	Model   string   `json:"model"`
+	MAC     string   `json:"mac"`
+	LAN     []string `json:"lan"`
+	WANType string   `json:"wan_type"`
+	WAN     string   `json:"wan"`
+}
+
 type Node struct {
 	UID     string               `json:"uid"`
 	State   string               `json:"state"`
@@ -233,6 +242,7 @@ type Node struct {
 	Cluster string               `json:"cluster"`
 	Keys    map[string]PublicKey `json:"keys"`
 	Tags    map[string]string    `json:"tags"`
+	Device  Device               `json:"device"`
 	Config  struct {
 		Gateway    GatewayConfig    `json:"gateway"`
 		SNMP       SNMPConfig       `json:"snmp"`
