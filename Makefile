@@ -13,7 +13,9 @@ reset:
 	cd poc && rm -rf .terraform* *.tfstate && terraform init && terraform apply -auto-approve
 
 docs:
+	go get github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 	go generate
+	go mod tidy
 
 build:
 	go build main.go
