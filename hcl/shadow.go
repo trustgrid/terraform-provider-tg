@@ -1,6 +1,9 @@
 package hcl
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 type Shadow struct {
 	PackageVersion string            `tf:"package_version,omitempty"`
@@ -36,6 +39,10 @@ func (s *Shadow) UpdateFromTG(shadow map[string]any) {
 			nics = append(nics, name)
 		}
 	}
+
+	sort.SliceStable(nics, func(i, j int) bool {
+		return nics[i] < nics[j]
+	})
 
 	s.Nics = nics
 }
