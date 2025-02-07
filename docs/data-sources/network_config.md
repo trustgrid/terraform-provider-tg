@@ -47,7 +47,7 @@ Optional:
 
 Read-Only:
 
-- `cluster_route_tables` (List of String) Cluster route tables
+- `cluster_route_tables` (List of String) Cluster route tables - will be a list of either AWS or Azure route table IDs
 - `dns` (List of String) DNS servers
 - `nic` (String) NIC name
 
