@@ -172,7 +172,7 @@ Optional:
 
 - `cloud_route` (Block List) Cluster interface routes (see [below for nested schema](#nestedblock--interface--cloud_route))
 - `cluster_ip` (String) Cluster IP
-- `cluster_route_tables` (List of String) Cluster route tables
+- `cluster_route_tables` (List of String) Cluster route tables - should be a list of either AWS or Azure route table IDs
 - `dhcp` (Boolean) Enable DHCP
 - `dns` (List of String) DNS servers
 - `duplex` (String) Interface duplex

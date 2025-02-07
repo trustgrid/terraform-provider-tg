@@ -364,7 +364,7 @@ func NetworkConfig() *schema.Resource {
 							},
 						},
 						"cluster_route_tables": {
-							Description: "Cluster route tables",
+							Description: "Cluster route tables - should be a list of either AWS or Azure route table IDs",
 							Type:        schema.TypeList,
 							Optional:    true,
 							Elem: &schema.Schema{
