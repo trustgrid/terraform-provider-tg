@@ -45,6 +45,12 @@ func New(version string) func() *schema.Provider {
 					Sensitive:   true,
 					DefaultFunc: schema.EnvDefaultFunc("TG_JWT", nil),
 				},
+				"org_id": {
+					Type:        schema.TypeString,
+					Description: "Trustgrid Org ID. If provided and the credentials aren't for that org, the provider will fail early.",
+					Optional:    true,
+					Sensitive:   false,
+				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				"tg_alarm":           datasource.Alarm(),
@@ -110,12 +116,16 @@ func New(version string) func() *schema.Provider {
 
 func configure(_ string, _ *schema.Provider) func(context.Context, *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-		c, err := tg.NewClient(ctx, tg.ClientParams{
+		cp := tg.ClientParams{
 			APIKey:    d.Get("api_key_id").(string),
 			APISecret: d.Get("api_key_secret").(string),
 			APIHost:   d.Get("api_host").(string),
 			JWT:       d.Get("api_jwt").(string),
-		})
+		}
+		if orgid, ok := d.Get("org_id").(string); ok {
+			cp.OrgID = orgid
+		}
+		c, err := tg.NewClient(ctx, cp)
 
 		if err != nil {
 			return c, diag.FromErr(err)
