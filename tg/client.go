@@ -44,6 +44,7 @@ type ClientParams struct {
 	APISecret string
 	APIHost   string
 	JWT       string
+	OrgID     string
 }
 
 func NewClient(ctx context.Context, params ClientParams) (*Client, error) {
@@ -58,6 +59,9 @@ func NewClient(ctx context.Context, params ClientParams) (*Client, error) {
 	err := client.Get(ctx, "/org/mine", &org)
 	if err != nil {
 		return client, fmt.Errorf("error retrieving org info: %w", err)
+	}
+	if params.OrgID != "" && params.OrgID != org.UID {
+		return client, fmt.Errorf("org id mismatch: %s != %s", params.OrgID, org.UID)
 	}
 
 	client.Domain = org.Domain

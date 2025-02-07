@@ -259,8 +259,6 @@ func (ni NetworkInterface) ToTG() tg.NetworkInterface {
 		iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
 	}
 
-	iface.ClusterRouteTables = append(iface.ClusterRouteTables, ni.ClusterRouteTables...)
-
 	for _, sub := range ni.SubInterfaces {
 		iface.SubInterfaces = append(iface.SubInterfaces, sub.ToTG())
 	}
@@ -316,8 +314,6 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 			DNS:                i.DNS,
 			ClusterRouteTables: i.ClusterRouteTables,
 		}
-
-		iface.ClusterRouteTables = append(iface.ClusterRouteTables, i.ClusterRouteTables...)
 
 		for _, r := range i.Routes {
 			iface.Routes = append(iface.Routes, NetworkRoute{
