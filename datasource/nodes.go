@@ -82,8 +82,7 @@ func nodeRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 
 	tgc := tg.GetClient(meta)
 
-	f := filter{}
-	err := hcl.DecodeResourceData(d, &f)
+	f, err := hcl.DecodeResourceData[filter](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}

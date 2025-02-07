@@ -76,8 +76,8 @@ func IDPOpenIDConfig() *schema.Resource {
 func (r *idpOpenIDConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDPOpenIDConfig{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDPOpenIDConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 	tgidp := tf.ToTG()
@@ -105,13 +105,13 @@ func (r *idpOpenIDConfig) Delete(_ context.Context, _ *schema.ResourceData, _ an
 func (r *idpOpenIDConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDPOpenIDConfig{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDPOpenIDConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgidp := tg.IDPOpenIDConfig{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgidp)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgidp)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

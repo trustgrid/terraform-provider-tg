@@ -108,8 +108,8 @@ func (r *connector) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Conn
 func (r *connector) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Connector{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Connector](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -137,8 +137,8 @@ func (r *connector) Create(ctx context.Context, d *schema.ResourceData, meta any
 func (r *connector) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Connector{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Connector](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -170,8 +170,8 @@ func (r *connector) Update(ctx context.Context, d *schema.ResourceData, meta any
 func (r *connector) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Connector{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Connector](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -203,8 +203,8 @@ func (r *connector) Delete(ctx context.Context, d *schema.ResourceData, meta any
 func (r *connector) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Connector{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Connector](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

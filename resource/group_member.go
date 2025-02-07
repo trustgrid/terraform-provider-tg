@@ -46,14 +46,14 @@ func GroupMember() *schema.Resource {
 func (r *groupmember) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.GroupMember{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.GroupMember](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	members := []tg.GroupMember{}
 
-	err := tgc.Get(ctx, "/v2/group/"+tf.GroupID+"/members", &members)
+	err = tgc.Get(ctx, "/v2/group/"+tf.GroupID+"/members", &members)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):
@@ -78,8 +78,8 @@ func (r *groupmember) Read(ctx context.Context, d *schema.ResourceData, meta any
 func (r *groupmember) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.GroupMember{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.GroupMember](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -87,7 +87,7 @@ func (r *groupmember) Create(ctx context.Context, d *schema.ResourceData, meta a
 		"email": tf.Email,
 	}
 
-	_, err := tgc.Post(ctx, "/v2/group/"+tf.GroupID+"/members", &payload)
+	_, err = tgc.Post(ctx, "/v2/group/"+tf.GroupID+"/members", &payload)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -100,8 +100,8 @@ func (r *groupmember) Create(ctx context.Context, d *schema.ResourceData, meta a
 func (r *groupmember) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.GroupMember{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.GroupMember](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

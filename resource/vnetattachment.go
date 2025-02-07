@@ -89,8 +89,8 @@ func VNetAttachment() *schema.Resource {
 func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := HCLVnetAttachment{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -112,18 +112,18 @@ func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, me
 func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	va := HCLVnetAttachment{}
-	if err := hcl.DecodeResourceData(d, &va); err != nil {
+	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgva := tg.VNetAttachment{
-		IP:          va.IP,
-		Route:       va.ValidationCIDR,
-		NetworkName: va.NetworkName,
+		IP:          tf.IP,
+		Route:       tf.ValidationCIDR,
+		NetworkName: tf.NetworkName,
 	}
 
-	if err := tgc.Put(ctx, va.resourceURL(), &tgva); err != nil {
+	if err := tgc.Put(ctx, tf.resourceURL(), &tgva); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -133,12 +133,12 @@ func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, me
 func (vn *vnetAttachment) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	va := HCLVnetAttachment{}
-	if err := hcl.DecodeResourceData(d, &va); err != nil {
+	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, va.resourceURL(), nil); err != nil {
+	if err := tgc.Delete(ctx, tf.resourceURL(), nil); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -148,13 +148,13 @@ func (vn *vnetAttachment) Delete(ctx context.Context, d *schema.ResourceData, me
 func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	va := HCLVnetAttachment{}
-	if err := hcl.DecodeResourceData(d, &va); err != nil {
+	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	vnet := tg.VNetAttachment{}
-	err := tgc.Get(ctx, va.resourceURL(), &vnet)
+	err = tgc.Get(ctx, tf.resourceURL(), &vnet)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):
@@ -164,10 +164,10 @@ func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	va.IP = vnet.IP
-	va.ValidationCIDR = vnet.Route
+	tf.IP = vnet.IP
+	tf.ValidationCIDR = vnet.Route
 
-	if err := hcl.EncodeResourceData(va, d); err != nil {
+	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -97,8 +97,7 @@ func CPULimits() *schema.Resource {
 
 func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	limits := cpuLimitData{}
-	err := hcl.DecodeResourceData(d, &limits)
+	limits, err := hcl.DecodeResourceData[cpuLimitData](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -117,8 +116,7 @@ func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta any) diag
 func cpuLimitsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	limits := cpuLimitData{}
-	err := hcl.DecodeResourceData(d, &limits)
+	limits, err := hcl.DecodeResourceData[cpuLimitData](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -154,8 +152,7 @@ var empty = map[string]any{}
 func cpuLimitsDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	limits := cpuLimitData{}
-	err := hcl.DecodeResourceData(d, &limits)
+	limits, err := hcl.DecodeResourceData[cpuLimitData](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}

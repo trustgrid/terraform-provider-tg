@@ -58,8 +58,8 @@ func IDPSAMLConfig() *schema.Resource {
 func (r *idpSAMLConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDPSAMLConfig{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDPSAMLConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 	tgidp := tf.ToTG()
@@ -87,13 +87,13 @@ func (r *idpSAMLConfig) Delete(_ context.Context, _ *schema.ResourceData, _ any)
 func (r *idpSAMLConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDPSAMLConfig{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDPSAMLConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgidp := tg.IDPSAMLConfig{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgidp)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgidp)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDecode_Simple(t *testing.T) {
-	var unset struct {
+	type unset struct {
 		Int    int     `tf:"int"`
 		Unset  string  `tf:"unset"`
 		Bool   bool    `tf:"bool"`
@@ -55,29 +56,19 @@ func TestDecode_Simple(t *testing.T) {
 	d.Set("float", float64(3.14))
 	d.Set("intptr", &intptr)
 
-	if err := DecodeResourceData(d, &unset); err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
+	u, err := DecodeResourceData[unset](d)
+	assert.NoError(t, err)
 
-	if unset.Int != 5 {
-		t.Errorf("unexpected value: %d", unset.Int)
-	}
-	if unset.Bool != true {
-		t.Errorf("boolean value wasn't set")
-	}
-	if unset.String != "shhh" {
-		t.Errorf("string value wasn't set")
-	}
-	if unset.Float != 3.14 {
-		t.Errorf("float value wasn't set")
-	}
-	if unset.IntPtr == nil || *unset.IntPtr != 7 {
-		t.Error("intptr value wasn't set")
-	}
+	assert.Equal(t, 5, u.Int)
+	assert.True(t, u.Bool)
+	assert.Equal(t, "shhh", u.String)
+	assert.Equal(t, 3.14, u.Float)
+	assert.NotNil(t, u.IntPtr)
+	assert.Equal(t, 7, *u.IntPtr)
 }
 
 func TestDecode_Arrays(t *testing.T) {
-	var unset struct {
+	type unset struct {
 		Ints    []int  `tf:"ints"`
 		Bools   []bool `tf:"bools"`
 		IntPtrs []*int `tf:"intptrs"`
@@ -116,35 +107,21 @@ func TestDecode_Arrays(t *testing.T) {
 	d.Set("bools", []bool{true, true, true, false})
 	d.Set("intptrs", []int{0, 1, 2, 3})
 
-	if err := DecodeResourceData(d, &unset); err != nil {
-		t.Errorf("unexpected error: %s", err)
+	u, err := DecodeResourceData[unset](d)
+	assert.NoError(t, err)
+	assert.Len(t, u.Ints, 4)
+	for i, v := range u.Ints {
+		assert.Equal(t, i, v)
 	}
-
-	if len(unset.Ints) != 4 {
-		t.Errorf("ints weren't marshaled correctly: %+v", unset.Ints)
-	}
-	for i, v := range unset.Ints {
-		if v != i {
-			t.Errorf("unexpected int value: %d", v)
-		}
-	}
-
-	if len(unset.Bools) != 4 {
-		t.Errorf("bools weren't marshaled correctly: %+v", unset.Bools)
-	}
-
-	if len(unset.IntPtrs) != 4 {
-		t.Errorf("int ptrs weren't marshaled correctly: %+v", unset.IntPtrs)
-	}
-	for i, v := range unset.IntPtrs {
-		if *v != i {
-			t.Errorf("unexpected int value: %d", v)
-		}
+	assert.Len(t, u.Bools, 4)
+	assert.Len(t, u.IntPtrs, 4)
+	for i, v := range u.IntPtrs {
+		assert.Equal(t, i, *v)
 	}
 }
 
 func TestDecode_Maps(t *testing.T) {
-	var unset struct {
+	type unset struct {
 		Evs map[string]any `tf:"evs"`
 	}
 
@@ -163,21 +140,14 @@ func TestDecode_Maps(t *testing.T) {
 	d := res.TestResourceData()
 	d.Set("evs", map[string]interface{}{"hi": "five"})
 
-	if err := DecodeResourceData(d, &unset); err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-
-	if len(unset.Evs) != 1 {
-		t.Errorf("evs weren't marshaled correctly: %+v", unset.Evs)
-	}
-
-	if unset.Evs["hi"] != "five" {
-		t.Errorf("why you no high five!?!?")
-	}
+	u, err := DecodeResourceData[unset](d)
+	assert.NoError(t, err)
+	assert.Len(t, u.Evs, 1)
+	assert.Equal(t, "five", u.Evs["hi"])
 }
 
 func TestDecode_Structs(t *testing.T) {
-	var unset struct {
+	type unset struct {
 		Nested []struct {
 			String string `tf:"string"`
 			Int    int    `tf:"int"`
@@ -218,23 +188,13 @@ func TestDecode_Structs(t *testing.T) {
 	d := res.TestResourceData()
 	d.Set("nested", []map[string]any{{"string": "bob", "int": 7, "intptr": 22}})
 
-	if err := DecodeResourceData(d, &unset); err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-
-	if len(unset.Nested) != 1 {
-		t.Errorf("nested weren't marshaled correctly: %+v", unset.Nested)
-	}
-
-	if unset.Nested[0].String != "bob" {
-		t.Errorf("what about bob?? %s", unset.Nested[0].String)
-	}
-	if unset.Nested[0].Int != 7 {
-		t.Errorf("what about 7?? %d", unset.Nested[0].Int)
-	}
-	if unset.Nested[0].IntPtr == nil || *unset.Nested[0].IntPtr != 22 {
-		t.Errorf("what about 7?? %d", unset.Nested[0].IntPtr)
-	}
+	u, err := DecodeResourceData[unset](d)
+	assert.NoError(t, err)
+	assert.Len(t, u.Nested, 1)
+	assert.Equal(t, "bob", u.Nested[0].String)
+	assert.Equal(t, 7, u.Nested[0].Int)
+	assert.NotNil(t, u.Nested[0].IntPtr)
+	assert.Equal(t, 22, *u.Nested[0].IntPtr)
 }
 
 func TestEncode_Simple(t *testing.T) {

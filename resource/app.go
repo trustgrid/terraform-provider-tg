@@ -144,8 +144,8 @@ func App() *schema.Resource {
 func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.App{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.App](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -173,8 +173,8 @@ func (r *app) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *app) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.App{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.App](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -189,8 +189,8 @@ func (r *app) Update(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *app) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.App{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.App](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -204,13 +204,13 @@ func (r *app) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *app) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.App{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.App](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgapp := tg.App{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgapp)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgapp)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

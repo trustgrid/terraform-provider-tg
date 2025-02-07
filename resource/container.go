@@ -761,9 +761,8 @@ func (cr *container) convertToTFConfig(c tg.Container, d *schema.ResourceData) e
 
 func (cr *container) decodeTFConfig(_ context.Context, d *schema.ResourceData) (tg.Container, error) {
 	tfc := HCLContainer{}
-	c := tg.Container{}
-
-	if err := hcl.DecodeResourceData(d, &tfc); err != nil {
+	c, err := hcl.DecodeResourceData[tg.Container](d)
+	if err != nil {
 		return c, err
 	}
 

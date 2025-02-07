@@ -43,13 +43,13 @@ func IDP() *schema.Resource {
 func idpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDP{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDP](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgidp := tg.IDP{}
-	err := tgc.Get(ctx, tf.ResourceURL(), &tgidp)
+	err = tgc.Get(ctx, tf.ResourceURL(), &tgidp)
 	if err != nil {
 		return diag.FromErr(err)
 	}

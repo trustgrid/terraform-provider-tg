@@ -62,13 +62,13 @@ func KVMImage() *schema.Resource {
 func (r *kvmImage) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMImage{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMImage](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgimg := tg.KVMImage{}
-	err := tgc.Get(ctx, tf.ResourceURL(tf.UID), &tgimg)
+	err = tgc.Get(ctx, tf.ResourceURL(tf.UID), &tgimg)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

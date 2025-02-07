@@ -43,14 +43,14 @@ func NodeState() *schema.Resource {
 func (r *nodeState) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Node{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Node](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgnode := tf.ToTG()
 
-	err := tgc.Put(ctx, tf.ResourceURL(tf.UID), &tgnode)
+	err = tgc.Put(ctx, tf.ResourceURL(tf.UID), &tgnode)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -63,8 +63,8 @@ func (r *nodeState) Create(ctx context.Context, d *schema.ResourceData, meta any
 func (r *nodeState) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Node{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Node](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -83,13 +83,13 @@ func (r *nodeState) Delete(_ context.Context, _ *schema.ResourceData, _ any) dia
 func (r *nodeState) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Node{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Node](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgnode := tg.NodeState{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgnode)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgnode)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

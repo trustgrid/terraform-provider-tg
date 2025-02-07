@@ -57,14 +57,14 @@ func IDP() *schema.Resource {
 func (r *idp) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDP{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDP](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 	tf.UID = uuid.NewString()
 	tgidp := tf.ToTG()
 
-	_, err := tgc.Post(ctx, tf.URL(), &tgidp)
+	_, err = tgc.Post(ctx, tf.URL(), &tgidp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -81,8 +81,8 @@ func (r *idp) Create(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *idp) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDP{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDP](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -98,8 +98,8 @@ func (r *idp) Update(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *idp) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDP{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDP](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -114,13 +114,13 @@ func (r *idp) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *idp) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.IDP{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.IDP](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgidp := tg.IDP{}
-	err := tgc.Get(ctx, tf.ResourceURL(), &tgidp)
+	err = tgc.Get(ctx, tf.ResourceURL(), &tgidp)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

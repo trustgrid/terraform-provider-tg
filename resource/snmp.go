@@ -87,8 +87,7 @@ func SNMP() *schema.Resource {
 
 func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	snmp := tg.SNMPConfig{}
-	err := hcl.DecodeResourceData(d, &snmp)
+	snmp, err := hcl.DecodeResourceData[tg.SNMPConfig](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -106,8 +105,7 @@ func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 func snmpRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	snmp := tg.SNMPConfig{}
-	err := hcl.DecodeResourceData(d, &snmp)
+	snmp, err := hcl.DecodeResourceData[tg.SNMPConfig](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -151,8 +149,7 @@ func snmpUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 func snmpDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	snmp := tg.SNMPConfig{}
-	err := hcl.DecodeResourceData(d, &snmp)
+	snmp, err := hcl.DecodeResourceData[tg.SNMPConfig](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}

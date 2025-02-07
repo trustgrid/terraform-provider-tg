@@ -1,8 +1,10 @@
 terraform {
   required_providers {
     tg = {
-      version = "0.1"
-      source  = "hashicorp.com/trustgrid/tg"
+      #version = "0.1"
+      #source  = "hashicorp.com/trustgrid/tg"
+      source = "trustgrid/tg"
+      version = "1.11.0-pre3"
     }
   }
 }
@@ -13,17 +15,43 @@ provider "tg" {
   api_host = "api.dev.trustgrid.io" # defaults to api.trustgrid.io
 }
 
-data "tg_network_config" "cluster" {
-  cluster_fqdn = "profiled-nodes.dev.regression.trustgrid.io"
+data "tg_shadow" "node" {
+  node_id = "59838ae6-a2b2-4c45-b7be-9378f0b265f5"
 }
 
-#data "tg_network_config" "node" {
-#  node_id = "a9f1fedd-a474-455b-a123-37a035409229"
-#}
+data "tg_device_info" "node" {
+  node_id = "59838ae6-a2b2-4c45-b7be-9378f0b265f5"
+}
 
-output "cluster" {
-  sensitive = true
-  value = data.tg_network_config.cluster
+output "shadow" {
+  value = data.tg_shadow.node
+}
+
+output "device" {
+  value = data.tg_device_info.node
+}
+
+resource "tg_network_config" "cluster" {
+  cluster_fqdn = "profiled-nodes.dev.regression.trustgrid.io"
+
+  interface {
+    nic = "ens192"
+    cluster_route_tables = ["rtb-1234567890abcdef0"]
+  }
+}
+
+resource "tg_alarm" "quotme" {
+  name = "quoteme"
+  enabled = false
+  operator = "any"
+}
+
+output "quotes" {
+  value = "${tg_alarm.quotme.id}"
+}
+
+output "noquotes" {
+  value = tg_alarm.quotme.id
 }
 
 #output "node" {

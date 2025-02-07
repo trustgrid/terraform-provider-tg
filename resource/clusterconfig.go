@@ -90,12 +90,12 @@ func (cr *clusterconfig) getConfig(ctx context.Context, tgc *tg.Client, uid stri
 
 func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	cc := tg.ClusterConfig{}
-	if err := hcl.DecodeResourceData(d, &cc); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.ClusterConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := cr.writeConfig(ctx, tgc, cc); err != nil {
+	if err := cr.writeConfig(ctx, tgc, tf); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -146,13 +146,13 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 		existing = &tg.ClusterConfig{}
 	}
 
-	cc := tg.ClusterConfig{}
-	if err := hcl.DecodeResourceData(d, &cc); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.ClusterConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	cc.Active = existing.Active
-	if err := cr.writeConfig(ctx, tgc, cc); err != nil {
+	tf.Active = existing.Active
+	if err := cr.writeConfig(ctx, tgc, tf); err != nil {
 		return diag.FromErr(err)
 	}
 

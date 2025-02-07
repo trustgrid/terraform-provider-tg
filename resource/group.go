@@ -86,14 +86,14 @@ func (r *group) Read(ctx context.Context, d *schema.ResourceData, meta any) diag
 func (r *group) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Group{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Group](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tggrp := tf.ToTG()
 
-	_, err := tgc.Post(ctx, tf.URL(), &tggrp)
+	_, err = tgc.Post(ctx, tf.URL(), &tggrp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -122,8 +122,8 @@ func (r *group) Create(ctx context.Context, d *schema.ResourceData, meta any) di
 func (r *group) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Group{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Group](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

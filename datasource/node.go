@@ -53,8 +53,7 @@ func Node() *schema.Resource {
 func (ds *dsNode) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hclNode{}
-	err := hcl.DecodeResourceData(d, &tf)
+	tf, err := hcl.DecodeResourceData[hclNode](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}

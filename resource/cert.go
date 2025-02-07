@@ -48,16 +48,16 @@ func Cert() *schema.Resource {
 func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	cert := tg.Cert{}
-	if err := hcl.DecodeResourceData(d, &cert); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.Cert](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if _, err := tgc.Post(ctx, "/v2/certificates", &cert); err != nil {
+	if _, err := tgc.Post(ctx, "/v2/certificates", &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(cert.FQDN)
+	d.SetId(tf.FQDN)
 
 	return nil
 }
@@ -65,12 +65,12 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	cert := tg.Cert{}
-	if err := hcl.DecodeResourceData(d, &cert); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.Cert](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Put(ctx, "/v2/certificates/"+cert.FQDN, &cert); err != nil {
+	if err := tgc.Put(ctx, "/v2/certificates/"+tf.FQDN, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -80,12 +80,12 @@ func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	cert := tg.Cert{}
-	if err := hcl.DecodeResourceData(d, &cert); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.Cert](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, "/v2/certificates/"+cert.FQDN, &cert); err != nil {
+	if err := tgc.Delete(ctx, "/v2/certificates/"+tf.FQDN, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 

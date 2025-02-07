@@ -89,8 +89,8 @@ func (nr *device) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	id, isCluster := nr.endpoint(d)
 
-	var tf hcl.Device
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Device](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

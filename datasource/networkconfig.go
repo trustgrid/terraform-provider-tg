@@ -592,8 +592,8 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	id, isCluster := nr.endpoint(d)
 
-	var tf hcl.NetworkConfig
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.NetworkConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

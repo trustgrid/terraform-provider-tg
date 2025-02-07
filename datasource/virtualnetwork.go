@@ -49,14 +49,14 @@ func VirtualNetwork() *schema.Resource {
 func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	vnet := tg.VirtualNetwork{}
-	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
+	vnet, err := hcl.DecodeResourceData[tg.VirtualNetwork](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	vnets := make([]tg.VirtualNetwork, 0)
 
-	err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
+	err = tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
 	if err != nil {
 		return diag.FromErr(err)
 	}

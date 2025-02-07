@@ -92,8 +92,8 @@ func AlarmChannel() *schema.Resource {
 func (r *alarmChannel) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AlarmChannel](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -121,8 +121,8 @@ func (r *alarmChannel) Create(ctx context.Context, d *schema.ResourceData, meta 
 func (r *alarmChannel) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AlarmChannel](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -137,8 +137,8 @@ func (r *alarmChannel) Update(ctx context.Context, d *schema.ResourceData, meta 
 func (r *alarmChannel) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AlarmChannel](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -152,13 +152,13 @@ func (r *alarmChannel) Delete(ctx context.Context, d *schema.ResourceData, meta 
 func (r *alarmChannel) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AlarmChannel](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgch := tg.AlarmChannel{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgch)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgch)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):
