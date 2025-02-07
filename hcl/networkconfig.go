@@ -109,8 +109,8 @@ type VRF struct {
 }
 
 type NetworkConfig struct {
-	DarkMode   bool `tf:"dark_mode"`
-	Forwarding bool `tf:"forwarding"`
+	DarkMode   *bool `tf:"dark_mode"`
+	Forwarding *bool `tf:"forwarding"`
 
 	Tunnels []NetworkTunnel `tf:"tunnel"`
 
@@ -241,15 +241,16 @@ func (t NetworkTunnel) ToTG() tg.NetworkTunnel {
 
 func (ni NetworkInterface) ToTG() tg.NetworkInterface {
 	iface := tg.NetworkInterface{
-		NIC:       ni.NIC,
-		ClusterIP: ni.ClusterIP,
-		DHCP:      ni.DHCP,
-		Gateway:   ni.Gateway,
-		IP:        ni.IP,
-		Mode:      ni.Mode,
-		Duplex:    ni.Duplex,
-		Speed:     ni.Speed,
-		DNS:       ni.DNS,
+		NIC:                ni.NIC,
+		ClusterIP:          ni.ClusterIP,
+		DHCP:               ni.DHCP,
+		Gateway:            ni.Gateway,
+		IP:                 ni.IP,
+		Mode:               ni.Mode,
+		Duplex:             ni.Duplex,
+		Speed:              ni.Speed,
+		DNS:                ni.DNS,
+		ClusterRouteTables: ni.ClusterRouteTables,
 	}
 	for _, r := range ni.Routes {
 		iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
@@ -304,15 +305,16 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 	h.Interfaces = make([]NetworkInterface, 0)
 	for _, i := range c.Interfaces {
 		iface := NetworkInterface{
-			NIC:       i.NIC,
-			ClusterIP: i.ClusterIP,
-			DHCP:      i.DHCP,
-			Gateway:   i.Gateway,
-			IP:        i.IP,
-			Mode:      i.Mode,
-			Duplex:    i.Duplex,
-			Speed:     i.Speed,
-			DNS:       i.DNS,
+			NIC:                i.NIC,
+			ClusterIP:          i.ClusterIP,
+			DHCP:               i.DHCP,
+			Gateway:            i.Gateway,
+			IP:                 i.IP,
+			Mode:               i.Mode,
+			Duplex:             i.Duplex,
+			Speed:              i.Speed,
+			DNS:                i.DNS,
+			ClusterRouteTables: i.ClusterRouteTables,
 		}
 
 		iface.ClusterRouteTables = append(iface.ClusterRouteTables, i.ClusterRouteTables...)

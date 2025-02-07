@@ -209,8 +209,8 @@ type VRF struct {
 }
 
 type NetworkConfig struct {
-	DarkMode   bool `json:"darkMode"`
-	Forwarding bool `json:"forwarding"`
+	DarkMode   *bool `json:"darkMode,omitempty"`
+	Forwarding *bool `json:"forwarding,omitempty"`
 
 	Tunnels []NetworkTunnel `json:"tunnels,omitempty"`
 
