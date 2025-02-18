@@ -1,22 +1,30 @@
 package resource
 
 import (
-	"context"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
-	"github.com/trustgrid/terraform-provider-tg/tg"
+	"github.com/trustgrid/terraform-provider-tg/majordomo"
 )
 
 func Cert() *schema.Resource {
+	md := majordomo.NewResource(
+		majordomo.ResourceArgs[hcl.Cert]{
+			CreateURL: func(_ hcl.Cert) string { return "/v2/certificates" },
+			UpdateURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
+			DeleteURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
+			IndexURL:  func(cert hcl.Cert) string { return "/v2/certificates" },
+			ID: func(cert hcl.Cert) string {
+				return cert.FQDN
+			},
+		})
+
 	return &schema.Resource{
 		Description: "Manage a certificate stored in Trustgrid.",
 
-		ReadContext:   certRead,
-		UpdateContext: certUpdate,
-		DeleteContext: certDelete,
-		CreateContext: certCreate,
+		ReadContext:   md.Read,
+		UpdateContext: md.Update,
+		DeleteContext: md.Delete,
+		CreateContext: md.Create,
 
 		Schema: map[string]*schema.Schema{
 			"fqdn": {
@@ -45,6 +53,7 @@ func Cert() *schema.Resource {
 	}
 }
 
+/*
 func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
@@ -61,7 +70,9 @@ func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 
 	return nil
 }
+*/
 
+/*
 func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
@@ -76,7 +87,9 @@ func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 
 	return nil
 }
+*/
 
+/*
 func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
@@ -91,7 +104,9 @@ func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 
 	return nil
 }
+*/
 
+/*
 func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
@@ -116,3 +131,5 @@ func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 
 	return nil
 }
+
+*/

@@ -7,9 +7,9 @@ type Cluster struct {
 	Tags   map[string]string `json:"tags"`
 	Device Device            `json:"device"`
 	Config struct {
-		Connectors ConnectorsConfig `json:"connectors"`
-		Services   ServicesConfig   `json:"services"`
-		Network    NetworkConfig    `json:"network"`
-		ZTNA       ZTNAConfig       `json:"apigw"`
+		Connectors *ConnectorsConfig `json:"connectors,omitempty"`
+		Services   *ServicesConfig   `json:"services,omitempty"`
+		Network    *NetworkConfig    `json:"network,omitempty"`
+		ZTNA       *ZTNAConfig       `json:"apigw,omitempty"`
 	} `json:"config"`
 }
