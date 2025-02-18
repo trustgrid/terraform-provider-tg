@@ -117,10 +117,10 @@ func New(version string) func() *schema.Provider {
 func configure(_ string, _ *schema.Provider) func(context.Context, *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		cp := tg.ClientParams{
-			APIKey:    d.Get("api_key_id").(string),
-			APISecret: d.Get("api_key_secret").(string),
-			APIHost:   d.Get("api_host").(string),
-			JWT:       d.Get("api_jwt").(string),
+			APIKey:    d.Get("api_key_id").(string),     //nolint: errcheck // just trusting TF validation here
+			APISecret: d.Get("api_key_secret").(string), //nolint: errcheck // just trusting TF validation here
+			APIHost:   d.Get("api_host").(string),       //nolint: errcheck // just trusting TF validation here
+			JWT:       d.Get("api_jwt").(string),        //nolint: errcheck // just trusting TF validation here
 		}
 		if orgid, ok := d.Get("org_id").(string); ok {
 			cp.OrgID = orgid
