@@ -53,8 +53,13 @@ func Cluster() *schema.Resource {
 
 func (cr *cluster) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
+	name, ok := d.Get("name").(string)
+	if !ok {
+		return diag.FromErr(errors.New("name must be a string"))
+	}
+
 	cluster := tg.Cluster{
-		Name: d.Get("name").(string),
+		Name: name,
 	}
 
 	_, err := tgc.Post(ctx, "/cluster", &cluster)

@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -103,8 +104,13 @@ func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 
 	cert := tg.Cert{}
 
+	fqdn, ok := d.Get("fqdn").(string)
+	if !ok {
+		return diag.FromErr(errors.New("fqdn must be a string"))
+	}
+
 	for _, c := range certs {
-		if c.FQDN == d.Get("fqdn").(string) {
+		if c.FQDN == fqdn {
 			cert = c
 			break
 		}

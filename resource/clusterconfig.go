@@ -99,7 +99,12 @@ func (cr *clusterconfig) Create(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	d.SetId(d.Get("node_id").(string))
+	nodeID, ok := d.Get("node_id").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("node_id must be a string"))
+	}
+
+	d.SetId(nodeID)
 
 	return nil
 }
@@ -123,8 +128,13 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
+	oa, ok := oldActive.(bool)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("expected active to be a bool"))
+	}
+
 	if activeSet {
-		if err := d.Set("active", oldActive.(bool)); err != nil {
+		if err := d.Set("active", oa); err != nil {
 			return diag.FromErr(err)
 		}
 	}

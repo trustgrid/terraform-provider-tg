@@ -6,10 +6,10 @@ type Cluster struct {
 	FQDN   string            `json:"fqdn,omitempty"`
 	Tags   map[string]string `json:"tags"`
 	Device Device            `json:"device"`
-	Config struct {
+	Config *struct {
 		Connectors ConnectorsConfig `json:"connectors"`
 		Services   ServicesConfig   `json:"services"`
 		Network    NetworkConfig    `json:"network"`
 		ZTNA       ZTNAConfig       `json:"apigw"`
-	} `json:"config"`
+	} `json:"config,omitempty"`
 }
