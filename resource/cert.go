@@ -4,15 +4,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/majordomo"
+	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
 func Cert() *schema.Resource {
 	md := majordomo.NewResource(
-		majordomo.ResourceArgs[hcl.Cert]{
+		majordomo.ResourceArgs[tg.Cert, hcl.Cert]{
 			CreateURL: func(_ hcl.Cert) string { return "/v2/certificates" },
 			UpdateURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
 			DeleteURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
-			IndexURL:  func(cert hcl.Cert) string { return "/v2/certificates" },
+			//IndexURL:  func(cert hcl.Cert) string { return "/v2/certificates" },
 			ID: func(cert hcl.Cert) string {
 				return cert.FQDN
 			},
@@ -118,8 +119,13 @@ func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagno
 
 	cert := tg.Cert{}
 
+	fqdn, ok := d.Get("fqdn").(string)
+	if !ok {
+		return diag.FromErr(errors.New("fqdn must be a string"))
+	}
+
 	for _, c := range certs {
-		if c.FQDN == d.Get("fqdn").(string) {
+		if c.FQDN == fqdn {
 			cert = c
 			break
 		}
