@@ -98,7 +98,8 @@ func (r *service) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Servic
 		url = fmt.Sprintf("/cluster/%s/config/services", tf.ClusterFQDN)
 	}
 
-	return tgc.Put(ctx, url, config)
+	_, err := tgc.Put(ctx, url, config)
+	return err
 }
 
 func (r *service) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

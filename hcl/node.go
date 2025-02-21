@@ -7,14 +7,6 @@ type Node struct {
 	Enabled bool   `tf:"enabled"`
 }
 
-func (h Node) ResourceURL(ID string) string {
-	return h.URL() + "/" + ID
-}
-
-func (h Node) URL() string {
-	return "/node"
-}
-
 func (h Node) ToTG() tg.NodeState {
 	state := "ACTIVE"
 	if !h.Enabled {

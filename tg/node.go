@@ -20,27 +20,47 @@ func (snmp *SNMPConfig) URL() string {
 	return fmt.Sprintf("/node/%s/config/snmp", snmp.NodeID)
 }
 
+type GatewayRoute struct {
+	Route  string `json:"route"`
+	Dest   string `json:"dest"`
+	Metric int    `json:"metric"`
+}
+
+type GatewayPath struct {
+	ID   string `json:"id"`
+	Host string `json:"host"`
+	Port int    `json:"port"`
+	Node string `json:"node"`
+}
+
 type GatewayClient struct {
-	Name    string `tf:"name" json:"name"`
-	Enabled bool   `tf:"enabled" json:"enabled"`
+	Name    string `json:"name"`
+	Enabled bool   `json:"enabled"`
 }
 
 type GatewayConfig struct {
-	NodeID string `tf:"node_id" json:"-"`
+	NodeID   string `json:"-"`
+	Domain   string `json:"-"`
+	Cluster  string `json:"-"`
+	NodeName string `json:"-"`
 
-	Enabled         bool   `tf:"enabled" json:"enabled"`
-	Host            string `tf:"host" json:"host,omitempty"`
-	Port            int    `tf:"port" json:"port,omitempty"`
-	MaxMBPS         int    `tf:"maxmbps" json:"maxmbps,omitempty"`
-	ConnectToPublic bool   `tf:"connect_to_public" json:"connectToPublic"`
-	Type            string `tf:"type" json:"type"`
+	Enabled            bool   `json:"enabled"`
+	Host               string `json:"host,omitempty"`
+	Port               int    `json:"port,omitempty"`
+	MaxMBPS            int    `json:"maxmbps,omitempty"`
+	ConnectToPublic    bool   `json:"connectToPublic"`
+	Type               string `json:"type"`
+	MonitorHops        bool   `json:"monitorHops,omitempty"`
+	MaxClientWriteMBPS int    `json:"maxClientWriteMbps,omitempty"`
 
-	UDPEnabled bool `tf:"udp_enabled" json:"udpEnabled"`
-	UDPPort    int  `tf:"udp_port" json:"udpPort,omitempty"`
+	UDPEnabled bool `json:"udpEnabled"`
+	UDPPort    int  `json:"udpPort,omitempty"`
 
-	Cert string `tf:"cert" json:"cert,omitempty"`
+	Cert string `json:"cert,omitempty"`
 
-	Clients []GatewayClient `tf:"client" json:"clients,omitempty"`
+	Clients []GatewayClient `json:"clients,omitempty"`
+	Paths   []GatewayPath   `json:"paths,omitempty"`
+	Routes  []GatewayRoute  `json:"routes,omitempty"`
 }
 
 type Service struct {
@@ -240,6 +260,7 @@ type Node struct {
 	State   string               `json:"state"`
 	Name    string               `json:"name"`
 	FQDN    string               `json:"fqdn"`
+	Domain  string               `json:"domain"`
 	Cluster string               `json:"cluster"`
 	Keys    map[string]PublicKey `json:"keys"`
 	Tags    map[string]string    `json:"tags"`

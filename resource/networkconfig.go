@@ -600,12 +600,12 @@ func (nr *network) Create(ctx context.Context, d *schema.ResourceData, meta any)
 	id, isCluster := nr.endpoint(d)
 
 	if isCluster {
-		err = tgc.Put(ctx, fmt.Sprintf("/cluster/%s/config/network", id), &nc)
+		_, err = tgc.Put(ctx, fmt.Sprintf("/cluster/%s/config/network", id), &nc)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 	} else {
-		err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/network", id), &nc)
+		_, err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/network", id), &nc)
 		if err != nil {
 			return diag.FromErr(err)
 		}

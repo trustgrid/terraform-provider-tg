@@ -111,7 +111,7 @@ func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, me
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.Name, &tf); err != nil {
+	if _, err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.Name, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 

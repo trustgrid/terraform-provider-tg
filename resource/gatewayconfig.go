@@ -1,30 +1,45 @@
 package resource
 
 import (
-	"context"
-	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
+	"github.com/trustgrid/terraform-provider-tg/majordomo"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type gatewayConfig struct {
-}
-
 func GatewayConfig() *schema.Resource {
-	c := gatewayConfig{}
+	md := majordomo.NewResource(
+		majordomo.ResourceArgs[tg.GatewayConfig, hcl.GatewayConfig]{
+			OnUpdateReply: func(d *schema.ResourceData, _ []byte) (string, error) {
+				nodeID := d.Get("node_id")
+
+				return nodeID.(string), nil
+			},
+			UpdateURL: func(a hcl.GatewayConfig) string { return fmt.Sprintf("/node/%s/config/gateway", a.NodeID) },
+			DeleteURL: func(a hcl.GatewayConfig) string { return fmt.Sprintf("/node/%s/config/gateway", a.NodeID) },
+			GetFromNode: func(n tg.Node) (tg.GatewayConfig, bool, error) {
+				gw := n.Config.Gateway
+				gw.NodeName = n.Name
+				gw.Cluster = n.Cluster
+				gw.Domain = n.Domain
+				return gw, true, nil
+			},
+			GetURL: func(a hcl.GatewayConfig) string { return "/node/" + a.NodeID },
+			ID: func(a hcl.GatewayConfig) string {
+				return a.NodeID
+			},
+		})
 
 	return &schema.Resource{
 		Description: "Node Gateway Config",
 
-		CreateContext: c.Create,
-		ReadContext:   c.Read,
-		UpdateContext: c.Update,
-		DeleteContext: c.Delete,
+		CreateContext: md.Create,
+		ReadContext:   md.Read,
+		UpdateContext: md.Update,
+		DeleteContext: md.Delete,
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
@@ -72,7 +87,7 @@ func GatewayConfig() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"maxmbps": {
-				Description: "Max gateway throughput",
+				Description: "Max gateway ingress throughput",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Computed:    true,
@@ -89,6 +104,72 @@ func GatewayConfig() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
+			},
+			"monitor_hops": {
+				Description: "Monitor hop latency from this node to its gateways",
+				Type:        schema.TypeBool,
+				Optional:    true,
+			},
+			"max_client_write_mbps": {
+				Description:  "Maximum gateway egress throughput",
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+			"path": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Gateway paths",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Path ID",
+						},
+						"host": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Description:  "Path host",
+							ValidateFunc: validation.IsIPv4Address,
+						},
+						"port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							Description:  "Path host",
+							ValidateFunc: validation.IsPortNumber,
+						},
+						"node": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Path node",
+						},
+					},
+				},
+			},
+			"route": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Gateway routes",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"route": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Route",
+						},
+						"dest": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Destination",
+						},
+						"metric": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: "Metric",
+						},
+					},
+				},
 			},
 			"client": {
 				Type:        schema.TypeList,
@@ -111,79 +192,4 @@ func GatewayConfig() *schema.Resource {
 			},
 		},
 	}
-}
-
-func (gc *gatewayConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-	gw, err := gc.decodeTFConfig(ctx, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/gateway", gw.NodeID), &gw)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(gw.NodeID)
-
-	return nil
-}
-
-func (gc *gatewayConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	gw, err := gc.decodeTFConfig(ctx, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	n := tg.Node{}
-	err = tgc.Get(ctx, "/node/"+gw.NodeID, &n)
-	var nferr *tg.NotFoundError
-	switch {
-	case errors.As(err, &nferr):
-		d.SetId("")
-		return nil
-	case err != nil:
-		return diag.FromErr(err)
-	}
-
-	if err := gc.convertToTFConfig(ctx, n.Config.Gateway, d); err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(gw.NodeID)
-	if err := d.Set("node_id", gw.NodeID); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-
-func (gc *gatewayConfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	return gc.Create(ctx, d, meta)
-}
-
-func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	gw, err := gc.decodeTFConfig(ctx, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = tgc.Put(ctx, fmt.Sprintf("/node/%s/config/gateway", gw.NodeID), map[string]any{"enabled": false})
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-
-func (gc *gatewayConfig) decodeTFConfig(_ context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {
-	return hcl.DecodeResourceData[tg.GatewayConfig](d)
-}
-
-func (gc *gatewayConfig) convertToTFConfig(_ context.Context, config tg.GatewayConfig, d *schema.ResourceData) error {
-	return hcl.EncodeResourceData(&config, d)
 }

@@ -253,7 +253,7 @@ func (vn *vpnInterface) Update(ctx context.Context, d *schema.ResourceData, meta
 
 	vpn := tf.toTGVPNInterface()
 
-	if err := tgc.Put(ctx, tf.resourceURL(), &vpn); err != nil {
+	if _, err := tgc.Put(ctx, tf.resourceURL(), &vpn); err != nil {
 		return diag.FromErr(err)
 	}
 

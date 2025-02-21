@@ -160,7 +160,7 @@ func (r *appAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	tgrule := tf.ToTG()
-	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgrule); err != nil {
+	if _, err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgrule); err != nil {
 		return diag.FromErr(err)
 	}
 

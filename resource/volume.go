@@ -95,7 +95,7 @@ func (vr *volume) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Put(ctx, vr.volumeURL(v), &v); err != nil {
+	if _, err := tgc.Put(ctx, vr.volumeURL(v), &v); err != nil {
 		return diag.FromErr(err)
 	}
 

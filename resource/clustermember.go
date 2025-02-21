@@ -55,7 +55,8 @@ func (nr *clustermember) updateCluster(ctx context.Context, tgc *tg.Client, uid 
 		"cluster": cluster,
 	}
 
-	return tgc.Put(ctx, fmt.Sprintf("/node/%s", uid), &payload)
+	_, err := tgc.Put(ctx, fmt.Sprintf("/node/%s", uid), &payload)
+	return err
 }
 
 func (nr *clustermember) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

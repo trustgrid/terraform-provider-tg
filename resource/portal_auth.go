@@ -49,7 +49,7 @@ func (r *portalAuth) Create(ctx context.Context, d *schema.ResourceData, meta an
 	}
 	tgauth := tf.ToTG()
 
-	err = tgc.Put(ctx, "/org/auth", &tgauth)
+	_, err = tgc.Put(ctx, "/org/auth", &tgauth)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -69,7 +69,7 @@ func (r *portalAuth) Update(ctx context.Context, d *schema.ResourceData, meta an
 	}
 
 	tgauth := tf.ToTG()
-	if err := tgc.Put(ctx, "/org/auth", &tgauth); err != nil {
+	if _, err := tgc.Put(ctx, "/org/auth", &tgauth); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -88,7 +88,7 @@ func (r *portalAuth) Delete(ctx context.Context, d *schema.ResourceData, meta an
 	tf.IDPID = "trustgrid"
 
 	tgauth := tf.ToTG()
-	if err := tgc.Put(ctx, "/org/auth", &tgauth); err != nil {
+	if _, err := tgc.Put(ctx, "/org/auth", &tgauth); err != nil {
 		return diag.FromErr(err)
 	}
 

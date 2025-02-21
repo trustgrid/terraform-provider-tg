@@ -64,7 +64,7 @@ func (r *idpSAMLConfig) Create(ctx context.Context, d *schema.ResourceData, meta
 	}
 	tgidp := tf.ToTG()
 
-	if err := tgc.Put(ctx, tf.ResourceURL(tf.UID), &tgidp); err != nil {
+	if _, err := tgc.Put(ctx, tf.ResourceURL(tf.UID), &tgidp); err != nil {
 		return diag.FromErr(err)
 	}
 

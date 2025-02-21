@@ -14,6 +14,8 @@ import (
 type Resource[T any, H hcl.HCL[T]] struct {
 	createURL     func(H) string
 	onCreateReply func(*schema.ResourceData, []byte) (string, error)
+	onUpdateReply func(*schema.ResourceData, []byte) (string, error)
+	getFromNode   func(tg.Node) (T, bool, error)
 	updateURL     func(H) string
 	deleteURL     func(H) string
 	getURL        func(H) string
@@ -25,6 +27,8 @@ type Resource[T any, H hcl.HCL[T]] struct {
 type ResourceArgs[T any, H hcl.HCL[T]] struct {
 	CreateURL     func(H) string                                     // CreateURL should return the URL for POST-ing the resource. If not set, calls to `Create` will attempt to call `Update`.
 	OnCreateReply func(*schema.ResourceData, []byte) (string, error) // OnCreateReply is called after a successful POST request. The ID returned will be set as the resource ID.
+	OnUpdateReply func(*schema.ResourceData, []byte) (string, error) // OnUpdateReply is called after a successful PUT request. The ID returned will be set as the resource ID.
+	GetFromNode   func(tg.Node) (T, bool, error)                     // GetFromNode should return the `tg` resource from the `tg.Node` resource.
 	DeleteURL     func(H) string                                     // DeleteURL should return the URL for DELETE-ing the resource.
 	GetURL        func(H) string                                     // GetURL should return the URL for GET-ing the resource, provided the API supports individual lookups.
 	UpdateURL     func(H) string                                     // UpdateURL should return the URL for PUT-ing the resource.
@@ -38,7 +42,9 @@ func NewResource[T any, H hcl.HCL[T]](args ResourceArgs[T, H]) *Resource[T, H] {
 	return &Resource[T, H]{
 		createURL:     args.CreateURL,
 		updateURL:     args.UpdateURL,
+		getFromNode:   args.GetFromNode,
 		onCreateReply: args.OnCreateReply,
+		onUpdateReply: args.OnUpdateReply,
 		deleteURL:     args.DeleteURL,
 		getURL:        args.GetURL,
 		indexURL:      args.IndexURL,
@@ -98,11 +104,18 @@ func (r *Resource[T, H]) Update(ctx context.Context, d *schema.ResourceData, met
 
 	tg := tf.ToTG()
 
-	if err := tgc.Put(ctx, r.updateURL(tf), tg); err != nil {
+	reply, err := tgc.Put(ctx, r.updateURL(tf), tg)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if d.Id() == "" {
+	if r.onUpdateReply != nil {
+		id, err := r.onUpdateReply(d, reply)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(id)
+	} else if d.Id() == "" {
 		d.SetId(r.id(tf))
 	}
 
@@ -200,6 +213,19 @@ func (r *Resource[T, H]) read(ctx context.Context, tf H, meta any) (T, bool, err
 	tgc := tg.GetClient(meta)
 
 	var out T
+	if r.getFromNode != nil {
+		var n tg.Node
+		err := tgc.Get(ctx, r.getURL(tf), &n)
+		var nferr *tg.NotFoundError
+		switch {
+		case errors.As(err, &nferr):
+			return out, false, nil
+		case err != nil:
+			return out, false, err
+		}
+
+		return r.getFromNode(n)
+	}
 
 	err := tgc.Get(ctx, r.getURL(tf), &out)
 	var nferr *tg.NotFoundError

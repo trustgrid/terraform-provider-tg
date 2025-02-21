@@ -122,7 +122,7 @@ func (vn *vnetPortForward) Update(ctx context.Context, d *schema.ResourceData, m
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.NetworkName+"/port-forwarding/"+tf.UID, &tf); err != nil {
+	if _, err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.NetworkName+"/port-forwarding/"+tf.UID, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 

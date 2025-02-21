@@ -128,7 +128,7 @@ func (vn *vnetRoute) Update(ctx context.Context, d *schema.ResourceData, meta an
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route/"+route.UID, &route); err != nil {
+	if _, err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+route.NetworkName+"/route/"+route.UID, &route); err != nil {
 		return diag.FromErr(err)
 	}
 

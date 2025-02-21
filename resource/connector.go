@@ -105,7 +105,8 @@ func (r *connector) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Conn
 		url = fmt.Sprintf("/cluster/%s/config/connectors", tf.ClusterFQDN)
 	}
 
-	return tgc.Put(ctx, url, config)
+	_, err := tgc.Put(ctx, url, config)
+	return err
 }
 
 func (r *connector) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

@@ -551,7 +551,8 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c hcl.Con
 }
 
 func (cr *container) writeExtendedConfig(ctx context.Context, tgc *tg.Client, c hcl.Container) error {
-	return tgc.Put(ctx, cr.containerURL(c)+"/config", c.ToTG().Config)
+	_, err := tgc.Put(ctx, cr.containerURL(c)+"/config", c.ToTG().Config)
+	return err
 }
 
 func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -585,7 +586,7 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Put(ctx, cr.containerURL(ct), &ct); err != nil {
+	if _, err := tgc.Put(ctx, cr.containerURL(ct), &ct); err != nil {
 		return diag.FromErr(err)
 	}
 

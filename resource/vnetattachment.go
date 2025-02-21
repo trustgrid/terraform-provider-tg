@@ -123,7 +123,7 @@ func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, me
 		NetworkName: tf.NetworkName,
 	}
 
-	if err := tgc.Put(ctx, tf.resourceURL(), &tgva); err != nil {
+	if _, err := tgc.Put(ctx, tf.resourceURL(), &tgva); err != nil {
 		return diag.FromErr(err)
 	}
 

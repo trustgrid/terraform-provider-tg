@@ -153,7 +153,7 @@ func (z *ztnaConfig) createWGKey(ctx context.Context, tgc *tg.Client, gw tg.ZTNA
 		return "", fmt.Errorf("unmarshalling import key reply: %w", err)
 	}
 
-	err = tgc.Put(ctx, "/node/"+gw.NodeID+"/keys/"+_ztnaWGKey, keyReply)
+	_, err = tgc.Put(ctx, "/node/"+gw.NodeID+"/keys/"+_ztnaWGKey, keyReply)
 	if err != nil {
 		return "", fmt.Errorf("saving key: %w", err)
 	}
@@ -175,7 +175,7 @@ func (z *ztnaConfig) Create(ctx context.Context, d *schema.ResourceData, meta an
 	}
 
 	if z.shouldConfigureZTNA(gw) {
-		err = tgc.Put(ctx, z.url(gw), &gw)
+		_, err = tgc.Put(ctx, z.url(gw), &gw)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -279,7 +279,7 @@ func (z *ztnaConfig) Update(ctx context.Context, d *schema.ResourceData, meta an
 	}
 
 	if z.shouldConfigureZTNA(gw) {
-		err = tgc.Put(ctx, z.url(gw), &gw)
+		_, err = tgc.Put(ctx, z.url(gw), &gw)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -319,7 +319,7 @@ func (z *ztnaConfig) Delete(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Put(ctx, z.url(gw), map[string]any{"enabled": false, "wireguardEnabled": false}); err != nil {
+	if _, err := tgc.Put(ctx, z.url(gw), map[string]any{"enabled": false, "wireguardEnabled": false}); err != nil {
 		return diag.FromErr(err)
 	}
 
