@@ -13,8 +13,11 @@ func Cert() *schema.Resource {
 			CreateURL: func(_ hcl.Cert) string { return "/v2/certificates" },
 			UpdateURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
 			DeleteURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
-			//IndexURL:  func(cert hcl.Cert) string { return "/v2/certificates" },
+			IndexURL:  func() string { return "/v2/certificates" },
 			ID: func(cert hcl.Cert) string {
+				return cert.FQDN
+			},
+			RemoteID: func(cert tg.Cert) string {
 				return cert.FQDN
 			},
 		})
@@ -53,89 +56,3 @@ func Cert() *schema.Resource {
 		},
 	}
 }
-
-/*
-func certCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf, err := hcl.DecodeResourceData[tg.Cert](d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if _, err := tgc.Post(ctx, "/v2/certificates", &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(tf.FQDN)
-
-	return nil
-}
-*/
-
-/*
-func certUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf, err := hcl.DecodeResourceData[tg.Cert](d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err := tgc.Put(ctx, "/v2/certificates/"+tf.FQDN, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-*/
-
-/*
-func certDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf, err := hcl.DecodeResourceData[tg.Cert](d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err := tgc.Delete(ctx, "/v2/certificates/"+tf.FQDN, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-*/
-
-/*
-func certRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	certs := make([]tg.Cert, 0)
-
-	if err := tgc.Get(ctx, "/v2/certificates", &certs); err != nil {
-		return diag.FromErr(err)
-	}
-
-	cert := tg.Cert{}
-
-	fqdn, ok := d.Get("fqdn").(string)
-	if !ok {
-		return diag.FromErr(errors.New("fqdn must be a string"))
-	}
-
-	for _, c := range certs {
-		if c.FQDN == fqdn {
-			cert = c
-			break
-		}
-	}
-
-	if cert.FQDN == "" {
-		d.SetId("")
-	}
-
-	return nil
-}
-
-*/

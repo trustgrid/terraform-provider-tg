@@ -7,15 +7,15 @@ type Node struct {
 	Enabled bool   `tf:"enabled"`
 }
 
-func (h *Node) ResourceURL(ID string) string {
+func (h Node) ResourceURL(ID string) string {
 	return h.URL() + "/" + ID
 }
 
-func (h *Node) URL() string {
+func (h Node) URL() string {
 	return "/node"
 }
 
-func (h *Node) ToTG() tg.NodeState {
+func (h Node) ToTG() tg.NodeState {
 	state := "ACTIVE"
 	if !h.Enabled {
 		state = "INACTIVE"
@@ -25,6 +25,9 @@ func (h *Node) ToTG() tg.NodeState {
 	}
 }
 
-func (h *Node) UpdateFromTG(a tg.NodeState) {
-	h.Enabled = a.State == "ACTIVE"
+func (h Node) UpdateFromTG(a tg.NodeState) HCL[tg.NodeState] {
+	return Node{
+		UID:     h.UID,
+		Enabled: a.State == "ACTIVE",
+	}
 }

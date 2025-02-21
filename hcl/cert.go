@@ -10,7 +10,7 @@ type Cert struct {
 	PrivateKey string `tf:"private_key"`
 }
 
-func (c *Cert) ToTG() tg.Cert {
+func (c Cert) ToTG() tg.Cert {
 	return tg.Cert{
 		FQDN:       c.FQDN,
 		Body:       c.Body,
@@ -19,9 +19,11 @@ func (c *Cert) ToTG() tg.Cert {
 	}
 }
 
-func (c *Cert) UpdateFromTG(t tg.Cert) {
-	c.FQDN = t.FQDN
-	c.Body = t.Body
-	c.Chain = t.Chain
-	c.PrivateKey = t.PrivateKey
+func (c Cert) UpdateFromTG(t tg.Cert) HCL[tg.Cert] {
+	return Cert{
+		FQDN:       t.FQDN,
+		Body:       c.Body,
+		Chain:      c.Chain,
+		PrivateKey: c.PrivateKey,
+	}
 }

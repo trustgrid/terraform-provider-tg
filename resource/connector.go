@@ -93,7 +93,10 @@ func (r *connector) getConfig(ctx context.Context, tgc *tg.Client, tf hcl.Connec
 	if err := tgc.Get(ctx, fmt.Sprintf("/cluster/%s", tf.ClusterFQDN), &cluster); err != nil {
 		return tg.ConnectorsConfig{}, err
 	}
-	return cluster.Config.Connectors, nil
+	if cluster.Config.Connectors != nil {
+		return *cluster.Config.Connectors, nil
+	}
+	return tg.ConnectorsConfig{}, nil
 }
 
 func (r *connector) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Connector, config tg.ConnectorsConfig) error {

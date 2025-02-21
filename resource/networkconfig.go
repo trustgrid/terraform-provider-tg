@@ -638,7 +638,11 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 			return diag.FromErr(fmt.Errorf("cannot lookup cluster id=%s isCluster=%t %w", id, isCluster, err))
 		}
 
-		tf.UpdateFromTG(n.Config.Network)
+		if n.Config.Network != nil {
+			tf.UpdateFromTG(*n.Config.Network)
+		} else {
+			tf.UpdateFromTG(tg.NetworkConfig{})
+		}
 	} else {
 		n := tg.Node{}
 		err := tgc.Get(ctx, "/node/"+id, &n)

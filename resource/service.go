@@ -86,7 +86,10 @@ func (r *service) getConfig(ctx context.Context, tgc *tg.Client, tf hcl.Service)
 	if err := tgc.Get(ctx, fmt.Sprintf("/cluster/%s", tf.ClusterFQDN), &cluster); err != nil {
 		return tg.ServicesConfig{}, err
 	}
-	return cluster.Config.Services, nil
+	if cluster.Config.Services != nil {
+		return *cluster.Config.Services, nil
+	}
+	return tg.ServicesConfig{}, nil
 }
 
 func (r *service) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Service, config tg.ServicesConfig) error {
