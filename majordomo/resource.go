@@ -11,34 +11,37 @@ import (
 )
 
 type Resource[T any, H hcl.HCL[T]] struct {
-	createURL func(H) string
-	updateURL func(H) string
-	deleteURL func(H) string
-	getURL    func(H) string
-	indexURL  func() string
-	id        func(H) string
-	remoteID  func(T) string
+	createURL     func(H) string
+	onCreateReply func(*schema.ResourceData, []byte) (string, error)
+	updateURL     func(H) string
+	deleteURL     func(H) string
+	getURL        func(H) string
+	indexURL      func() string
+	id            func(H) string
+	remoteID      func(T) string
 }
 
 type ResourceArgs[T any, H hcl.HCL[T]] struct {
-	CreateURL func(H) string
-	DeleteURL func(H) string
-	GetURL    func(H) string
-	UpdateURL func(H) string
-	IndexURL  func() string
-	RemoteID  func(T) string
-	ID        func(H) string
+	CreateURL     func(H) string
+	OnCreateReply func(*schema.ResourceData, []byte) (string, error)
+	DeleteURL     func(H) string
+	GetURL        func(H) string
+	UpdateURL     func(H) string
+	IndexURL      func() string
+	RemoteID      func(T) string
+	ID            func(H) string
 }
 
 func NewResource[T any, H hcl.HCL[T]](args ResourceArgs[T, H]) *Resource[T, H] {
 	return &Resource[T, H]{
-		createURL: args.CreateURL,
-		updateURL: args.UpdateURL,
-		deleteURL: args.DeleteURL,
-		getURL:    args.GetURL,
-		indexURL:  args.IndexURL,
-		remoteID:  args.RemoteID,
-		id:        args.ID,
+		createURL:     args.CreateURL,
+		updateURL:     args.UpdateURL,
+		onCreateReply: args.OnCreateReply,
+		deleteURL:     args.DeleteURL,
+		getURL:        args.GetURL,
+		indexURL:      args.IndexURL,
+		remoteID:      args.RemoteID,
+		id:            args.ID,
 	}
 }
 
@@ -56,11 +59,20 @@ func (r *Resource[T, H]) Create(ctx context.Context, d *schema.ResourceData, met
 
 	tg := tf.ToTG()
 
-	if _, err := tgc.Post(ctx, r.createURL(tf), tg); err != nil {
+	reply, err := tgc.Post(ctx, r.createURL(tf), tg)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(r.id(tf))
+	if r.onCreateReply != nil {
+		id, err := r.onCreateReply(d, reply)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(id)
+	} else {
+		d.SetId(r.id(tf))
+	}
 
 	return nil
 }
@@ -156,6 +168,10 @@ func (r *Resource[T, H]) Read(ctx context.Context, d *schema.ResourceData, meta 
 
 	switch {
 	case r.getURL != nil:
+		// TODO probably should have getURL just error if it needs something that isn't set
+		if d.Id() == "" {
+			return nil
+		}
 		t, ok, err = r.read(ctx, tf, meta)
 	case r.indexURL != nil:
 		t, ok, err = r.index(ctx, tf, meta)

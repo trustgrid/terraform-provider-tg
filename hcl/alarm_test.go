@@ -9,7 +9,7 @@ import (
 
 func Test_AlarmChannel_Update(t *testing.T) {
 	ac := AlarmChannel{}
-	ac.UpdateFromTG(tg.AlarmChannel{
+	updated := ac.UpdateFromTG(tg.AlarmChannel{
 		UID:            "uid",
 		Name:           "name",
 		Emails:         "one@trustgrid.io, two@trustgrid.io",
@@ -20,20 +20,20 @@ func Test_AlarmChannel_Update(t *testing.T) {
 		SlackChannel:   "myslackchannel",
 		SlackWebhook:   "http://slack-webhook",
 		SlackV2:        true,
-	})
-	assert.Equal(t, "uid", ac.UID)
-	assert.Equal(t, "name", ac.Name)
-	assert.Equal(t, []string{"one@trustgrid.io", "two@trustgrid.io"}, ac.Emails)
-	assert.Equal(t, "http://generic-webhook", ac.GenericWebhook)
-	assert.Equal(t, "https://msteams-webhook", ac.MSTeams)
-	assert.Equal(t, "opsgeniekey", ac.OpsGenie)
-	assert.Equal(t, "pagerdutykey", ac.Pagerduty)
+	}).(AlarmChannel)
+	assert.Equal(t, "uid", updated.UID)
+	assert.Equal(t, "name", updated.Name)
+	assert.Equal(t, []string{"one@trustgrid.io", "two@trustgrid.io"}, updated.Emails)
+	assert.Equal(t, "http://generic-webhook", updated.GenericWebhook)
+	assert.Equal(t, "https://msteams-webhook", updated.MSTeams)
+	assert.Equal(t, "opsgeniekey", updated.OpsGenie)
+	assert.Equal(t, "pagerdutykey", updated.Pagerduty)
 	assert.Equal(t, []slackChannel{
 		{
 			Channel: "myslackchannel",
 			Webhook: "http://slack-webhook",
 		},
-	}, ac.Slack)
+	}, updated.Slack)
 }
 
 func Test_AlarmChannel_ToTG(t *testing.T) {
@@ -69,7 +69,7 @@ func Test_AlarmChannel_ToTG(t *testing.T) {
 
 func Test_Alarm_Update(t *testing.T) {
 	a := Alarm{}
-	a.UpdateFromTG(tg.Alarm{
+	updated := a.UpdateFromTG(tg.Alarm{
 		UID:          "uid",
 		Name:         "name",
 		Description:  "desc",
@@ -83,18 +83,18 @@ func Test_Alarm_Update(t *testing.T) {
 		TagsOperator: "ANY",
 		Threshold:    "INFO",
 		Types:        []string{"evt1", "evt2"},
-	})
+	}).(Alarm)
 
-	assert.Equal(t, "uid", a.UID)
-	assert.Equal(t, "name", a.Name)
-	assert.Equal(t, "desc", a.Description)
-	assert.Equal(t, true, a.Enabled)
-	assert.Equal(t, []string{"1", "2"}, a.Channels)
-	assert.Equal(t, "myexpr", a.Expr)
-	assert.Equal(t, "freetext", a.FreeText)
-	assert.Equal(t, []string{"uno", "dos"}, a.Nodes)
-	assert.Equal(t, "ALL", a.Operator)
-	assert.Equal(t, "ANY", a.TagOperator)
+	assert.Equal(t, "uid", updated.UID)
+	assert.Equal(t, "name", updated.Name)
+	assert.Equal(t, "desc", updated.Description)
+	assert.Equal(t, true, updated.Enabled)
+	assert.Equal(t, []string{"1", "2"}, updated.Channels)
+	assert.Equal(t, "myexpr", updated.Expr)
+	assert.Equal(t, "freetext", updated.FreeText)
+	assert.Equal(t, []string{"uno", "dos"}, updated.Nodes)
+	assert.Equal(t, "ALL", updated.Operator)
+	assert.Equal(t, "ANY", updated.TagOperator)
 	assert.Equal(t, []tagging{
 		{
 			Name:  "yes",
@@ -104,9 +104,9 @@ func Test_Alarm_Update(t *testing.T) {
 			Name:  "no",
 			Value: "no",
 		},
-	}, a.Tags)
-	assert.Equal(t, "INFO", a.Threshold)
-	assert.Equal(t, []string{"evt1", "evt2"}, a.Types)
+	}, updated.Tags)
+	assert.Equal(t, "INFO", updated.Threshold)
+	assert.Equal(t, []string{"evt1", "evt2"}, updated.Types)
 
 }
 
