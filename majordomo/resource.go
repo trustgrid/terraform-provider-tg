@@ -77,7 +77,7 @@ func (r *Resource[T, H]) Create(ctx context.Context, d *schema.ResourceData, met
 	return nil
 }
 
-func (r *Resource[T, H]) Noop(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (r *Resource[T, H]) Noop(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	return nil
 }
 
