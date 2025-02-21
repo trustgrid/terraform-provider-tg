@@ -226,7 +226,9 @@ func (z *ztnaConfig) Read(ctx context.Context, d *schema.ResourceData, meta any)
 	} else {
 		c := tg.Cluster{}
 		err = tgc.Get(ctx, "/cluster/"+d.Id(), &c)
-		ztna = c.Config.ZTNA
+		if c.Config.ZTNA != nil {
+			ztna = *c.Config.ZTNA
+		}
 		ztna.ClusterFQDN = gw.ClusterFQDN
 	}
 
