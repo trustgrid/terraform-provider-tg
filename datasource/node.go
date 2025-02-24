@@ -16,6 +16,7 @@ type dsNode struct{}
 type hclNode struct {
 	Timeout int    `tf:"timeout"`
 	UID     string `tf:"uid"`
+	Name    string `tf:"name"`
 	FQDN    string `tf:"fqdn"`
 }
 
@@ -33,6 +34,11 @@ func Node() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: []string{"uid", "fqdn"},
+			},
+			"name": {
+				Description: "Node name",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 			"fqdn": {
 				Description:  "Node FQDN",
@@ -85,6 +91,7 @@ func (ds *dsNode) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	tf.UID = node.UID
 	tf.FQDN = node.FQDN
+	tf.Name = node.Name
 
 	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)

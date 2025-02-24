@@ -58,6 +58,7 @@ func New(version string) func() *schema.Provider {
 				"tg_alarm_channel":   datasource.AlarmChannel(),
 				"tg_app":             datasource.App(),
 				"tg_cert":            datasource.Cert(),
+				"tg_cluster":         datasource.Cluster(),
 				"tg_device_info":     datasource.Device(),
 				"tg_group":           datasource.Group(),
 				"tg_idp":             datasource.IDP(),

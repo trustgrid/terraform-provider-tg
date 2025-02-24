@@ -61,8 +61,12 @@ resource "tg_gateway_config" "private-gateway" {
 - `connect_to_public` (Boolean) Allow connectivity to public gateways
 - `enabled` (Boolean) Enable the gateway plugin
 - `host` (String) Host IP
-- `maxmbps` (Number) Max gateway throughput
+- `max_client_write_mbps` (Number) Maximum gateway egress throughput
+- `maxmbps` (Number) Max gateway ingress throughput
+- `monitor_hops` (Boolean) Monitor hop latency from this node to its gateways
+- `path` (Block List) Gateway paths (see [below for nested schema](#nestedblock--path))
 - `port` (Number) Host port
+- `route` (Block List) Gateway routes (see [below for nested schema](#nestedblock--route))
 - `type` (String) Gateway type (public, private, or hub)
 - `udp_enabled` (Boolean) Enable gateway UDP mode
 - `udp_port` (Number) UDP port
@@ -78,3 +82,30 @@ Required:
 
 - `enabled` (Boolean) Client enabled
 - `name` (String) Client node name
+
+
+<a id="nestedblock--path"></a>
+### Nested Schema for `path`
+
+Required:
+
+- `host` (String) Path host
+- `node` (String) Path node
+- `port` (Number) Path host
+
+Read-Only:
+
+- `id` (String) Path ID
+
+
+<a id="nestedblock--route"></a>
+### Nested Schema for `route`
+
+Required:
+
+- `dest` (String) Destination
+- `metric` (Number) Metric
+
+Read-Only:
+
+- `route` (String) Route
