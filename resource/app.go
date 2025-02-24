@@ -179,7 +179,7 @@ func (r *app) Update(ctx context.Context, d *schema.ResourceData, meta any) diag
 	}
 
 	tgapp := tf.ToTG()
-	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgapp); err != nil {
+	if _, err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgapp); err != nil {
 		return diag.FromErr(err)
 	}
 

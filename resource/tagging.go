@@ -67,7 +67,7 @@ func (r *tagging) writeTags(ctx context.Context, tgc *tg.Client, tf hcl.Tagging)
 		tf.Tags = make(map[string]string)
 	}
 
-	if err := tgc.Put(ctx, url, map[string]any{"tags": tf.Tags}); err != nil {
+	if _, err := tgc.Put(ctx, url, map[string]any{"tags": tf.Tags}); err != nil {
 		return "", err
 	}
 

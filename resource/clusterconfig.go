@@ -75,7 +75,8 @@ func ClusterConfig() *schema.Resource {
 }
 
 func (cr *clusterconfig) writeConfig(ctx context.Context, tgc *tg.Client, cc tg.ClusterConfig) error {
-	return tgc.Put(ctx, fmt.Sprintf("/node/%s/config/cluster", cc.NodeID), &cc)
+	_, err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/cluster", cc.NodeID), &cc)
+	return err
 }
 
 func (cr *clusterconfig) getConfig(ctx context.Context, tgc *tg.Client, uid string) (*tg.ClusterConfig, error) {
@@ -182,7 +183,7 @@ func (cr *clusterconfig) Delete(ctx context.Context, d *schema.ResourceData, met
 
 	cc.Enabled = false
 
-	if err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/cluster", d.Id()), &cc); err != nil {
+	if _, err := tgc.Put(ctx, fmt.Sprintf("/node/%s/config/cluster", d.Id()), &cc); err != nil {
 		return diag.FromErr(err)
 	}
 

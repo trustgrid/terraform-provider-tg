@@ -92,7 +92,7 @@ func snmpCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, snmp.URL(), snmp)
+	_, err = tgc.Put(ctx, snmp.URL(), snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -155,7 +155,7 @@ func snmpDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diag
 	}
 
 	snmp.Enabled = false
-	err = tgc.Put(ctx, snmp.URL(), snmp)
+	_, err = tgc.Put(ctx, snmp.URL(), snmp)
 	if err != nil {
 		return diag.FromErr(err)
 	}

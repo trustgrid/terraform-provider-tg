@@ -102,7 +102,7 @@ func cpuLimitsCreate(ctx context.Context, d *schema.ResourceData, meta any) diag
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, limits.url(), limits)
+	_, err = tgc.Put(ctx, limits.url(), limits)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -157,7 +157,7 @@ func cpuLimitsDelete(ctx context.Context, d *schema.ResourceData, meta any) diag
 		return diag.FromErr(err)
 	}
 
-	err = tgc.Put(ctx, limits.url(), empty)
+	_, err = tgc.Put(ctx, limits.url(), empty)
 	if err != nil {
 		return diag.FromErr(err)
 	}

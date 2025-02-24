@@ -95,7 +95,7 @@ func (r *kvmImage) Update(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	tgimg := tf.ToTG()
-	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgimg); err != nil {
+	if _, err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgimg); err != nil {
 		return diag.FromErr(err)
 	}
 

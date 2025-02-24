@@ -153,7 +153,7 @@ func (vn *vnetAccessRule) Update(ctx context.Context, d *schema.ResourceData, me
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Put(ctx, vn.ruleURL(tgc, rule), &rule); err != nil {
+	if _, err := tgc.Put(ctx, vn.ruleURL(tgc, rule), &rule); err != nil {
 		return diag.FromErr(err)
 	}
 
