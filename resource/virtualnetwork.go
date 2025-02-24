@@ -71,27 +71,27 @@ func vnetCommit(ctx context.Context, tgc *tg.Client, network string) error {
 func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	vnet := tg.VirtualNetwork{}
-	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VirtualNetwork](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if _, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnet); err != nil {
+	if _, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network", &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
 	vnets := make([]tg.VirtualNetwork, 0)
 
-	err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
+	err = tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	for _, v := range vnets {
-		if v.Name == vnet.Name {
+		if v.Name == tf.Name {
 			d.SetId(fmt.Sprintf("%d", v.ID))
 			break
 		}
@@ -103,19 +103,19 @@ func (vn *virtualNetwork) Create(ctx context.Context, d *schema.ResourceData, me
 func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	vnet := tg.VirtualNetwork{}
-	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VirtualNetwork](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+vnet.Name, &vnet); err != nil {
+	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.Name, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := vnetCommit(ctx, tgc, vnet.Name); err != nil {
+	if err := vnetCommit(ctx, tgc, tf.Name); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -125,15 +125,15 @@ func (vn *virtualNetwork) Update(ctx context.Context, d *schema.ResourceData, me
 func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	vnet := tg.VirtualNetwork{}
-	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VirtualNetwork](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Delete(ctx, "/v2/domain/"+tgc.Domain+"/network/"+vnet.Name, &vnet); err != nil {
+	if err := tgc.Delete(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.Name, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -143,23 +143,22 @@ func (vn *virtualNetwork) Delete(ctx context.Context, d *schema.ResourceData, me
 func (vn *virtualNetwork) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	vnet := tg.VirtualNetwork{}
-	if err := hcl.DecodeResourceData(d, &vnet); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VirtualNetwork](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	vnets := make([]tg.VirtualNetwork, 0)
 
-	err := tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
+	err = tgc.Get(ctx, "/v2/domain/"+tgc.Domain+"/network", &vnets)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	found := false
 	for _, v := range vnets {
-		if v.Name == vnet.Name {
+		if v.Name == tf.Name {
 			found = true
-			vnet = v
 			break
 		}
 	}

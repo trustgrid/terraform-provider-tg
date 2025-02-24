@@ -65,13 +65,13 @@ func (nr *shadow) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.Errorf("node_id must be a string")
 	}
 
-	var tf hcl.Shadow
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Shadow](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	n := tg.Node{}
-	err := tgc.Get(ctx, "/node/"+id, &n)
+	err = tgc.Get(ctx, "/node/"+id, &n)
 	if err != nil {
 		return diag.FromErr(err)
 	}

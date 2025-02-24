@@ -592,8 +592,8 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	id, isCluster := nr.endpoint(d)
 
-	var tf hcl.NetworkConfig
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.NetworkConfig](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -603,7 +603,11 @@ func (nr *network) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("cannot lookup cluster id=%s isCluster=%t %w", id, isCluster, err))
 		}
-		tf.UpdateFromTG(n.Config.Network)
+		if n.Config.Network == nil {
+			tf.UpdateFromTG(tg.NetworkConfig{})
+		} else {
+			tf.UpdateFromTG(*n.Config.Network)
+		}
 	} else {
 		n := tg.Node{}
 		err := tgc.Get(ctx, "/node/"+id, &n)

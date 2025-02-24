@@ -11,9 +11,10 @@ import (
 
 // DecodeResourceData decodes TF resource data (HCL+schema filters/etc) into the given struct,
 // using the `tf` tag. If a field doesn't have a `tf` tag, it won't be populated.
-func DecodeResourceData(d *schema.ResourceData, target any) error {
+func DecodeResourceData[T any](d *schema.ResourceData) (T, error) {
 	fields := make(map[string]any)
 
+	target := new(T)
 	for i := 0; i < reflect.TypeOf(target).Elem().NumField(); i++ {
 		field := reflect.TypeOf(target).Elem().FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
@@ -32,10 +33,10 @@ func DecodeResourceData(d *schema.ResourceData, target any) error {
 		Result:  target,
 	})
 	if err != nil {
-		return err
+		return *target, err
 	}
 
-	return decoder.Decode(fields)
+	return *target, decoder.Decode(fields)
 }
 
 func convertToMap(in any) (map[string]any, error) {

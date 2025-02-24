@@ -1,28 +1,29 @@
 package resource
 
 import (
-	"context"
-	"errors"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
+	"github.com/trustgrid/terraform-provider-tg/majordomo"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type nodeState struct {
-}
-
 func NodeState() *schema.Resource {
-	r := nodeState{}
+	md := majordomo.NewResource(
+		majordomo.ResourceArgs[tg.NodeState, hcl.Node]{
+			UpdateURL: func(n hcl.Node) string { return "/node/" + n.UID },
+			GetURL:    func(n hcl.Node) string { return "/node/" + n.UID },
+			ID: func(n hcl.Node) string {
+				return n.UID
+			},
+		})
 
 	return &schema.Resource{
 		Description: "Manage a Node state.",
 
-		ReadContext:   r.Read,
-		UpdateContext: r.Update,
-		DeleteContext: r.Delete,
-		CreateContext: r.Create,
+		ReadContext:   md.Read,
+		UpdateContext: md.Update,
+		DeleteContext: md.Noop,
+		CreateContext: md.Create,
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
@@ -38,72 +39,4 @@ func NodeState() *schema.Resource {
 			},
 		},
 	}
-}
-
-func (r *nodeState) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf := hcl.Node{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	tgnode := tf.ToTG()
-
-	err := tgc.Put(ctx, tf.ResourceURL(tf.UID), &tgnode)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(tf.UID)
-
-	return nil
-}
-
-func (r *nodeState) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf := hcl.Node{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	tgnode := tf.ToTG()
-	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgnode); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-
-func (r *nodeState) Delete(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
-	return nil
-}
-
-func (r *nodeState) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf := hcl.Node{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	tgnode := tg.NodeState{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgnode)
-	var nferr *tg.NotFoundError
-	switch {
-	case errors.As(err, &nferr):
-		d.SetId("")
-		return nil
-	case err != nil:
-		return diag.FromErr(err)
-	}
-
-	tf.UpdateFromTG(tgnode)
-
-	if err := hcl.EncodeResourceData(tf, d); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
 }

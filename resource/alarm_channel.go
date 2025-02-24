@@ -1,29 +1,45 @@
 package resource
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
+	"github.com/trustgrid/terraform-provider-tg/majordomo"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type alarmChannel struct {
-}
-
 func AlarmChannel() *schema.Resource {
-	r := alarmChannel{}
+	md := majordomo.NewResource(
+		majordomo.ResourceArgs[tg.AlarmChannel, hcl.AlarmChannel]{
+			CreateURL: func(_ hcl.AlarmChannel) string { return "/v2/alarm-channel" },
+			OnCreateReply: func(d *schema.ResourceData, reply []byte) (string, error) {
+				var response struct {
+					ID string `json:"uid"`
+				}
+				if err := json.Unmarshal(reply, &response); err != nil {
+					return "", err
+				}
 
+				if err := d.Set("uid", response.ID); err != nil {
+					return "", err
+				}
+				return response.ID, nil
+			},
+			UpdateURL: func(a hcl.AlarmChannel) string { return "/v2/alarm-channel/" + a.UID },
+			DeleteURL: func(a hcl.AlarmChannel) string { return "/v2/alarm-channel/" + a.UID },
+			GetURL:    func(a hcl.AlarmChannel) string { return "/v2/alarm-channel/" + a.UID },
+			ID: func(a hcl.AlarmChannel) string {
+				return a.UID
+			},
+		})
 	return &schema.Resource{
 		Description: "Manage an alarm channel.",
 
-		ReadContext:   r.Read,
-		UpdateContext: r.Update,
-		DeleteContext: r.Delete,
-		CreateContext: r.Create,
+		ReadContext:   md.Read,
+		UpdateContext: md.Update,
+		DeleteContext: md.Delete,
+		CreateContext: md.Create,
 
 		Schema: map[string]*schema.Schema{
 			"uid": {
@@ -87,93 +103,4 @@ func AlarmChannel() *schema.Resource {
 			},
 		},
 	}
-}
-
-func (r *alarmChannel) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	tgch := tf.ToTG()
-
-	reply, err := tgc.Post(ctx, tf.URL(), &tgch)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	var response struct {
-		ID string `json:"uid"`
-	}
-	if err := json.Unmarshal(reply, &response); err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err := d.Set("uid", response.ID); err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(response.ID)
-
-	return nil
-}
-
-func (r *alarmChannel) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	tgch := tf.ToTG()
-	if err := tgc.Put(ctx, tf.ResourceURL(d.Id()), &tgch); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-
-func (r *alarmChannel) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err := tgc.Delete(ctx, tf.ResourceURL(d.Id()), nil); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-
-func (r *alarmChannel) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	tgc := tg.GetClient(meta)
-
-	tf := hcl.AlarmChannel{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
-		return diag.FromErr(err)
-	}
-
-	tgch := tg.AlarmChannel{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgch)
-	var nferr *tg.NotFoundError
-	switch {
-	case errors.As(err, &nferr):
-		d.SetId("")
-		return nil
-	case err != nil:
-		return diag.FromErr(err)
-	}
-
-	tf.UpdateFromTG(tgch)
-	tf.UID = d.Id()
-
-	if err := hcl.EncodeResourceData(tf, d); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
 }

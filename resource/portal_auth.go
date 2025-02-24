@@ -43,13 +43,13 @@ func PortalAuth() *schema.Resource {
 func (r *portalAuth) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.PortalAuth{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.PortalAuth](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 	tgauth := tf.ToTG()
 
-	err := tgc.Put(ctx, "/org/auth", &tgauth)
+	err = tgc.Put(ctx, "/org/auth", &tgauth)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -63,8 +63,8 @@ func (r *portalAuth) Create(ctx context.Context, d *schema.ResourceData, meta an
 func (r *portalAuth) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.PortalAuth{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.PortalAuth](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -80,8 +80,8 @@ func (r *portalAuth) Update(ctx context.Context, d *schema.ResourceData, meta an
 func (r *portalAuth) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.PortalAuth{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.PortalAuth](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -99,13 +99,13 @@ func (r *portalAuth) Delete(ctx context.Context, d *schema.ResourceData, meta an
 func (r *portalAuth) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.PortalAuth{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.PortalAuth](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgauth := tg.PortalAuth{}
-	err := tgc.Get(ctx, "/org/auth", &tgauth)
+	err = tgc.Get(ctx, "/org/auth", &tgauth)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

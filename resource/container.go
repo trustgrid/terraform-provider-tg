@@ -17,98 +17,7 @@ import (
 type container struct {
 }
 
-type HCLContainerImage struct {
-	Repository string `tf:"repository"`
-	Tag        string `tf:"tag"`
-}
-
-type HCLContainerHealthCheck struct {
-	Command     string `tf:"command"`
-	Interval    int    `tf:"interval"`
-	Timeout     int    `tf:"timeout"`
-	StartPeriod int    `tf:"start_period"`
-	Retries     int    `tf:"retries"`
-}
-
-type HCLContainerULimit struct {
-	Type string `tf:"type"`
-	Hard int    `tf:"hard"`
-	Soft int    `tf:"soft"`
-}
-
-type HCLContainerLimit struct {
-	CPUMax  int `tf:"cpu_max"`
-	IORBPS  int `tf:"io_rbps"`
-	IOWBPS  int `tf:"io_wbps"`
-	IORIOPS int `tf:"io_riops"`
-	IOWIOPS int `tf:"io_wiops"`
-	MemMax  int `tf:"mem_max"`
-	MemHigh int `tf:"mem_high"`
-
-	Limits []HCLContainerULimit `tf:"limits"`
-}
-
-type HCLContainerMount struct {
-	UID    string `tf:"uid"`
-	Type   string `tf:"type"`
-	Source string `tf:"source"`
-	Dest   string `tf:"dest"`
-}
-
-type HCLContainerPortMapping struct {
-	UID           string `tf:"uid"`
-	Protocol      string `tf:"protocol"`
-	IFace         string `tf:"iface"`
-	HostPort      int    `tf:"host_port"`
-	ContainerPort int    `tf:"container_port"`
-}
-
-type HCLContainerVirtualNetwork struct {
-	UID           string `tf:"uid"`
-	Network       string `tf:"network"`
-	IP            string `tf:"ip"`
-	AllowOutbound bool   `tf:"allow_outbound"`
-}
-
-type HCLContainerInterface struct {
-	UID  string `tf:"uid"`
-	Name string `tf:"name"`
-	Dest string `tf:"dest"`
-}
-
-type HCLContainer struct {
-	NodeID              string              `tf:"node_id"`
-	ClusterFQDN         string              `tf:"cluster_fqdn"`
-	ID                  string              `tf:"id"`
-	Command             string              `tf:"command"`
-	Description         string              `tf:"description"`
-	Enabled             bool                `tf:"enabled"`
-	ExecType            string              `tf:"exec_type"`
-	Hostname            string              `tf:"hostname"`
-	Image               []HCLContainerImage `tf:"image"`
-	Name                string              `tf:"name"`
-	Privileged          bool                `tf:"privileged"`
-	RequireConnectivity bool                `tf:"require_connectivity"`
-	StopTime            int                 `tf:"stop_time"`
-	UseInit             bool                `tf:"use_init"`
-	User                string              `tf:"user"`
-	VRF                 string              `tf:"vrf"`
-
-	AddCaps      []string                  `tf:"add_caps"`
-	DropCaps     []string                  `tf:"drop_caps"`
-	Variables    map[string]string         `tf:"variables"`
-	Healthchecks []HCLContainerHealthCheck `tf:"healthcheck"`
-
-	LogMaxFileSize int `tf:"log_max_file_size"`
-	LogMaxNumFiles int `tf:"log_max_num_files"`
-
-	Limits          []HCLContainerLimit          `tf:"limits"`
-	Mounts          []HCLContainerMount          `tf:"mount"`
-	PortMappings    []HCLContainerPortMapping    `tf:"port_mapping"`
-	VirtualNetworks []HCLContainerVirtualNetwork `tf:"virtual_network"`
-	Interfaces      []HCLContainerInterface      `tf:"interface"`
-}
-
+// Container manages a node or cluster container.
 func Container() *schema.Resource {
 	c := container{}
 
@@ -549,18 +458,18 @@ func Container() *schema.Resource {
 	}
 }
 
-func (cr *container) urlRoot(c tg.Container) string {
+func (cr *container) urlRoot(c hcl.Container) string {
 	if c.NodeID != "" {
 		return "/v2/node/" + c.NodeID + "/exec/container"
 	}
 	return "/v2/cluster/" + c.ClusterFQDN + "/exec/container"
 }
 
-func (cr *container) containerURL(c tg.Container) string {
+func (cr *container) containerURL(c hcl.Container) string {
 	return cr.urlRoot(c) + "/" + c.ID
 }
 
-func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Container) (tg.Container, error) {
+func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c hcl.Container) (tg.Container, error) {
 	res := tg.Container{}
 	err := tgc.Get(ctx, cr.containerURL(c), &res)
 	if err != nil {
@@ -641,263 +550,21 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c tg.Cont
 	return res, err
 }
 
-func (cr *container) writeExtendedConfig(ctx context.Context, tgc *tg.Client, c tg.Container) error {
-	return tgc.Put(ctx, cr.containerURL(c)+"/config", c.Config)
-}
-
-func (cr *container) convertToTFConfig(c tg.Container, d *schema.ResourceData) error {
-	tfc := HCLContainer{
-		NodeID:      c.NodeID,
-		ClusterFQDN: c.ClusterFQDN,
-		ID:          c.ID,
-		Command:     c.Command,
-		Description: c.Description,
-		Enabled:     c.Enabled,
-		ExecType:    c.ExecType,
-		Hostname:    c.Hostname,
-		Image: []HCLContainerImage{
-			{Repository: c.Image.Repository, Tag: c.Image.Tag},
-		},
-		Name:                c.Name,
-		Privileged:          c.Privileged,
-		RequireConnectivity: c.RequireConnectivity,
-		StopTime:            c.StopTime,
-		UseInit:             c.UseInit,
-		User:                c.User,
-		Variables:           make(map[string]string),
-	}
-
-	if c.Config.VRF != nil {
-		tfc.VRF = c.Config.VRF.Name
-	}
-
-	tfc.AddCaps = append(tfc.AddCaps, c.Config.Capabilities.AddCaps...)
-	tfc.DropCaps = append(tfc.DropCaps, c.Config.Capabilities.DropCaps...)
-
-	for _, v := range c.Config.Variables {
-		tfc.Variables[v.Name] = v.Value
-	}
-
-	if c.Config.HealthCheck != nil {
-		hc := c.Config.HealthCheck
-		tfc.Healthchecks = []HCLContainerHealthCheck{
-			{
-				Command:     hc.Command,
-				Interval:    hc.Interval,
-				Timeout:     hc.Timeout,
-				StartPeriod: hc.StartPeriod,
-				Retries:     hc.Retries,
-			},
-		}
-	}
-
-	if c.Config.Logging.MaxFileSize > 0 {
-		tfc.LogMaxFileSize = c.Config.Logging.MaxFileSize
-	}
-	if c.Config.Logging.NumFiles > 0 {
-		tfc.LogMaxNumFiles = c.Config.Logging.NumFiles
-	}
-
-	if c.Config.Limits != nil {
-		limits := c.Config.Limits
-		tlimit := HCLContainerLimit{
-			CPUMax:  limits.CPUMax,
-			IORBPS:  limits.IORBPS,
-			IORIOPS: limits.IORIOPS,
-			IOWBPS:  limits.IOWBPS,
-			IOWIOPS: limits.IOWIOPS,
-			MemMax:  limits.MemMax,
-			MemHigh: limits.MemHigh,
-		}
-
-		for _, l := range limits.Limits {
-			tlimit.Limits = append(tlimit.Limits, HCLContainerULimit{
-				Type: l.Type,
-				Hard: l.Hard,
-				Soft: l.Soft,
-			})
-		}
-		tfc.Limits = []HCLContainerLimit{tlimit}
-	}
-
-	for _, m := range c.Config.Mounts {
-		tfc.Mounts = append(tfc.Mounts, HCLContainerMount{
-			UID:    m.UID,
-			Type:   m.Type,
-			Source: m.Source,
-			Dest:   m.Dest,
-		})
-	}
-
-	for _, pm := range c.Config.PortMappings {
-		tfc.PortMappings = append(tfc.PortMappings, HCLContainerPortMapping{
-			UID:           pm.UID,
-			Protocol:      pm.Protocol,
-			IFace:         pm.IFace,
-			HostPort:      pm.HostPort,
-			ContainerPort: pm.ContainerPort,
-		})
-	}
-
-	for _, vnet := range c.Config.VirtualNetworks {
-		tfc.VirtualNetworks = append(tfc.VirtualNetworks, HCLContainerVirtualNetwork{
-			UID:           vnet.UID,
-			Network:       vnet.Network,
-			IP:            vnet.IP,
-			AllowOutbound: vnet.AllowOutbound,
-		})
-	}
-
-	for _, i := range c.Config.Interfaces {
-		tfc.Interfaces = append(tfc.Interfaces, HCLContainerInterface{
-			UID:  i.UID,
-			Name: i.Name,
-			Dest: i.Dest,
-		})
-	}
-
-	return hcl.EncodeResourceData(&tfc, d)
-}
-
-func (cr *container) decodeTFConfig(_ context.Context, d *schema.ResourceData) (tg.Container, error) {
-	tfc := HCLContainer{}
-	c := tg.Container{}
-
-	if err := hcl.DecodeResourceData(d, &tfc); err != nil {
-		return c, err
-	}
-
-	c.NodeID = tfc.NodeID
-	c.ClusterFQDN = tfc.ClusterFQDN
-	c.ID = tfc.ID
-	c.Command = tfc.Command
-	c.Description = tfc.Description
-	c.Enabled = tfc.Enabled
-	c.ExecType = tfc.ExecType
-	c.Hostname = tfc.Hostname
-	c.Image.Repository = tfc.Image[0].Repository
-	c.Image.Tag = tfc.Image[0].Tag
-	c.Name = tfc.Name
-	c.Privileged = tfc.Privileged
-	c.RequireConnectivity = tfc.RequireConnectivity
-	c.StopTime = tfc.StopTime
-	c.UseInit = tfc.UseInit
-	c.User = tfc.User
-
-	cc := &c.Config
-
-	cc.Capabilities.AddCaps = append(cc.Capabilities.AddCaps, tfc.AddCaps...)
-	cc.Capabilities.DropCaps = append(cc.Capabilities.DropCaps, tfc.DropCaps...)
-
-	for k, v := range tfc.Variables {
-		cc.Variables = append(cc.Variables, tg.ContainerVar{Name: k, Value: v})
-	}
-
-	cc.Logging.MaxFileSize = tfc.LogMaxFileSize
-	cc.Logging.NumFiles = tfc.LogMaxNumFiles
-
-	if len(tfc.Healthchecks) > 0 {
-		hc := tfc.Healthchecks[0]
-		cc.HealthCheck = &tg.HealthCheck{
-			Command:     hc.Command,
-			Interval:    hc.Interval,
-			Timeout:     hc.Timeout,
-			StartPeriod: hc.StartPeriod,
-			Retries:     hc.Retries,
-		}
-	}
-
-	if len(tfc.Limits) > 0 {
-		limit := tfc.Limits[0]
-		cc.Limits = &tg.ContainerLimits{
-			CPUMax:  limit.CPUMax,
-			IORBPS:  limit.IORBPS,
-			IOWBPS:  limit.IOWBPS,
-			IORIOPS: limit.IORIOPS,
-			IOWIOPS: limit.IOWIOPS,
-			MemMax:  limit.MemMax,
-			MemHigh: limit.MemHigh,
-		}
-
-		for _, l := range limit.Limits {
-			cc.Limits.Limits = append(cc.Limits.Limits, tg.ULimit{
-				Type: l.Type,
-				Hard: l.Hard,
-				Soft: l.Soft,
-			})
-		}
-	}
-
-	for _, m := range tfc.Mounts {
-		mount := tg.Mount{
-			UID:    m.UID,
-			Type:   m.Type,
-			Source: m.Source,
-			Dest:   m.Dest,
-		}
-		if m.UID == "" {
-			m.UID = uuid.NewString()
-		}
-		cc.Mounts = append(cc.Mounts, mount)
-	}
-
-	for _, m := range tfc.PortMappings {
-		pm := tg.PortMapping{
-			UID:           m.UID,
-			Protocol:      m.Protocol,
-			IFace:         m.IFace,
-			HostPort:      m.HostPort,
-			ContainerPort: m.ContainerPort,
-		}
-		if pm.UID == "" {
-			pm.UID = uuid.NewString()
-		}
-		cc.PortMappings = append(cc.PortMappings, pm)
-	}
-
-	for _, vn := range tfc.VirtualNetworks {
-		vnet := tg.ContainerVirtualNetwork{
-			UID:           vn.UID,
-			Network:       vn.Network,
-			IP:            vn.IP,
-			AllowOutbound: vn.AllowOutbound,
-		}
-		if vnet.UID == "" {
-			vnet.UID = uuid.NewString()
-		}
-		cc.VirtualNetworks = append(cc.VirtualNetworks, vnet)
-	}
-
-	for _, i := range tfc.Interfaces {
-		iface := tg.ContainerInterface{
-			UID:  i.UID,
-			Name: i.Name,
-			Dest: i.Dest,
-		}
-		if iface.UID == "" {
-			iface.UID = uuid.NewString()
-		}
-		cc.Interfaces = append(cc.Interfaces, iface)
-	}
-
-	if tfc.VRF != "" {
-		cc.VRF = &tg.ContainerVRF{Name: tfc.VRF}
-	}
-
-	return c, nil
+func (cr *container) writeExtendedConfig(ctx context.Context, tgc *tg.Client, c hcl.Container) error {
+	return tgc.Put(ctx, cr.containerURL(c)+"/config", c.ToTG().Config)
 }
 
 func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	ct, err := cr.decodeTFConfig(ctx, d)
+	ct, err := hcl.DecodeResourceData[hcl.Container](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	ct.ID = uuid.New().String()
 
-	if _, err := tgc.Post(ctx, cr.urlRoot(ct), &ct); err != nil {
+	if _, err := tgc.Post(ctx, cr.urlRoot(ct), ct.ToTG()); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -913,7 +580,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	ct, err := cr.decodeTFConfig(ctx, d)
+	ct, err := hcl.DecodeResourceData[hcl.Container](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -932,7 +599,7 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta an
 func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	ct, err := cr.decodeTFConfig(ctx, d)
+	ct, err := hcl.DecodeResourceData[hcl.Container](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -947,7 +614,7 @@ func (cr *container) Delete(ctx context.Context, d *schema.ResourceData, meta an
 func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf, err := cr.decodeTFConfig(ctx, d)
+	tf, err := hcl.DecodeResourceData[hcl.Container](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -962,9 +629,7 @@ func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	if err := cr.convertToTFConfig(ct, d); err != nil {
-		return diag.FromErr(err)
-	}
+	tf.UpdateFromTG(ct)
 
 	return nil
 }

@@ -181,9 +181,7 @@ func (gc *gatewayConfig) Delete(ctx context.Context, d *schema.ResourceData, met
 }
 
 func (gc *gatewayConfig) decodeTFConfig(_ context.Context, d *schema.ResourceData) (tg.GatewayConfig, error) {
-	gw := tg.GatewayConfig{}
-	err := hcl.DecodeResourceData(d, &gw)
-	return gw, err
+	return hcl.DecodeResourceData[tg.GatewayConfig](d)
 }
 
 func (gc *gatewayConfig) convertToTFConfig(_ context.Context, config tg.GatewayConfig, d *schema.ResourceData) error {

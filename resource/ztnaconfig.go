@@ -169,8 +169,7 @@ func (z *ztnaConfig) shouldConfigureZTNA(gw tg.ZTNAConfig) bool {
 // will either generate a wg key or import the provided one.
 func (z *ztnaConfig) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	gw := tg.ZTNAConfig{}
-	err := hcl.DecodeResourceData(d, &gw)
+	gw, err := hcl.DecodeResourceData[tg.ZTNAConfig](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -211,8 +210,7 @@ func (z *ztnaConfig) url(c tg.ZTNAConfig) string {
 // Read fetches the ZTNA gateway config and the ZTNA WG key from the TG API
 func (z *ztnaConfig) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	gw := tg.ZTNAConfig{}
-	err := hcl.DecodeResourceData(d, &gw)
+	gw, err := hcl.DecodeResourceData[tg.ZTNAConfig](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -228,7 +226,9 @@ func (z *ztnaConfig) Read(ctx context.Context, d *schema.ResourceData, meta any)
 	} else {
 		c := tg.Cluster{}
 		err = tgc.Get(ctx, "/cluster/"+d.Id(), &c)
-		ztna = c.Config.ZTNA
+		if c.Config.ZTNA != nil {
+			ztna = *c.Config.ZTNA
+		}
 		ztna.ClusterFQDN = gw.ClusterFQDN
 	}
 
@@ -273,8 +273,7 @@ func (z *ztnaConfig) derivePublicKey(privateKey string) (string, error) {
 // imports and updates the key (if needed).
 func (z *ztnaConfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	gw := tg.ZTNAConfig{}
-	err := hcl.DecodeResourceData(d, &gw)
+	gw, err := hcl.DecodeResourceData[tg.ZTNAConfig](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -315,8 +314,7 @@ func (z *ztnaConfig) Update(ctx context.Context, d *schema.ResourceData, meta an
 // Delete blanks out most of the ZTNA gateway config and sets enabled/wireguardEnabled to false
 func (z *ztnaConfig) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	gw := tg.ZTNAConfig{}
-	err := hcl.DecodeResourceData(d, &gw)
+	gw, err := hcl.DecodeResourceData[tg.ZTNAConfig](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -35,7 +35,7 @@ func (h *Alarm) URL() string {
 	return "/v2/alarm"
 }
 
-func (h *Alarm) ToTG() tg.Alarm {
+func (h Alarm) ToTG() tg.Alarm {
 	channels := make([]string, len(h.Channels))
 	copy(channels, h.Channels)
 	nodes := make([]string, len(h.Nodes))
@@ -64,33 +64,36 @@ func (h *Alarm) ToTG() tg.Alarm {
 	}
 }
 
-func (h *Alarm) UpdateFromTG(a tg.Alarm) {
-	h.UID = a.UID
-	h.Name = a.Name
-	h.Channels = make([]string, len(a.Channels))
-	copy(h.Channels, a.Channels)
-	h.Description = a.Description
-	h.Expr = a.Expr
-	h.FreeText = a.FreeText
-	h.Nodes = make([]string, len(a.Nodes))
-	copy(h.Nodes, a.Nodes)
-	h.Operator = a.Operator
-	h.TagOperator = a.TagsOperator
-	h.Tags = make([]tagging, len(a.Tags))
+func (h Alarm) UpdateFromTG(a tg.Alarm) HCL[tg.Alarm] {
+	o := Alarm{
+		UID:         a.UID,
+		Name:        a.Name,
+		Description: a.Description,
+		Expr:        a.Expr,
+		FreeText:    a.FreeText,
+		Operator:    a.Operator,
+		TagOperator: a.TagsOperator,
+		Enabled:     a.Enabled,
+		Threshold:   a.Threshold,
+	}
+	o.Channels = make([]string, len(a.Channels))
+	copy(o.Channels, a.Channels)
+	o.Nodes = make([]string, len(a.Nodes))
+	copy(o.Nodes, a.Nodes)
+	o.Tags = make([]tagging, len(a.Tags))
 	for i, t := range a.Tags {
 		name, value, ok := strings.Cut(t, "=")
 		if !ok {
 			continue
 		}
-		h.Tags[i] = tagging{
+		o.Tags[i] = tagging{
 			Name:  name,
 			Value: value,
 		}
 	}
-	h.Enabled = a.Enabled
-	h.Threshold = a.Threshold
-	h.Types = make([]string, len(a.Types))
-	copy(h.Types, a.Types)
+	o.Types = make([]string, len(a.Types))
+	copy(o.Types, a.Types)
+	return o
 }
 
 type slackChannel struct {
@@ -117,7 +120,7 @@ func (h *AlarmChannel) URL() string {
 	return "/v2/alarm-channel"
 }
 
-func (h *AlarmChannel) ToTG() tg.AlarmChannel {
+func (h AlarmChannel) ToTG() tg.AlarmChannel {
 	emails := strings.Join(h.Emails, ",")
 
 	schannel := ""
@@ -142,7 +145,7 @@ func (h *AlarmChannel) ToTG() tg.AlarmChannel {
 	}
 }
 
-func (h *AlarmChannel) UpdateFromTG(a tg.AlarmChannel) {
+func (h AlarmChannel) UpdateFromTG(a tg.AlarmChannel) HCL[tg.AlarmChannel] {
 	h.UID = a.UID
 	h.Name = a.Name
 	h.Emails = strings.Split(a.Emails, ",")
@@ -160,4 +163,6 @@ func (h *AlarmChannel) UpdateFromTG(a tg.AlarmChannel) {
 			Webhook: a.SlackWebhook,
 		},
 	}
+
+	return h
 }

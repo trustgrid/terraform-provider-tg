@@ -128,8 +128,8 @@ func AppAccessRule() *schema.Resource {
 func (r *appAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AccessRule{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AccessRule](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -154,8 +154,8 @@ func (r *appAccessRule) Create(ctx context.Context, d *schema.ResourceData, meta
 func (r *appAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AccessRule{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AccessRule](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -170,8 +170,8 @@ func (r *appAccessRule) Update(ctx context.Context, d *schema.ResourceData, meta
 func (r *appAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AccessRule{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AccessRule](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -185,13 +185,13 @@ func (r *appAccessRule) Delete(ctx context.Context, d *schema.ResourceData, meta
 func (r *appAccessRule) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AccessRule{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AccessRule](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgrule := tg.AppAccessRule{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgrule)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgrule)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

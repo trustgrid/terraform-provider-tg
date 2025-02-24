@@ -63,8 +63,8 @@ func AppACL() *schema.Resource {
 func (r *appACL) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AppACL{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AppACL](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -89,8 +89,8 @@ func (r *appACL) Create(ctx context.Context, d *schema.ResourceData, meta any) d
 func (r *appACL) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AppACL{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AppACL](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -105,8 +105,8 @@ func (r *appACL) Update(ctx context.Context, d *schema.ResourceData, meta any) d
 func (r *appACL) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AppACL{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AppACL](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -120,13 +120,13 @@ func (r *appACL) Delete(ctx context.Context, d *schema.ResourceData, meta any) d
 func (r *appACL) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.AppACL{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.AppACL](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgacl := tg.AppACL{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgacl)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgacl)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

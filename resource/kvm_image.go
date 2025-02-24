@@ -67,8 +67,8 @@ func KVMImage() *schema.Resource {
 func (r *kvmImage) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMImage{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMImage](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -76,7 +76,7 @@ func (r *kvmImage) Create(ctx context.Context, d *schema.ResourceData, meta any)
 	tgimg := tf.ToTG()
 	tgimg.ID = id
 
-	_, err := tgc.Post(ctx, tf.URL(), &tgimg)
+	_, err = tgc.Post(ctx, tf.URL(), &tgimg)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -89,8 +89,8 @@ func (r *kvmImage) Create(ctx context.Context, d *schema.ResourceData, meta any)
 func (r *kvmImage) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMImage{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMImage](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -105,8 +105,8 @@ func (r *kvmImage) Update(ctx context.Context, d *schema.ResourceData, meta any)
 func (r *kvmImage) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMImage{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMImage](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -120,13 +120,13 @@ func (r *kvmImage) Delete(ctx context.Context, d *schema.ResourceData, meta any)
 func (r *kvmImage) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMImage{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMImage](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgimg := tg.KVMImage{}
-	err := tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgimg)
+	err = tgc.Get(ctx, tf.ResourceURL(d.Id()), &tgimg)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

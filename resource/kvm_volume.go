@@ -80,14 +80,14 @@ func KVMVolume() *schema.Resource {
 func (r *kvmVolume) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMVolume{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMVolume](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgimg := tf.ToTG()
 
-	_, err := tgc.Post(ctx, tf.URL(), &tgimg)
+	_, err = tgc.Post(ctx, tf.URL(), &tgimg)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -100,8 +100,8 @@ func (r *kvmVolume) Create(ctx context.Context, d *schema.ResourceData, meta any
 func (r *kvmVolume) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMVolume{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMVolume](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -116,8 +116,8 @@ func (r *kvmVolume) Update(ctx context.Context, d *schema.ResourceData, meta any
 func (r *kvmVolume) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMVolume{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMVolume](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -131,13 +131,13 @@ func (r *kvmVolume) Delete(ctx context.Context, d *schema.ResourceData, meta any
 func (r *kvmVolume) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.KVMVolume{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.KVMVolume](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgimg := tg.KVMVolume{}
-	err := tgc.Get(ctx, tf.ResourceURL(), &tgimg)
+	err = tgc.Get(ctx, tf.ResourceURL(), &tgimg)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

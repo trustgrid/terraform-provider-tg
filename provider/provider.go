@@ -50,6 +50,7 @@ func New(version string) func() *schema.Provider {
 					Description: "Trustgrid Org ID. If provided and the credentials aren't for that org, the provider will fail early.",
 					Optional:    true,
 					Sensitive:   false,
+					DefaultFunc: schema.EnvDefaultFunc("TG_ORG_ID", nil),
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{

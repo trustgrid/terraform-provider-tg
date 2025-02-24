@@ -77,8 +77,8 @@ func (r *tagging) writeTags(ctx context.Context, tgc *tg.Client, tf hcl.Tagging)
 func (r *tagging) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Tagging{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Tagging](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -94,8 +94,8 @@ func (r *tagging) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 func (r *tagging) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Tagging{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Tagging](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -112,13 +112,13 @@ func (r *tagging) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 func (r *tagging) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Tagging{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Tagging](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tf.Tags = nil
-	_, err := r.writeTags(ctx, tgc, tf)
+	_, err = r.writeTags(ctx, tgc, tf)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -129,8 +129,8 @@ func (r *tagging) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 func (r *tagging) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Tagging{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Tagging](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

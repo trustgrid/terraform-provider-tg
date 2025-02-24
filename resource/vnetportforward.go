@@ -83,28 +83,28 @@ func (vn *vnetPortForward) findPortForward(ctx context.Context, tgc *tg.Client, 
 func (vn *vnetPortForward) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	pf := tg.VNetPortForward{}
-	if err := hcl.DecodeResourceData(d, &pf); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VNetPortForward](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	reply, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network/"+pf.NetworkName+"/port-forwarding", &pf)
+	reply, err := tgc.Post(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.NetworkName+"/port-forwarding", &tf)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if err := json.Unmarshal(reply, &pf); err != nil {
+	if err := json.Unmarshal(reply, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := vnetCommit(ctx, tgc, pf.NetworkName); err != nil {
+	if err := vnetCommit(ctx, tgc, tf.NetworkName); err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(pf.UID)
-	if err := d.Set("uid", pf.UID); err != nil {
+	d.SetId(tf.UID)
+	if err := d.Set("uid", tf.UID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -114,19 +114,19 @@ func (vn *vnetPortForward) Create(ctx context.Context, d *schema.ResourceData, m
 func (vn *vnetPortForward) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	pf := tg.VNetPortForward{}
-	if err := hcl.DecodeResourceData(d, &pf); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VNetPortForward](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+pf.NetworkName+"/port-forwarding/"+pf.UID, &pf); err != nil {
+	if err := tgc.Put(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.NetworkName+"/port-forwarding/"+tf.UID, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := vnetCommit(ctx, tgc, pf.NetworkName); err != nil {
+	if err := vnetCommit(ctx, tgc, tf.NetworkName); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -136,19 +136,19 @@ func (vn *vnetPortForward) Update(ctx context.Context, d *schema.ResourceData, m
 func (vn *vnetPortForward) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	pf := tg.VNetPortForward{}
-	if err := hcl.DecodeResourceData(d, &pf); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VNetPortForward](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	tgc.Lock.Lock()
 	defer tgc.Lock.Unlock()
 
-	if err := tgc.Delete(ctx, "/v2/domain/"+tgc.Domain+"/network/"+pf.NetworkName+"/port-forwarding/"+pf.UID, &pf); err != nil {
+	if err := tgc.Delete(ctx, "/v2/domain/"+tgc.Domain+"/network/"+tf.NetworkName+"/port-forwarding/"+tf.UID, &tf); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := vnetCommit(ctx, tgc, pf.NetworkName); err != nil {
+	if err := vnetCommit(ctx, tgc, tf.NetworkName); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -158,8 +158,8 @@ func (vn *vnetPortForward) Delete(ctx context.Context, d *schema.ResourceData, m
 func (vn *vnetPortForward) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := tg.VNetPortForward{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[tg.VNetPortForward](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -63,14 +63,13 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 	parser := jwt.Parser{ValidMethods: []string{"RS512"}}
 
 	tgc := tg.GetClient(meta)
-	l := licenseData{}
-	err := hcl.DecodeResourceData(d, &l)
+	tf, err := hcl.DecodeResourceData[licenseData](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if l.License == "" {
-		reply, err := tgc.RawGet(ctx, "/node/license?name="+l.Name)
+	if tf.License == "" {
+		reply, err := tgc.RawGet(ctx, "/node/license?name="+tf.Name)
 		var verr *tg.ValidationError
 		switch {
 		case errors.As(err, &verr):
@@ -85,7 +84,7 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 			return diag.FromErr(err)
 		}
 
-		d.SetId(l.Name)
+		d.SetId(tf.Name)
 		if err := d.Set("license", string(body)); err != nil {
 			return diag.FromErr(err)
 		}
@@ -101,7 +100,7 @@ func licenseCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 			return diag.FromErr(err)
 		}
 
-		if err := d.Set("fqdn", l.Name+"."+tgc.Domain); err != nil {
+		if err := d.Set("fqdn", tf.Name+"."+tgc.Domain); err != nil {
 			return diag.FromErr(err)
 		}
 	}

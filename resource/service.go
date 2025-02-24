@@ -86,7 +86,10 @@ func (r *service) getConfig(ctx context.Context, tgc *tg.Client, tf hcl.Service)
 	if err := tgc.Get(ctx, fmt.Sprintf("/cluster/%s", tf.ClusterFQDN), &cluster); err != nil {
 		return tg.ServicesConfig{}, err
 	}
-	return cluster.Config.Services, nil
+	if cluster.Config.Services != nil {
+		return *cluster.Config.Services, nil
+	}
+	return tg.ServicesConfig{}, nil
 }
 
 func (r *service) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Service, config tg.ServicesConfig) error {
@@ -101,8 +104,8 @@ func (r *service) writeConfig(ctx context.Context, tgc *tg.Client, tf hcl.Servic
 func (r *service) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Service{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Service](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -130,8 +133,8 @@ func (r *service) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 func (r *service) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Service{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Service](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -163,8 +166,8 @@ func (r *service) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 func (r *service) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Service{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Service](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -196,8 +199,8 @@ func (r *service) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 func (r *service) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf := hcl.Service{}
-	if err := hcl.DecodeResourceData(d, &tf); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.Service](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
