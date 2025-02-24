@@ -16,7 +16,7 @@ func GatewayConfig() *schema.Resource {
 			OnUpdateReply: func(d *schema.ResourceData, _ []byte) (string, error) {
 				nodeID := d.Get("node_id")
 
-				return nodeID.(string), nil
+				return nodeID.(string), nil //nolint: errcheck // terraform take the wheel
 			},
 			UpdateURL: func(a hcl.GatewayConfig) string { return fmt.Sprintf("/node/%s/config/gateway", a.NodeID) },
 			DeleteURL: func(a hcl.GatewayConfig) string { return fmt.Sprintf("/node/%s/config/gateway", a.NodeID) },
