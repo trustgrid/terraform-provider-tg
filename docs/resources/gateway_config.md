@@ -67,7 +67,7 @@ resource "tg_gateway_config" "private-gateway" {
 - `path` (Block List) Gateway paths (see [below for nested schema](#nestedblock--path))
 - `port` (Number) Host port
 - `route` (Block List) Gateway routes (see [below for nested schema](#nestedblock--route))
-- `type` (String) Gateway type (public, private, or hub)
+- `type` (String) Gateway type (public, private, or hub) - required with `enabled`
 - `udp_enabled` (Boolean) Enable gateway UDP mode
 - `udp_port` (Number) UDP port
 
