@@ -93,10 +93,10 @@ func GatewayConfig() *schema.Resource {
 				Computed:    true,
 			},
 			"type": {
-				Description:  "Gateway type (public, private, or hub)",
+				Description:  "Gateway type (public, private, or hub) - required with `enabled`",
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
+				RequiredWith: []string{"enabled"},
 				ValidateFunc: validation.StringInSlice([]string{"public", "private", "hub"}, false),
 			},
 			"connect_to_public": {
