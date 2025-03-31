@@ -5,14 +5,23 @@ type Statement struct {
 	Effect  string   `json:"effect"`
 }
 
+type Conditions struct {
+	EQ map[string][]string `json:"eq"`
+	NE map[string][]string `json:"ne"`
+}
+
+func (c Conditions) Len() int {
+	return len(c.EQ) + len(c.NE)
+}
+
 type Policy struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Resources   []string `json:"resources"`
 	Conditions  struct {
-		All  map[string][]string `json:"all"`
-		Any  map[string][]string `json:"any"`
-		None map[string][]string `json:"none"`
+		All  Conditions `json:"all"`
+		Any  Conditions `json:"any"`
+		None Conditions `json:"none"`
 	} `json:"conditions"`
 	Statements []Statement `json:"statements"`
 }

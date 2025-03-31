@@ -68,30 +68,83 @@ Required:
 
 Optional:
 
-- `all` (Block List) ALL conditions - all of these must match for the policy to apply (see [below for nested schema](#nestedblock--conditions--all))
-- `any` (Block List) ANY conditions - at least one of these must match for the policy to apply (see [below for nested schema](#nestedblock--conditions--any))
-- `none` (Block List) NONE conditions - none of these can match for the policy to apply (see [below for nested schema](#nestedblock--conditions--none))
+- `all` (Block List, Max: 1) ALL conditions - all of these must match for the policy to apply (see [below for nested schema](#nestedblock--conditions--all))
+- `any` (Block List, Max: 1) ANY conditions - at least one of these must match for the policy to apply (see [below for nested schema](#nestedblock--conditions--any))
+- `none` (Block List, Max: 1) NONE conditions - none of these can match for the policy to apply (see [below for nested schema](#nestedblock--conditions--none))
 
 <a id="nestedblock--conditions--all"></a>
 ### Nested Schema for `conditions.all`
+
+Optional:
+
+- `eq` (Block List) EQ conditions - the property at the provided key must be in the list of values to match (see [below for nested schema](#nestedblock--conditions--all--eq))
+- `ne` (Block List) NE conditions - the property at the provided key must NOT be in the list of values to match (see [below for nested schema](#nestedblock--conditions--all--ne))
+
+<a id="nestedblock--conditions--all--eq"></a>
+### Nested Schema for `conditions.all.eq`
 
 Required:
 
 - `key` (String) Condition key
 - `values` (List of String) Condition values
+
+
+<a id="nestedblock--conditions--all--ne"></a>
+### Nested Schema for `conditions.all.ne`
+
+Required:
+
+- `key` (String) Condition key
+- `values` (List of String) Condition values
+
 
 
 <a id="nestedblock--conditions--any"></a>
 ### Nested Schema for `conditions.any`
 
+Optional:
+
+- `eq` (Block List) EQ conditions - the property at the provided key must be in the list of values to match (see [below for nested schema](#nestedblock--conditions--any--eq))
+- `ne` (Block List) NE conditions - the property at the provided key must NOT be in the list of values to match (see [below for nested schema](#nestedblock--conditions--any--ne))
+
+<a id="nestedblock--conditions--any--eq"></a>
+### Nested Schema for `conditions.any.eq`
+
 Required:
 
 - `key` (String) Condition key
 - `values` (List of String) Condition values
 
 
+<a id="nestedblock--conditions--any--ne"></a>
+### Nested Schema for `conditions.any.ne`
+
+Required:
+
+- `key` (String) Condition key
+- `values` (List of String) Condition values
+
+
+
 <a id="nestedblock--conditions--none"></a>
 ### Nested Schema for `conditions.none`
+
+Optional:
+
+- `eq` (Block List) EQ conditions - the property at the provided key must be in the list of values to match (see [below for nested schema](#nestedblock--conditions--none--eq))
+- `ne` (Block List) NE conditions - the property at the provided key must NOT be in the list of values to match (see [below for nested schema](#nestedblock--conditions--none--ne))
+
+<a id="nestedblock--conditions--none--eq"></a>
+### Nested Schema for `conditions.none.eq`
+
+Required:
+
+- `key` (String) Condition key
+- `values` (List of String) Condition values
+
+
+<a id="nestedblock--conditions--none--ne"></a>
+### Nested Schema for `conditions.none.ne`
 
 Required:
 

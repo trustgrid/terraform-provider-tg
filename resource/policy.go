@@ -79,21 +79,54 @@ func Policy() *schema.Resource {
 						"all": {
 							Description: "ALL conditions - all of these must match for the policy to apply",
 							Type:        schema.TypeList,
+							MaxItems:    1,
 							Optional:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"key": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Condition key",
-									},
-									"values": {
+									"eq": {
+										Description: "EQ conditions - the property at the provided key must be in the list of values to match",
 										Type:        schema.TypeList,
-										Required:    true,
-										Description: "Condition values",
-										MinItems:    1,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "Condition key",
+												},
+												"values": {
+													Type:        schema.TypeList,
+													Required:    true,
+													Description: "Condition values",
+													MinItems:    1,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
+										},
+									},
+									"ne": {
+										Description: "NE conditions - the property at the provided key must NOT be in the list of values to match",
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "Condition key",
+												},
+												"values": {
+													Type:        schema.TypeList,
+													Required:    true,
+													Description: "Condition values",
+													MinItems:    1,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
 										},
 									},
 								},
@@ -102,21 +135,54 @@ func Policy() *schema.Resource {
 						"any": {
 							Description: "ANY conditions - at least one of these must match for the policy to apply",
 							Type:        schema.TypeList,
+							MaxItems:    1,
 							Optional:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"key": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Condition key",
-									},
-									"values": {
+									"eq": {
+										Description: "EQ conditions - the property at the provided key must be in the list of values to match",
 										Type:        schema.TypeList,
-										Required:    true,
-										Description: "Condition values",
-										MinItems:    1,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "Condition key",
+												},
+												"values": {
+													Type:        schema.TypeList,
+													Required:    true,
+													Description: "Condition values",
+													MinItems:    1,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
+										},
+									},
+									"ne": {
+										Description: "NE conditions - the property at the provided key must NOT be in the list of values to match",
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "Condition key",
+												},
+												"values": {
+													Type:        schema.TypeList,
+													Required:    true,
+													Description: "Condition values",
+													MinItems:    1,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
 										},
 									},
 								},
@@ -125,21 +191,54 @@ func Policy() *schema.Resource {
 						"none": {
 							Description: "NONE conditions - none of these can match for the policy to apply",
 							Type:        schema.TypeList,
+							MaxItems:    1,
 							Optional:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"key": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Condition key",
-									},
-									"values": {
+									"eq": {
+										Description: "EQ conditions - the property at the provided key must be in the list of values to match",
 										Type:        schema.TypeList,
-										Required:    true,
-										Description: "Condition values",
-										MinItems:    1,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "Condition key",
+												},
+												"values": {
+													Type:        schema.TypeList,
+													Required:    true,
+													Description: "Condition values",
+													MinItems:    1,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
+										},
+									},
+									"ne": {
+										Description: "NE conditions - the property at the provided key must NOT be in the list of values to match",
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "Condition key",
+												},
+												"values": {
+													Type:        schema.TypeList,
+													Required:    true,
+													Description: "Condition values",
+													MinItems:    1,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
 										},
 									},
 								},

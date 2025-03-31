@@ -7,9 +7,14 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type Condition struct {
+type Expression struct {
 	Key    string   `tf:"key"`
 	Values []string `tf:"values"`
+}
+
+type Condition struct {
+	EQ []Expression `tf:"eq"`
+	NE []Expression `tf:"ne"`
 }
 
 type Conditions struct {
@@ -46,22 +51,37 @@ func (p Policy) UpdateFromTG(o tg.Policy) HCL[tg.Policy] {
 		})
 	}
 
-	if len(o.Conditions.All) > 0 || len(o.Conditions.Any) > 0 || len(o.Conditions.None) > 0 {
-		uc := Conditions{}
+	if o.Conditions.All.Len() > 0 || o.Conditions.Any.Len() > 0 || o.Conditions.None.Len() > 0 {
+		all := Condition{}
+		anyc := Condition{}
+		none := Condition{}
 
-		for _, k := range slices.Sorted(maps.Keys(o.Conditions.All)) {
-			uc.All = append(uc.All, Condition{Key: k, Values: o.Conditions.All[k]})
+		for _, k := range slices.Sorted(maps.Keys(o.Conditions.All.EQ)) {
+			all.EQ = append(all.EQ, Expression{Key: k, Values: o.Conditions.All.EQ[k]})
+		}
+		for _, k := range slices.Sorted(maps.Keys(o.Conditions.All.NE)) {
+			all.NE = append(all.NE, Expression{Key: k, Values: o.Conditions.All.NE[k]})
 		}
 
-		for _, k := range slices.Sorted(maps.Keys(o.Conditions.Any)) {
-			uc.Any = append(uc.Any, Condition{Key: k, Values: o.Conditions.Any[k]})
+		for _, k := range slices.Sorted(maps.Keys(o.Conditions.Any.EQ)) {
+			anyc.EQ = append(anyc.EQ, Expression{Key: k, Values: o.Conditions.Any.EQ[k]})
+		}
+		for _, k := range slices.Sorted(maps.Keys(o.Conditions.Any.NE)) {
+			anyc.NE = append(anyc.NE, Expression{Key: k, Values: o.Conditions.Any.NE[k]})
 		}
 
-		for _, k := range slices.Sorted(maps.Keys(o.Conditions.None)) {
-			uc.None = append(uc.None, Condition{Key: k, Values: o.Conditions.None[k]})
+		for _, k := range slices.Sorted(maps.Keys(o.Conditions.None.EQ)) {
+			none.EQ = append(none.EQ, Expression{Key: k, Values: o.Conditions.None.EQ[k]})
+		}
+		for _, k := range slices.Sorted(maps.Keys(o.Conditions.None.NE)) {
+			none.NE = append(none.NE, Expression{Key: k, Values: o.Conditions.None.NE[k]})
 		}
 
-		updated.Conditions = []Conditions{uc}
+		updated.Conditions = []Conditions{{
+			All:  []Condition{all},
+			Any:  []Condition{anyc},
+			None: []Condition{none},
+		}}
 	} else {
 		updated.Conditions = nil
 	}
@@ -85,18 +105,38 @@ func (p Policy) ToTG() tg.Policy {
 	}
 
 	if len(p.Conditions) > 0 {
-		out.Conditions.All = make(map[string][]string)
-		out.Conditions.Any = make(map[string][]string)
-		out.Conditions.None = make(map[string][]string)
+		pc := p.Conditions[0]
 
-		for _, c := range p.Conditions[0].All {
-			out.Conditions.All[c.Key] = c.Values
+		out.Conditions.All.EQ = make(map[string][]string)
+		out.Conditions.All.NE = make(map[string][]string)
+		out.Conditions.Any.EQ = make(map[string][]string)
+		out.Conditions.Any.NE = make(map[string][]string)
+		out.Conditions.None.EQ = make(map[string][]string)
+		out.Conditions.None.NE = make(map[string][]string)
+
+		if len(pc.All) > 0 {
+			for _, c := range pc.All[0].EQ {
+				out.Conditions.All.EQ[c.Key] = c.Values
+			}
+			for _, c := range pc.All[0].NE {
+				out.Conditions.All.NE[c.Key] = c.Values
+			}
 		}
-		for _, c := range p.Conditions[0].Any {
-			out.Conditions.Any[c.Key] = c.Values
+		if len(pc.Any) > 0 {
+			for _, c := range pc.Any[0].EQ {
+				out.Conditions.Any.EQ[c.Key] = c.Values
+			}
+			for _, c := range pc.Any[0].NE {
+				out.Conditions.Any.NE[c.Key] = c.Values
+			}
 		}
-		for _, c := range p.Conditions[0].None {
-			out.Conditions.None[c.Key] = c.Values
+		if len(pc.None) > 0 {
+			for _, c := range pc.None[0].EQ {
+				out.Conditions.None.EQ[c.Key] = c.Values
+			}
+			for _, c := range pc.None[0].NE {
+				out.Conditions.None.NE[c.Key] = c.Values
+			}
 		}
 	}
 
