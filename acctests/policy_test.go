@@ -197,11 +197,11 @@ func testAcc_CheckPolicyAPISide(provider *schema.Provider, name string) resource
 		case len(pol.Conditions.Any.EQ["tg:node:tags:env2"]) != 2:
 			return fmt.Errorf("expected policy to have 2 any condition values but got %d", len(pol.Conditions.Any.EQ["tg:node:tags:env2"]))
 		case pol.Conditions.Any.EQ["tg:node:tags:env"][0] != "any1":
-			return fmt.Errorf("expected policy to have any condition value prod but got %s", pol.Conditions.Any.EQ["tg:node:tags:env"][0])
+			return fmt.Errorf("expected policy to have any condition value any1 but got %s", pol.Conditions.Any.EQ["tg:node:tags:env"][0])
 		case pol.Conditions.Any.EQ["tg:node:tags:env2"][0] != "any2":
-			return fmt.Errorf("expected policy to have any condition value dev but got %s", pol.Conditions.Any.EQ["tg:node:tags:env"][1])
+			return fmt.Errorf("expected policy to have any condition value any2 but got %s", pol.Conditions.Any.EQ["tg:node:tags:env2"][0])
 		case pol.Conditions.Any.EQ["tg:node:tags:env2"][1] != "any3":
-			return fmt.Errorf("expected policy to have any condition value dev but got %s", pol.Conditions.Any.EQ["tg:node:tags:env"][1])
+			return fmt.Errorf("expected policy to have any condition value any3 but got %s", pol.Conditions.Any.EQ["tg:node:tags:env2"][1])
 		case len(pol.Conditions.Any.NE["tg:node:tags:env3"]) != 2:
 			return fmt.Errorf("expected policy to have 2 any/ne condition values but got %d", len(pol.Conditions.Any.NE["tg:node:tags:env3"]))
 		case pol.Conditions.Any.NE["tg:node:tags:env3"][0] != "anyne1":
