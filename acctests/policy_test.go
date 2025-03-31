@@ -38,16 +38,33 @@ func TestAccPolicy_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_policy.test", "statement.1.effect", "deny"),
 					resource.TestCheckResourceAttr("tg_policy.test", "statement.1.actions.0", "nodes::cluster"),
 					resource.TestCheckResourceAttr("tg_policy.test", "statement.1.actions.1", "certificates::modify"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.key", "tg:node:tags:env"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.values.0", "prod"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.1.key", "tg:node:tags:env2"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.1.values.0", "prod"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.1.values.1", "dev"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.key", "tg:node:tags:env"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.values.0", "prod"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.values.1", "dev"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.key", "tg:node:tags:env"),
-					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.values.0", "dev"),
+
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.eq.0.key", "tg:node:tags:env"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.eq.0.values.0", "prod"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.eq.1.key", "tg:node:tags:env2"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.eq.1.values.0", "prod"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.eq.1.values.1", "dev"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.ne.0.key", "tg:node:tags:env3"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.ne.0.values.0", "prod"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.all.0.ne.0.values.1", "dev"),
+
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.eq.0.key", "tg:node:tags:env"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.eq.0.values.0", "any1"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.eq.1.key", "tg:node:tags:env2"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.eq.1.values.0", "any2"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.eq.1.values.1", "any3"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.ne.0.key", "tg:node:tags:env3"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.ne.0.values.0", "anyne1"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.any.0.ne.0.values.1", "anyne2"),
+
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.eq.0.key", "tg:node:tags:env"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.eq.0.values.0", "none1"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.eq.1.key", "tg:node:tags:env2"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.eq.1.values.0", "none2"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.eq.1.values.1", "none3"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.ne.0.key", "tg:node:tags:env3"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.ne.0.values.0", "nonene1"),
+					resource.TestCheckResourceAttr("tg_policy.test", "conditions.0.none.0.ne.0.values.1", "nonene2"),
 					testAcc_CheckPolicyAPISide(provider, "tf-test-policy"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -66,23 +83,48 @@ resource "tg_policy" "test" {
   resources = ["*", "tgrn:tg::nodes:node/8e684dec-f83a-49a1-b306-74d816559453"]
   conditions {
     all { 
-	  key = "tg:node:tags:env"
-	  values = ["prod"]
+	  eq {
+	    key = "tg:node:tags:env"
+	    values = ["prod"]
+	  }
+	  eq {
+	    key = "tg:node:tags:env2"
+	    values = ["prod", "dev"]
+	  }
+	  ne {
+	    key = "tg:node:tags:env3"
+	    values = ["prod", "dev"]
+	  }
 	}
 
-	all { 
-	  key = "tg:node:tags:env2"
-	  values = ["prod", "dev"]
+    any { 
+	  eq {
+	    key = "tg:node:tags:env"
+	    values = ["any1"]
+	  }
+	  eq {
+	    key = "tg:node:tags:env2"
+	    values = ["any2", "any3"]
+	  }
+	  ne {
+	    key = "tg:node:tags:env3"
+	    values = ["anyne1", "anyne2"]
+	  }
 	}
 
-	any { 
-	  key = "tg:node:tags:env"
-	  values = ["prod", "dev"]
-	}
-
-	none { 
-	  key = "tg:node:tags:env"
-	  values = ["dev"]
+    none { 
+	  eq {
+	    key = "tg:node:tags:env"
+	    values = ["none1"]
+	  }
+	  eq {
+	    key = "tg:node:tags:env2"
+	    values = ["none2", "none3"]
+	  }
+	  ne {
+	    key = "tg:node:tags:env3"
+	    values = ["nonene1", "nonene2"]
+	  }
 	}
   }
 
@@ -134,32 +176,47 @@ func testAcc_CheckPolicyAPISide(provider *schema.Provider, name string) resource
 			return fmt.Errorf("expected policy to have action nodes::cluster but got %s", pol.Statements[1].Actions[0])
 		case pol.Statements[1].Actions[1] != "certificates::modify":
 			return fmt.Errorf("expected policy to have action certificates::modify but got %s", pol.Statements[1].Actions[1])
-		case len(pol.Conditions.All) != 2:
-			return fmt.Errorf("expected policy to have 2 ALL conditions but got %d", len(pol.Conditions.All))
-		case len(pol.Conditions.All["tg:node:tags:env"]) != 1:
-			return fmt.Errorf("expected policy to have 1 condition value but got %d", len(pol.Conditions.All["tg:node:tags:env"]))
-		case pol.Conditions.All["tg:node:tags:env"][0] != "prod":
-			return fmt.Errorf("expected policy to have condition value prod but got %s", pol.Conditions.All["tg:node:tags:env"][0])
-		case len(pol.Conditions.All["tg:node:tags:env2"]) != 2:
-			return fmt.Errorf("expected policy to have 2 condition values but got %d", len(pol.Conditions.All["tg:node:tags:env2"]))
-		case pol.Conditions.All["tg:node:tags:env2"][0] != "prod":
-			return fmt.Errorf("expected policy to have condition value prod but got %s", pol.Conditions.All["tg:node:tags:env2"][0])
-		case pol.Conditions.All["tg:node:tags:env2"][1] != "dev":
-			return fmt.Errorf("expected policy to have condition value dev but got %s", pol.Conditions.All["tg:node:tags:env2"][1])
-		case len(pol.Conditions.Any) != 1:
-			return fmt.Errorf("expected policy to have 1 any condition but got %d", len(pol.Conditions.Any))
-		case len(pol.Conditions.Any["tg:node:tags:env"]) != 2:
-			return fmt.Errorf("expected policy to have 2 any condition values but got %d", len(pol.Conditions.Any["tg:node:tags:env"]))
-		case pol.Conditions.Any["tg:node:tags:env"][0] != "prod":
-			return fmt.Errorf("expected policy to have any condition value prod but got %s", pol.Conditions.Any["tg:node:tags:env"][0])
-		case pol.Conditions.Any["tg:node:tags:env"][1] != "dev":
-			return fmt.Errorf("expected policy to have any condition value dev but got %s", pol.Conditions.Any["tg:node:tags:env"][1])
-		case len(pol.Conditions.None) != 1:
-			return fmt.Errorf("expected policy to have 1 none condition but got %d", len(pol.Conditions.None))
-		case len(pol.Conditions.None["tg:node:tags:env"]) != 1:
-			return fmt.Errorf("expected policy to have 1 none condition value but got %d", len(pol.Conditions.None["tg:node:tags:env"]))
-		case pol.Conditions.None["tg:node:tags:env"][0] != "dev":
-			return fmt.Errorf("expected policy to have none condition value dev but got %s", pol.Conditions.None["tg:node:tags:env"][0])
+
+		case len(pol.Conditions.All.EQ) != 2:
+			return fmt.Errorf("expected policy to have 2 ALL conditions but got %d", len(pol.Conditions.All.EQ))
+		case len(pol.Conditions.All.EQ["tg:node:tags:env"]) != 1:
+			return fmt.Errorf("expected policy to have 1 condition value but got %d", len(pol.Conditions.All.EQ["tg:node:tags:env"]))
+		case pol.Conditions.All.EQ["tg:node:tags:env"][0] != "prod":
+			return fmt.Errorf("expected policy to have condition value prod but got %s", pol.Conditions.All.EQ["tg:node:tags:env"][0])
+		case len(pol.Conditions.All.EQ["tg:node:tags:env2"]) != 2:
+			return fmt.Errorf("expected policy to have 2 condition values but got %d", len(pol.Conditions.All.EQ["tg:node:tags:env2"]))
+		case pol.Conditions.All.EQ["tg:node:tags:env2"][0] != "prod":
+			return fmt.Errorf("expected policy to have condition value prod but got %s", pol.Conditions.All.EQ["tg:node:tags:env2"][0])
+		case pol.Conditions.All.EQ["tg:node:tags:env2"][1] != "dev":
+			return fmt.Errorf("expected policy to have condition value dev but got %s", pol.Conditions.All.EQ["tg:node:tags:env2"][1])
+
+		case len(pol.Conditions.Any.EQ) != 2:
+			return fmt.Errorf("expected policy to have 2 any conditions but got %d", len(pol.Conditions.Any.EQ))
+		case len(pol.Conditions.Any.EQ["tg:node:tags:env"]) != 1:
+			return fmt.Errorf("expected policy to have 1 any condition values but got %d", len(pol.Conditions.Any.EQ["tg:node:tags:env"]))
+		case len(pol.Conditions.Any.EQ["tg:node:tags:env2"]) != 2:
+			return fmt.Errorf("expected policy to have 2 any condition values but got %d", len(pol.Conditions.Any.EQ["tg:node:tags:env2"]))
+		case pol.Conditions.Any.EQ["tg:node:tags:env"][0] != "any1":
+			return fmt.Errorf("expected policy to have any condition value any1 but got %s", pol.Conditions.Any.EQ["tg:node:tags:env"][0])
+		case pol.Conditions.Any.EQ["tg:node:tags:env2"][0] != "any2":
+			return fmt.Errorf("expected policy to have any condition value any2 but got %s", pol.Conditions.Any.EQ["tg:node:tags:env2"][0])
+		case pol.Conditions.Any.EQ["tg:node:tags:env2"][1] != "any3":
+			return fmt.Errorf("expected policy to have any condition value any3 but got %s", pol.Conditions.Any.EQ["tg:node:tags:env2"][1])
+		case len(pol.Conditions.Any.NE["tg:node:tags:env3"]) != 2:
+			return fmt.Errorf("expected policy to have 2 any/ne condition values but got %d", len(pol.Conditions.Any.NE["tg:node:tags:env3"]))
+		case pol.Conditions.Any.NE["tg:node:tags:env3"][0] != "anyne1":
+			return fmt.Errorf("expected first any/ne tag to be anyne1, but got %s", pol.Conditions.Any.NE["tg:node:tags:env3"][0])
+		case pol.Conditions.Any.NE["tg:node:tags:env3"][1] != "anyne2":
+			return fmt.Errorf("expected first any/ne tag to be anyne2, but got %s", pol.Conditions.Any.NE["tg:node:tags:env3"][1])
+
+		case len(pol.Conditions.None.EQ) != 2:
+			return fmt.Errorf("expected policy to have 2 none conditions but got %d", len(pol.Conditions.None.EQ))
+		case len(pol.Conditions.None.EQ["tg:node:tags:env"]) != 1:
+			return fmt.Errorf("expected policy to have 1 none condition value but got %d", len(pol.Conditions.None.EQ["tg:node:tags:env"]))
+		case pol.Conditions.None.EQ["tg:node:tags:env"][0] != "none1":
+			return fmt.Errorf("expected policy to have none condition value none1 but got %s", pol.Conditions.None.EQ["tg:node:tags:env"][0])
+		case len(pol.Conditions.Any.EQ["tg:node:tags:env2"]) != 2:
+			return fmt.Errorf("expected policy to have 2 none condition values but got %d", len(pol.Conditions.Any.EQ["tg:node:tags:env2"]))
 		}
 
 		return nil

@@ -1,10 +1,8 @@
 terraform {
   required_providers {
     tg = {
-      #version = "0.1"
-      #source  = "hashicorp.com/trustgrid/tg"
-      source = "trustgrid/tg"
-      version = "1.11.0-pre3"
+      version = "0.1"
+      source  = "hashicorp.com/trustgrid/tg"
     }
   }
 }
@@ -31,27 +29,66 @@ output "device" {
   value = data.tg_device_info.node
 }
 
-resource "tg_network_config" "cluster" {
-  cluster_fqdn = "profiled-nodes.dev.regression.trustgrid.io"
+resource "tg_policy" "test" {
+  name = "terry-test-policy"
+  description = "my policy"
+  resources = ["*", "tgrn:tg::nodes:node/8e684dec-f83a-49a1-b306-74d816559453"]
+  conditions {
+    all { 
+	  eq {
+	    key = "tg:node:tags:env"
+	    values = ["prod"]
+	  }
+	  eq {
+	    key = "tg:node:tags:env2"
+	    values = ["prod", "dev"]
+	  }
+	  ne {
+	    key = "tg:node:tags:env3"
+	    values = ["prod", "dev"]
+	  }
+	}
 
-  interface {
-    nic = "ens192"
-    cluster_route_tables = ["rtb-1234567890abcdef0"]
+    any { 
+	  eq {
+	    key = "tg:node:tags:env"
+	    values = ["any1"]
+	  }
+	  eq {
+	    key = "tg:node:tags:env2"
+	    values = ["any2", "any3"]
+	  }
+	  ne {
+	    key = "tg:node:tags:env3"
+	    values = ["anyne1", "anyne2"]
+	  }
+	}
+
+    none { 
+	  eq {
+	    key = "tg:node:tags:env"
+	    values = ["none1"]
+	  }
+	  eq {
+	    key = "tg:node:tags:env2"
+	    values = ["none2", "none3"]
+	  }
+	  ne {
+	    key = "tg:node:tags:env3"
+	    values = ["nonene1", "nonene2"]
+	  }
+	}
   }
-}
 
-resource "tg_alarm" "quotme" {
-  name = "quoteme"
-  enabled = false
-  operator = "any"
-}
+  statement {
+    actions = ["nodes::read", "certificates::read"]
+	effect = "allow"
+  }
 
-output "quotes" {
-  value = "${tg_alarm.quotme.id}"
-}
-
-output "noquotes" {
-  value = tg_alarm.quotme.id
+  statement {
+	actions = ["nodes::cluster", "certificates::modify"]
+	effect = "deny"
+  }
 }
 
 #output "node" {
