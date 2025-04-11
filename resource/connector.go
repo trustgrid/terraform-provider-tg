@@ -72,6 +72,11 @@ func Connector() *schema.Resource {
 				Optional:    true,
 				Description: "Rate limit in mbps",
 			},
+			"nic": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Network interface on which the connector should listen",
+			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,

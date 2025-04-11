@@ -13,6 +13,7 @@ type Connector struct {
 	Service     string `tf:"service"`
 	Description string `tf:"description"`
 	RateLimit   int    `tf:"rate_limit,omitempty"`
+	NIC         string `tf:"nic,omitempty"`
 }
 
 func (c *Connector) UpdateFromTG(conn tg.Connector) {
@@ -22,6 +23,7 @@ func (c *Connector) UpdateFromTG(conn tg.Connector) {
 	c.Protocol = conn.Protocol
 	c.Description = conn.Description
 	c.RateLimit = conn.RateLimit
+	c.NIC = conn.NIC
 }
 
 func (c *Connector) ToTG(id string) tg.Connector {
@@ -34,5 +36,6 @@ func (c *Connector) ToTG(id string) tg.Connector {
 		Protocol:    c.Protocol,
 		Description: c.Description,
 		RateLimit:   c.RateLimit,
+		NIC:         c.NIC,
 	}
 }

@@ -86,6 +86,7 @@ type Connector struct {
 	Service     string `json:"service"`
 	RateLimit   int    `json:"maxmbps,omitempty"`
 	Description string `json:"description"`
+	NIC         string `json:"nic,omitempty"`
 }
 
 type ConnectorsConfig struct {

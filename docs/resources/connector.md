@@ -37,6 +37,7 @@ resource "tg_connector" "tomcat" {
 
 - `cluster_fqdn` (String) Cluster FQDN - required if node_id not set
 - `description` (String) Description
+- `nic` (String) Network interface on which the connector should listen
 - `node_id` (String) Node UID - required if cluster_fqdn not set
 - `rate_limit` (Number) Rate limit in mbps
 
