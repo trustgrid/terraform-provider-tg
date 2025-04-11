@@ -72,6 +72,11 @@ func Connector() *schema.Resource {
 				Optional:    true,
 				Description: "Rate limit in mbps",
 			},
+			"nic": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: `Network interface name on which the connector should listen. Interface names vary by appliance model and are viewable in the portal. Using "any" or omitting will listen on all interfaces.`,
+			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,

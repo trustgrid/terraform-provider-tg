@@ -37,6 +37,7 @@ resource "tg_connector" "tomcat" {
 
 - `cluster_fqdn` (String) Cluster FQDN - required if node_id not set
 - `description` (String) Description
+- `nic` (String) Network interface name on which the connector should listen. Interface names vary by appliance model and are viewable in the portal. Using "any" or omitting will listen on all interfaces.
 - `node_id` (String) Node UID - required if cluster_fqdn not set
 - `rate_limit` (Number) Rate limit in mbps
 
