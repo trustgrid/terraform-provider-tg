@@ -75,7 +75,7 @@ func Connector() *schema.Resource {
 			"nic": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Network interface on which the connector should listen",
+				Description: `Network interface name on which the connector should listen. Interface names vary by appliance model and are viewable in the portal. Using "any" or omitting will listen on all interfaces.`,
 			},
 			"description": {
 				Type:        schema.TypeString,
