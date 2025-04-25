@@ -90,21 +90,21 @@ func checkNetworkConfig(ctx context.Context, provider *schema.Provider, name str
 		case len(n.Config.Network.Interfaces) != 1:
 			return fmt.Errorf("expected 1 interfaces, got %d", len(n.Config.Network.Interfaces))
 		case n.Config.Network.Interfaces[0].NIC != "ens192":
-			return fmt.Errorf("expected NIC to be ens192, got %s", n.Config.Network.Interfaces[1].NIC)
+			return fmt.Errorf("expected NIC to be ens192, got %s", n.Config.Network.Interfaces[0].NIC)
 		case n.Config.Network.Interfaces[0].DHCP != false:
-			return fmt.Errorf("expected DHCP to be false, got %v", n.Config.Network.Interfaces[1].DHCP)
+			return fmt.Errorf("expected DHCP to be false, got %v", n.Config.Network.Interfaces[0].DHCP)
 		case n.Config.Network.Interfaces[0].Gateway != "10.20.10.1":
-			return fmt.Errorf("expected gateway to be 10.20.10.1, got %s", n.Config.Network.Interfaces[1].Gateway)
+			return fmt.Errorf("expected gateway to be 10.20.10.1, got %s", n.Config.Network.Interfaces[0].Gateway)
 		case n.Config.Network.Interfaces[0].IP != "10.20.10.50/24":
-			return fmt.Errorf("expected IP to be 10.20.10.50/24, got %s", n.Config.Network.Interfaces[1].IP)
+			return fmt.Errorf("expected IP to be 10.20.10.50/24, got %s", n.Config.Network.Interfaces[0].IP)
 		case len(n.Config.Network.Interfaces[0].Routes) != 1:
-			return fmt.Errorf("expected 1 route, got %d", len(n.Config.Network.Interfaces[1].Routes))
+			return fmt.Errorf("expected 1 route, got %d", len(n.Config.Network.Interfaces[0].Routes))
 		case n.Config.Network.Interfaces[0].Routes[0].Route != "10.10.10.0/24":
-			return fmt.Errorf("expected route to be 10.10.10.0/24, got %s", n.Config.Network.Interfaces[1].Routes[0].Route)
+			return fmt.Errorf("expected route to be 10.10.10.0/24, got %s", n.Config.Network.Interfaces[0].Routes[0].Route)
 		case n.Config.Network.Interfaces[0].Routes[0].Description != "some desc":
-			return fmt.Errorf("expected route description to be 'some desc', got %s", n.Config.Network.Interfaces[1].Routes[0].Description)
+			return fmt.Errorf("expected route description to be 'some desc', got %s", n.Config.Network.Interfaces[0].Routes[0].Description)
 		case n.Config.Network.Interfaces[0].Routes[0].Next != "127.0.0.1":
-			return fmt.Errorf("expected route next to be '127.0.0.1', got %s", n.Config.Network.Interfaces[1].Routes[0].Next)
+			return fmt.Errorf("expected route next to be '127.0.0.1', got %s", n.Config.Network.Interfaces[0].Routes[0].Next)
 		}
 
 		return nil
