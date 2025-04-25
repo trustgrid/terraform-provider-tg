@@ -32,6 +32,7 @@ type NetworkTunnel struct {
 type NetworkRoute struct {
 	Route       string `tf:"route"`
 	Description string `tf:"description"`
+	NextHop     string `tf:"next_hop,omitempty"`
 }
 
 type VLANRoute struct {
@@ -253,7 +254,7 @@ func (ni NetworkInterface) ToTG() tg.NetworkInterface {
 		ClusterRouteTables: ni.ClusterRouteTables,
 	}
 	for _, r := range ni.Routes {
-		iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
+		iface.Routes = append(iface.Routes, tg.NetworkRoute{Route: r.Route, Description: r.Description, Next: r.NextHop})
 	}
 	for _, r := range ni.CloudRoutes {
 		iface.CloudRoutes = append(iface.CloudRoutes, tg.NetworkRoute{Route: r.Route, Description: r.Description})
@@ -319,6 +320,7 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 			iface.Routes = append(iface.Routes, NetworkRoute{
 				Route:       r.Route,
 				Description: r.Description,
+				NextHop:     r.Next,
 			})
 		}
 		for _, r := range i.CloudRoutes {

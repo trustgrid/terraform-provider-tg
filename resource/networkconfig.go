@@ -269,6 +269,12 @@ func NetworkConfig() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validation.IsCIDR,
 									},
+									"next_hop": {
+										Description:  "Next Hop",
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsIPv4Address,
+									},
 									"description": {
 										Description: "Description",
 										Type:        schema.TypeString,

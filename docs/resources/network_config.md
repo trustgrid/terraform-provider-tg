@@ -62,6 +62,7 @@ resource "tg_network_config" "network-1" {
     route {
       route       = "10.10.10.0/24"
       description = "interface route"
+      next_hop    = "10.20.10.30"
     }
 
     cloud_route {
@@ -205,6 +206,7 @@ Required:
 Optional:
 
 - `description` (String) Description
+- `next_hop` (String) Next Hop
 
 
 <a id="nestedblock--interface--subinterface"></a>

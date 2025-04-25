@@ -48,6 +48,7 @@ resource "tg_network_config" "network-1" {
     route {
       route       = "10.10.10.0/24"
       description = "interface route"
+      next_hop    = "10.20.10.30"
     }
 
     cloud_route {
