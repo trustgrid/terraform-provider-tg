@@ -153,6 +153,7 @@ type NetworkTunnel struct {
 type NetworkRoute struct {
 	Route       string `json:"route"`
 	Description string `json:"description,omitempty"`
+	Next        string `json:"next,omitempty"`
 }
 
 type VLANRoute struct {
