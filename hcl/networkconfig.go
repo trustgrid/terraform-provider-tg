@@ -29,6 +29,11 @@ type NetworkTunnel struct {
 	Description   string `tf:"description,omitempty"`
 }
 
+type CloudRoute struct {
+	Route       string `tf:"route"`
+	Description string `tf:"description"`
+}
+
 type NetworkRoute struct {
 	Route       string `tf:"route"`
 	Description string `tf:"description"`
@@ -54,7 +59,7 @@ type NetworkInterface struct {
 	NIC                string         `tf:"nic"`
 	Routes             []NetworkRoute `tf:"route,omitempty"`
 	SubInterfaces      []SubInterface `tf:"subinterface,omitempty"`
-	CloudRoutes        []NetworkRoute `tf:"cloud_route,omitempty"`
+	CloudRoutes        []CloudRoute   `tf:"cloud_route,omitempty"`
 	ClusterRouteTables []string       `tf:"cluster_route_tables,omitempty"`
 	ClusterIP          string         `tf:"cluster_ip,omitempty"`
 	DHCP               bool           `tf:"dhcp"`
@@ -324,7 +329,7 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 			})
 		}
 		for _, r := range i.CloudRoutes {
-			iface.CloudRoutes = append(iface.CloudRoutes, NetworkRoute{
+			iface.CloudRoutes = append(iface.CloudRoutes, CloudRoute{
 				Route:       r.Route,
 				Description: r.Description,
 			})
