@@ -27,6 +27,11 @@ resource "tg_network_config" "test" {
 	gateway = "10.20.10.1"
 	ip = "10.20.10.50/24"
 
+	cloud_route {
+	  route = "10.10.5.0/24"
+      description = "cloud desc"
+	}
+
 	route {
 	  route = "10.10.10.0/24"
 	  description = "some desc"
@@ -58,6 +63,8 @@ func TestAccNetworkConfig_NodeHappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.route.0.route", "10.10.10.0/24"),
 					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.route.0.description", "some desc"),
 					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.route.0.next_hop", "127.0.0.1"),
+					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.cloud_route.0.route", "10.10.5.0/24"),
+					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.cloud_route.0.description", "cloud desc"),
 					checkNetworkConfig(t.Context(), provider, "tg_network_config.test"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -105,6 +112,10 @@ func checkNetworkConfig(ctx context.Context, provider *schema.Provider, name str
 			return fmt.Errorf("expected route description to be 'some desc', got %s", n.Config.Network.Interfaces[0].Routes[0].Description)
 		case n.Config.Network.Interfaces[0].Routes[0].Next != "127.0.0.1":
 			return fmt.Errorf("expected route next to be '127.0.0.1', got %s", n.Config.Network.Interfaces[0].Routes[0].Next)
+		case n.Config.Network.Interfaces[0].CloudRoutes[0].Route != "10.10.5.0/24":
+			return fmt.Errorf("expected cloud route to be '10.10.5.0/24', got %s", n.Config.Network.Interfaces[0].CloudRoutes[0].Route)
+		case n.Config.Network.Interfaces[0].CloudRoutes[0].Description != "cloud desc":
+			return fmt.Errorf("expected route description to be 'cloud desc', got %s", n.Config.Network.Interfaces[0].CloudRoutes[0].Description)
 		}
 
 		return nil
