@@ -27,11 +27,11 @@ resource "tg_virtual_network" "tg_vnet" {
 ### Required
 
 - `name` (String) Virtual network name
-- `network_cidr` (String) Network CIDR
 
 ### Optional
 
 - `description` (String) Description
+- `network_cidr` (String, Deprecated) Network CIDR
 - `no_nat` (Boolean) Run the virtual network in NONAT mode
 
 ### Read-Only

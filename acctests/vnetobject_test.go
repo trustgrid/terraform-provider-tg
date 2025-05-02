@@ -17,10 +17,10 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-//go:embed test-data/vnet_object/create.hcl
+//go:embed test-data/vnet-object/create.hcl
 var vnetObjCreate string
 
-//go:embed test-data/vnet_object/update.hcl
+//go:embed test-data/vnet-object/update.hcl
 var vnetObjUpdate string
 
 func TestAccVirtualNetworkObject_HappyPath(t *testing.T) {
