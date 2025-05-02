@@ -105,6 +105,7 @@ func New(version string) func() *schema.Provider {
 				"tg_virtual_network":              resource.VirtualNetwork(),
 				"tg_virtual_network_access_rule":  resource.VNetAccessRule(),
 				"tg_virtual_network_attachment":   resource.VNetAttachment(),
+				"tg_virtual_network_object":       resource.VNetObject(),
 				"tg_virtual_network_port_forward": resource.VNetPortForward(),
 				"tg_virtual_network_route":        resource.VNetRoute(),
 				"tg_vpn_interface":                resource.VPNInterface(),

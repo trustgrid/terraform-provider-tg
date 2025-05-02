@@ -77,14 +77,14 @@ func (gc GatewayConfig) ToTG() tg.GatewayConfig {
 	}
 
 	for i, p := range gc.Paths {
+		if p.ID == "" {
+			p.ID = uuid.NewString()
+		}
 		out.Paths[i] = tg.GatewayPath{
 			ID:   p.ID,
 			Host: p.Host,
 			Port: p.Port,
 			Node: p.Node,
-		}
-		if p.ID == "" {
-			p.ID = uuid.NewString()
 		}
 	}
 
