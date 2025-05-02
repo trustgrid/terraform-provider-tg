@@ -14,10 +14,9 @@ Manage a domain virtual network.
 
 ```terraform
 resource "tg_virtual_network" "tg_vnet" {
-  name         = "tg_vnet"
-  network_cidr = "10.10.0.0/16"
-  description  = "tg vnet"
-  no_nat       = true
+  name        = "tg_vnet"
+  description = "tg vnet"
+  no_nat      = true
 }
 ```
 
@@ -27,11 +26,11 @@ resource "tg_virtual_network" "tg_vnet" {
 ### Required
 
 - `name` (String) Virtual network name
-- `network_cidr` (String) Network CIDR
 
 ### Optional
 
 - `description` (String) Description
+- `network_cidr` (String, Deprecated) Network CIDR
 - `no_nat` (Boolean) Run the virtual network in NONAT mode
 
 ### Read-Only

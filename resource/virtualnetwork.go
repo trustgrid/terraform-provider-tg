@@ -35,7 +35,8 @@ func VirtualNetwork() *schema.Resource {
 			"network_cidr": {
 				Description:  "Network CIDR",
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Deprecated:   "This is only supported for legacy virtual networks",
 				ValidateFunc: validation.IsCIDR,
 			},
 			"description": {

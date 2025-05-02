@@ -48,3 +48,18 @@ type VNetAttachment struct {
 	NetworkName string `json:"networkName,omitempty"`
 	Route       string `json:"route,omitempty"`
 }
+
+type VNetObject struct {
+	Name string `json:"name"`
+	CIDR string `json:"cidr"`
+}
+
+type VNetGroup struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type VNetGroupMembership struct {
+	Object string `json:"objectName"`
+	Group  string `json:"groupName"`
+}
