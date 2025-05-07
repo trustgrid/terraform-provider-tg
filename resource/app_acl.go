@@ -51,10 +51,9 @@ func AppACL() *schema.Resource {
 				Required:    true,
 			},
 			"port_range": {
-				Description:  "Port range - a single port or a range of ports",
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"allow", "block"}, false),
+				Description: "Port range - a single port or a range of ports",
+				Type:        schema.TypeString,
+				Optional:    true,
 			},
 		},
 	}
