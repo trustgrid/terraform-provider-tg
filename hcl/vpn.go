@@ -9,7 +9,7 @@ import (
 // VPN refers to node/cluster VPN config
 // virtualnetwork refers to domain-level vnet config
 
-type VPNDynamicRoute struct {
+type VPNRoute struct {
 	UID         string `tf:"uid"`
 	NodeID      string `tf:"node_id"`
 	ClusterFQDN string `tf:"cluster_fqdn"`
@@ -22,8 +22,8 @@ type VPNDynamicRoute struct {
 	Node        string `tf:"node"`
 }
 
-func (r VPNDynamicRoute) UpdateFromTG(route tg.VPNDynamicExportRoute) HCL[tg.VPNDynamicExportRoute] {
-	return VPNDynamicRoute{
+func (r VPNRoute) UpdateFromTG(route tg.VPNRoute) HCL[tg.VPNRoute] {
+	return VPNRoute{
 		UID:         r.UID,
 		NodeID:      r.NodeID,
 		ClusterFQDN: r.ClusterFQDN,
@@ -36,8 +36,8 @@ func (r VPNDynamicRoute) UpdateFromTG(route tg.VPNDynamicExportRoute) HCL[tg.VPN
 	}
 }
 
-func (r VPNDynamicRoute) ToTG() tg.VPNDynamicExportRoute {
-	return tg.VPNDynamicExportRoute{
+func (r VPNRoute) ToTG() tg.VPNRoute {
+	return tg.VPNRoute{
 		UID:         r.UID,
 		Description: r.Description,
 		Metric:      r.Metric,

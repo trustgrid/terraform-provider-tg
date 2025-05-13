@@ -22,7 +22,7 @@ type VPNInterface struct {
 	Description     string            `json:"description,omitempty"`
 }
 
-type VPNDynamicExportRoute struct {
+type VPNRoute struct {
 	UID         string `json:"uid,omitempty"`
 	NetworkCIDR string `json:"networkCidr,omitempty"`
 	Metric      int    `json:"metric,omitempty"`

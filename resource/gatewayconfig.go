@@ -156,7 +156,7 @@ func GatewayConfig() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"route": {
 							Type:        schema.TypeString,
-							Computed:    true,
+							Required:    true,
 							Description: "Route",
 						},
 						"dest": {
