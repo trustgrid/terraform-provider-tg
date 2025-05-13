@@ -17,16 +17,16 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-//go:embed test-data/vpn-dynamic-route/create.hcl
+//go:embed test-data/vpn-dynamic-export-route/create.hcl
 var vpnDynamicRouteCreate string
 
-//go:embed test-data/vpn-dynamic-route/update.hcl
+//go:embed test-data/vpn-dynamic-export-route/update.hcl
 var vpnDynamicRouteUpdate string
 
-//go:embed test-data/vpn-dynamic-route/create-cluster.hcl
+//go:embed test-data/vpn-dynamic-export-route/create-cluster.hcl
 var vpnClusterDynamicRouteCreate string
 
-//go:embed test-data/vpn-dynamic-route/update-cluster.hcl
+//go:embed test-data/vpn-dynamic-export-route/update-cluster.hcl
 var vpnClusterDynamicRouteUpdate string
 
 func init() {
