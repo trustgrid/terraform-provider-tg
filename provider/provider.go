@@ -110,7 +110,9 @@ func New(version string) func() *schema.Provider {
 				"tg_virtual_network_object":           resource.VNetObject(),
 				"tg_virtual_network_port_forward":     resource.VNetPortForward(),
 				"tg_virtual_network_route":            resource.VNetRoute(),
+				"tg_vpn_attachment":                   resource.VPNAttachment(),
 				"tg_vpn_interface":                    resource.VPNInterface(),
+				"tg_vpn_dynamic_export_route":         resource.VPNDynamicExportRoute(),
 				"tg_ztna_gateway_config":              resource.ZTNAConfig(),
 			},
 		}

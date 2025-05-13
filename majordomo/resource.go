@@ -10,33 +10,42 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
+type CallbackArgs[T any, H hcl.HCL[T]] struct {
+	Resource H
+	Body     []byte
+	TF       *schema.ResourceData
+	Meta     any
+}
+
+type callback[T any, H hcl.HCL[T]] func(context.Context, CallbackArgs[T, H]) (string, error)
+
 // Resource manages CRUD operations and marshaling between `hcl` and `tg` types.
 type Resource[T any, H hcl.HCL[T]] struct {
 	createURL     func(H) string
-	afterCreate   func(ctx context.Context, d *schema.ResourceData, meta any) error
-	onCreateReply func(*schema.ResourceData, []byte) (string, error)
-	onUpdateReply func(*schema.ResourceData, []byte) (string, error)
+	afterCreate   callback[T, H]
+	onCreateReply callback[T, H]
+	onUpdateReply callback[T, H]
 	getFromNode   func(tg.Node) (T, bool, error)
 	updateURL     func(H) string
 	deleteURL     func(H) string
 	getURL        func(H) string
-	indexURL      func() string
+	indexURL      func(H) string
 	id            func(H) string
 	remoteID      func(T) string
 }
 
 type ResourceArgs[T any, H hcl.HCL[T]] struct {
-	CreateURL     func(H) string                                         // CreateURL should return the URL for POST-ing the resource. If not set, calls to `Create` will attempt to call `Update`.
-	OnCreateReply func(*schema.ResourceData, []byte) (string, error)     // OnCreateReply is called after a successful POST request. The ID returned will be set as the resource ID.
-	AfterCreate   func(context.Context, *schema.ResourceData, any) error // AfterCreate is called after a successful create request. The ID of the resource will be set.
-	OnUpdateReply func(*schema.ResourceData, []byte) (string, error)     // OnUpdateReply is called after a successful PUT request. The ID returned will be set as the resource ID.
-	GetFromNode   func(tg.Node) (T, bool, error)                         // GetFromNode should return the `tg` resource from the `tg.Node` resource.
-	DeleteURL     func(H) string                                         // DeleteURL should return the URL for DELETE-ing the resource.
-	GetURL        func(H) string                                         // GetURL should return the URL for GET-ing the resource, provided the API supports individual lookups.
-	UpdateURL     func(H) string                                         // UpdateURL should return the URL for PUT-ing the resource.
-	IndexURL      func() string                                          // IndexURL should return the URL for GET-ing a list of resources. If this and RemoteID are provided and GetURL is not, `Read` will attempt to call `Index` and search for the resource.
-	RemoteID      func(T) string                                         // RemoteID should return the ID of `tg` resource from the remote API.
-	ID            func(H) string                                         // ID should return the ID of the `hcl` resource.
+	CreateURL     func(H) string                 // CreateURL should return the URL for POST-ing the resource. If not set, calls to `Create` will attempt to call `Update`.
+	OnCreateReply callback[T, H]                 // OnCreateReply is called after a successful POST request. The ID returned will be set as the resource ID.
+	AfterCreate   callback[T, H]                 // AfterCreate is called after a successful create request. The ID of the resource will be set.
+	OnUpdateReply callback[T, H]                 // OnUpdateReply is called after a successful PUT request. The ID returned will be set as the resource ID.
+	GetFromNode   func(tg.Node) (T, bool, error) // GetFromNode should return the `tg` resource from the `tg.Node` resource.
+	DeleteURL     func(H) string                 // DeleteURL should return the URL for DELETE-ing the resource.
+	GetURL        func(H) string                 // GetURL should return the URL for GET-ing the resource, provided the API supports individual lookups.
+	UpdateURL     func(H) string                 // UpdateURL should return the URL for PUT-ing the resource.
+	IndexURL      func(H) string                 // IndexURL should return the URL for GET-ing a list of resources. If this and RemoteID are provided and GetURL is not, `Read` will attempt to call `Index` and search for the resource.
+	RemoteID      func(T) string                 // RemoteID should return the ID of `tg` resource from the remote API.
+	ID            func(H) string                 // ID should return the ID of the `hcl` resource.
 }
 
 // NewResource returns a new `Resource`.
@@ -72,13 +81,23 @@ func (r *Resource[T, H]) Create(ctx context.Context, d *schema.ResourceData, met
 
 	tg := tf.ToTG()
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	reply, err := tgc.Post(ctx, r.createURL(tf), tg)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	cbArgs := CallbackArgs[T, H]{
+		Resource: tf,
+		Body:     reply,
+		TF:       d,
+		Meta:     meta,
+	}
+
 	if r.onCreateReply != nil {
-		id, err := r.onCreateReply(d, reply)
+		id, err := r.onCreateReply(ctx, cbArgs)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -88,7 +107,7 @@ func (r *Resource[T, H]) Create(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	if r.afterCreate != nil {
-		if err := r.afterCreate(ctx, d, meta); err != nil {
+		if _, err := r.afterCreate(ctx, cbArgs); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -112,13 +131,23 @@ func (r *Resource[T, H]) Update(ctx context.Context, d *schema.ResourceData, met
 
 	tg := tf.ToTG()
 
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
+
 	reply, err := tgc.Put(ctx, r.updateURL(tf), tg)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	if r.onUpdateReply != nil {
-		id, err := r.onUpdateReply(d, reply)
+		cbArgs := CallbackArgs[T, H]{
+			Resource: tf,
+			Body:     reply,
+			TF:       d,
+			Meta:     meta,
+		}
+
+		id, err := r.onUpdateReply(ctx, cbArgs)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -141,6 +170,9 @@ func (r *Resource[T, H]) Delete(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	tg := tf.ToTG()
+
+	tgc.Lock.Lock()
+	defer tgc.Lock.Unlock()
 
 	if err := tgc.Delete(ctx, r.deleteURL(tf), tg); err != nil {
 		return diag.FromErr(err)
@@ -204,7 +236,7 @@ func (r *Resource[T, H]) index(ctx context.Context, tf H, meta any) (T, bool, er
 
 	var out T
 
-	if err := tgc.Get(ctx, r.indexURL(), &upstream); err != nil {
+	if err := tgc.Get(ctx, r.indexURL(tf), &upstream); err != nil {
 		return out, false, err
 	}
 

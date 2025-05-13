@@ -15,10 +15,10 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
+const testNodeID = "d70e7d73-2a1c-4388-bbb1-08ca2fd39f48"
+
 func TestAccSNMP_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
-
-	nodeID := "d70e7d73-2a1c-4388-bbb1-08ca2fd39f48"
 
 	provider := provider.New("test")()
 
@@ -28,10 +28,10 @@ func TestAccSNMP_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: snmpConfig(nodeID, true, "engine123", "snmpuser", "SHA", "auth-pass-1", "AES128", "priv-pass-1", 161, "eth0"),
+				Config: snmpConfig(testNodeID, true, "engine123", "snmpuser", "SHA", "auth-pass-1", "AES128", "priv-pass-1", 161, "eth0"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("tg_snmp.test", "id", nodeID),
-					resource.TestCheckResourceAttr("tg_snmp.test", "node_id", nodeID),
+					resource.TestCheckResourceAttr("tg_snmp.test", "id", testNodeID),
+					resource.TestCheckResourceAttr("tg_snmp.test", "node_id", testNodeID),
 					resource.TestCheckResourceAttr("tg_snmp.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "engine_id", "engine123"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "username", "snmpuser"),
@@ -41,17 +41,17 @@ func TestAccSNMP_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_snmp.test", "privacy_passphrase", "priv-pass-1"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "port", "161"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "interface", "eth0"),
-					checkSNMPAPISide(provider, nodeID, true, "engine123", "snmpuser", "SHA", "AES128", 161, "eth0"),
+					checkSNMPAPISide(provider, testNodeID, true, "engine123", "snmpuser", "SHA", "AES128", 161, "eth0"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_snmp.test", tfjsonpath.New("id")),
 				},
 			},
 			{
-				Config: snmpConfig(nodeID, true, "engine456", "snmpuser2", "MD5", "auth-pass-2", "AES256", "priv-pass-2", 162, "eth1"),
+				Config: snmpConfig(testNodeID, true, "engine456", "snmpuser2", "MD5", "auth-pass-2", "AES256", "priv-pass-2", 162, "eth1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("tg_snmp.test", "id", nodeID),
-					resource.TestCheckResourceAttr("tg_snmp.test", "node_id", nodeID),
+					resource.TestCheckResourceAttr("tg_snmp.test", "id", testNodeID),
+					resource.TestCheckResourceAttr("tg_snmp.test", "node_id", testNodeID),
 					resource.TestCheckResourceAttr("tg_snmp.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "engine_id", "engine456"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "username", "snmpuser2"),
@@ -61,15 +61,15 @@ func TestAccSNMP_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_snmp.test", "privacy_passphrase", "priv-pass-2"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "port", "162"),
 					resource.TestCheckResourceAttr("tg_snmp.test", "interface", "eth1"),
-					checkSNMPAPISide(provider, nodeID, true, "engine456", "snmpuser2", "MD5", "AES256", 162, "eth1"),
+					checkSNMPAPISide(provider, testNodeID, true, "engine456", "snmpuser2", "MD5", "AES256", 162, "eth1"),
 				),
 			},
 			{
-				Config: snmpConfig(nodeID, false, "engine456", "snmpuser2", "MD5", "auth-pass-2", "AES256", "priv-pass-2", 162, "eth1"),
+				Config: snmpConfig(testNodeID, false, "engine456", "snmpuser2", "MD5", "auth-pass-2", "AES256", "priv-pass-2", 162, "eth1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("tg_snmp.test", "id", nodeID),
+					resource.TestCheckResourceAttr("tg_snmp.test", "id", testNodeID),
 					resource.TestCheckResourceAttr("tg_snmp.test", "enabled", "false"),
-					checkSNMPAPISide(provider, nodeID, false, "engine456", "snmpuser2", "MD5", "AES256", 162, "eth1"),
+					checkSNMPAPISide(provider, testNodeID, false, "engine456", "snmpuser2", "MD5", "AES256", 162, "eth1"),
 				),
 			},
 		},
@@ -77,8 +77,6 @@ func TestAccSNMP_HappyPath(t *testing.T) {
 }
 
 func TestAccSNMP_Protocols(t *testing.T) {
-	nodeID := "d70e7d73-2a1c-4388-bbb1-08ca2fd39f48"
-
 	provider := provider.New("test")()
 
 	resource.Test(t, resource.TestCase{
@@ -87,17 +85,17 @@ func TestAccSNMP_Protocols(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: snmpConfig(nodeID, true, "engine123", "snmpuser", "SHA", "auth-pass-1", "DES", "priv-pass-1", 161, "eth0"),
+				Config: snmpConfig(testNodeID, true, "engine123", "snmpuser", "SHA", "auth-pass-1", "DES", "priv-pass-1", 161, "eth0"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_snmp.test", "privacy_protocol", "DES"),
-					checkSNMPAPISide(provider, nodeID, true, "engine123", "snmpuser", "SHA", "DES", 161, "eth0"),
+					checkSNMPAPISide(provider, testNodeID, true, "engine123", "snmpuser", "SHA", "DES", 161, "eth0"),
 				),
 			},
 			{
-				Config: snmpConfig(nodeID, true, "engine123", "snmpuser", "SHA", "auth-pass-1", "AES192", "priv-pass-1", 161, "eth0"),
+				Config: snmpConfig(testNodeID, true, "engine123", "snmpuser", "SHA", "auth-pass-1", "AES192", "priv-pass-1", 161, "eth0"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_snmp.test", "privacy_protocol", "AES192"),
-					checkSNMPAPISide(provider, nodeID, true, "engine123", "snmpuser", "SHA", "AES192", 161, "eth0"),
+					checkSNMPAPISide(provider, testNodeID, true, "engine123", "snmpuser", "SHA", "AES192", 161, "eth0"),
 				),
 			},
 		},

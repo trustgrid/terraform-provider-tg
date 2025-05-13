@@ -13,7 +13,7 @@ func Cert() *schema.Resource {
 			CreateURL: func(_ hcl.Cert) string { return "/v2/certificates" },
 			UpdateURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
 			DeleteURL: func(cert hcl.Cert) string { return "/v2/certificates/" + cert.FQDN },
-			IndexURL:  func() string { return "/v2/certificates" },
+			IndexURL:  func(_ hcl.Cert) string { return "/v2/certificates" },
 			ID: func(cert hcl.Cert) string {
 				return cert.FQDN
 			},
