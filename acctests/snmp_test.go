@@ -16,6 +16,7 @@ import (
 )
 
 const testNodeID = "d70e7d73-2a1c-4388-bbb1-08ca2fd39f48"
+const testClusterFQDN = "test-cluster.terraform.dev.trustgrid.io"
 
 func TestAccSNMP_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())

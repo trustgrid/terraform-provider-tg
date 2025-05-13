@@ -10,7 +10,7 @@ resource "tg_virtual_network_attachment" "test" {
   network = tg_virtual_network.test.name
 }
 
-resource "tg_vpn_dynamic_route" "test" {
+resource "tg_vpn_dynamic_export_route" "test" {
   description  = "Test VPN Dynamic Route"
   network_name = tg_virtual_network.test.name
   node_id      = tg_virtual_network_attachment.test.node_id

@@ -12,6 +12,7 @@ import (
 type VPNDynamicRoute struct {
 	UID         string `tf:"uid"`
 	NodeID      string `tf:"node_id"`
+	ClusterFQDN string `tf:"cluster_fqdn"`
 	NetworkName string `tf:"network_name"`
 
 	Description string `tf:"description"`
@@ -25,6 +26,7 @@ func (r VPNDynamicRoute) UpdateFromTG(route tg.VPNDynamicExportRoute) HCL[tg.VPN
 	return VPNDynamicRoute{
 		UID:         r.UID,
 		NodeID:      r.NodeID,
+		ClusterFQDN: r.ClusterFQDN,
 		NetworkName: r.NetworkName,
 		Description: route.Description,
 		Metric:      route.Metric,
