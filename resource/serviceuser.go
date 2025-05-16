@@ -18,25 +18,25 @@ func ServiceUser() *schema.Resource {
 			UpdateURL: func(user hcl.ServiceUser) string { return "/v2/service-user/" + user.Name },
 			DeleteURL: func(user hcl.ServiceUser) string { return "/v2/service-user/" + user.Name },
 			GetURL:    func(user hcl.ServiceUser) string { return "/v2/service-user/" + user.Name },
-			AfterCreate: func(ctx context.Context, d *schema.ResourceData, meta any) error {
-				tgc := tg.GetClient(meta)
-				reply, err := tgc.Post(ctx, "/v2/service-user/"+d.Id()+"/token", nil)
+			AfterCreate: func(ctx context.Context, args majordomo.CallbackArgs[tg.ServiceUser, hcl.ServiceUser]) (string, error) {
+				tgc := tg.GetClient(args.Meta)
+				reply, err := tgc.Post(ctx, "/v2/service-user/"+args.TF.Id()+"/token", nil)
 				if err != nil {
-					return err
+					return "", err
 				}
 				var token tg.APIToken
 				if err := json.Unmarshal(reply, &token); err != nil {
-					return err
+					return "", err
 				}
 
-				if err := d.Set("client_id", token.ClientID); err != nil {
-					return err
+				if err := args.TF.Set("client_id", token.ClientID); err != nil {
+					return "", err
 				}
-				if err := d.Set("secret", token.Secret); err != nil {
-					return err
+				if err := args.TF.Set("secret", token.Secret); err != nil {
+					return "", err
 				}
 
-				return nil
+				return "", nil
 			},
 			ID: func(user hcl.ServiceUser) string {
 				return user.Name

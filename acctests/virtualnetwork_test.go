@@ -3,6 +3,7 @@ package acctests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -14,6 +15,26 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/provider"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
+
+func init() {
+	resource.AddTestSweepers("tg_virtualnetwork", &resource.Sweeper{
+		Name:         "tg_virtualnetwork",
+		Dependencies: []string{"tg_vpn_dynamic_export_route"},
+		F: func(r string) error {
+			cp := tg.ClientParams{
+				APIKey:    os.Getenv("TG_API_KEY_ID"),
+				APISecret: os.Getenv("TG_API_KEY_SECRET"),
+				APIHost:   os.Getenv("TG_API_HOST"),
+			}
+			client, err := tg.NewClient(context.Background(), cp)
+			if err != nil {
+				return fmt.Errorf("error creating client: %w", err)
+			}
+
+			return client.Delete(context.Background(), "/v2/domain/"+client.Domain+"/network/test-vnet", nil)
+		},
+	})
+}
 
 func TestAccVirtualNetwork_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())

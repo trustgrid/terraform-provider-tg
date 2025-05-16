@@ -3,12 +3,12 @@
 page_title: "tg_virtual_network_attachment Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Manage a virtual network attachment.
+  Manage a VPN attachment for a node or cluster.
 ---
 
 # tg_virtual_network_attachment (Resource)
 
-Manage a virtual network attachment.
+Manage a VPN attachment for a node or cluster.
 
 ## Example Usage
 
@@ -33,13 +33,13 @@ resource "tg_virtual_network_attachment" "tftest1" {
 ### Required
 
 - `network` (String) Virtual network name
-- `validation_cidr` (String) Validation CIDR
 
 ### Optional
 
 - `cluster_fqdn` (String) Cluster FQDN
 - `ip` (String) Management IP
 - `node_id` (String) Node ID
+- `validation_cidr` (String) Validation CIDR
 
 ### Read-Only
 

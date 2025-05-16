@@ -43,12 +43,6 @@ type VNetAccessRule struct {
 	NotDest bool `json:"notDest"`
 }
 
-type VNetAttachment struct {
-	IP          string `json:"ip,omitempty"`
-	NetworkName string `json:"networkName,omitempty"`
-	Route       string `json:"route,omitempty"`
-}
-
 type VNetObject struct {
 	Name string `json:"name"`
 	CIDR string `json:"cidr"`

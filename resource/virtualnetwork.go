@@ -37,6 +37,7 @@ func VirtualNetwork() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Deprecated:   "This is only supported for legacy virtual networks",
+				Default:      "0.0.0.0/0",
 				ValidateFunc: validation.IsCIDR,
 			},
 			"description": {

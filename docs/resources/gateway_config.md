@@ -105,7 +105,4 @@ Required:
 
 - `dest` (String) Destination
 - `metric` (Number) Metric
-
-Read-Only:
-
 - `route` (String) Route

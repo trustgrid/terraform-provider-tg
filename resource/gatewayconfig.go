@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,8 +14,8 @@ import (
 func GatewayConfig() *schema.Resource {
 	md := majordomo.NewResource(
 		majordomo.ResourceArgs[tg.GatewayConfig, hcl.GatewayConfig]{
-			OnUpdateReply: func(d *schema.ResourceData, _ []byte) (string, error) {
-				nodeID := d.Get("node_id")
+			OnUpdateReply: func(_ context.Context, args majordomo.CallbackArgs[tg.GatewayConfig, hcl.GatewayConfig]) (string, error) {
+				nodeID := args.TF.Get("node_id")
 
 				return nodeID.(string), nil //nolint: errcheck // terraform take the wheel
 			},
@@ -155,7 +156,7 @@ func GatewayConfig() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"route": {
 							Type:        schema.TypeString,
-							Computed:    true,
+							Required:    true,
 							Description: "Route",
 						},
 						"dest": {

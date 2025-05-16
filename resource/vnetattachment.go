@@ -3,7 +3,6 @@ package resource
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,33 +12,20 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
-type vnetAttachment struct {
-}
-
-type HCLVnetAttachment struct {
-	NodeID         string `tf:"node_id"`
-	ClusterFQDN    string `tf:"cluster_fqdn"`
-	NetworkName    string `tf:"network"`
-	IP             string `tf:"ip"`
-	ValidationCIDR string `tf:"validation_cidr"`
-}
-
-func (h *HCLVnetAttachment) resourceURL() string {
-	return h.url() + "/" + h.NetworkName
-}
-
-func (h *HCLVnetAttachment) url() string {
-	if h.NodeID != "" {
-		return fmt.Sprintf("/v2/node/%s/vpn", h.NodeID)
-	}
-	return fmt.Sprintf("/v2/cluster/%s/vpn", h.ClusterFQDN)
+type vpnAttachment struct {
 }
 
 func VNetAttachment() *schema.Resource {
-	r := vnetAttachment{}
+	res := VPNAttachment()
+	res.DeprecationMessage = "This resource is deprecated. Use tg_vpn_attachment instead."
+	return res
+}
+
+func VPNAttachment() *schema.Resource {
+	r := vpnAttachment{}
 
 	return &schema.Resource{
-		Description: "Manage a virtual network attachment.",
+		Description: "Manage a VPN attachment for a node or cluster.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
@@ -79,28 +65,28 @@ func VNetAttachment() *schema.Resource {
 			"validation_cidr": {
 				Description:  "Validation CIDR",
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.IsCIDR,
 			},
 		},
 	}
 }
 
-func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (vn *vpnAttachment) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	tf, err := hcl.DecodeResourceData[hcl.VPNAttachment](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	tgva := tg.VNetAttachment{
+	tgva := tg.VPNAttachment{
 		IP:          tf.IP,
 		Route:       tf.ValidationCIDR,
 		NetworkName: tf.NetworkName,
 	}
 
-	if _, err := tgc.Post(ctx, tf.url(), &tgva); err != nil {
+	if _, err := tgc.Post(ctx, tf.URL(), &tgva); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -109,52 +95,52 @@ func (vn *vnetAttachment) Create(ctx context.Context, d *schema.ResourceData, me
 	return nil
 }
 
-func (vn *vnetAttachment) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (vn *vpnAttachment) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	tf, err := hcl.DecodeResourceData[hcl.VPNAttachment](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	tgva := tg.VNetAttachment{
+	tgva := tg.VPNAttachment{
 		IP:          tf.IP,
 		Route:       tf.ValidationCIDR,
 		NetworkName: tf.NetworkName,
 	}
 
-	if _, err := tgc.Put(ctx, tf.resourceURL(), &tgva); err != nil {
+	if _, err := tgc.Put(ctx, tf.ResourceURL(), &tgva); err != nil {
 		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func (vn *vnetAttachment) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (vn *vpnAttachment) Delete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	tf, err := hcl.DecodeResourceData[hcl.VPNAttachment](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, tf.resourceURL(), nil); err != nil {
+	if err := tgc.Delete(ctx, tf.ResourceURL(), nil); err != nil {
 		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func (vn *vnetAttachment) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (vn *vpnAttachment) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	tf, err := hcl.DecodeResourceData[HCLVnetAttachment](d)
+	tf, err := hcl.DecodeResourceData[hcl.VPNAttachment](d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	vnet := tg.VNetAttachment{}
-	err = tgc.Get(ctx, tf.resourceURL(), &vnet)
+	vnet := tg.VPNAttachment{}
+	err = tgc.Get(ctx, tf.ResourceURL(), &vnet)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):

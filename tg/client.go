@@ -113,9 +113,9 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 	if r.StatusCode != http.StatusOK {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
+			return fmt.Errorf("[DELETE]: non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
-		return fmt.Errorf("non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
+		return fmt.Errorf("[DELETE]: non-200 from portal (%s): %d\npayload:\n%s\n\nreply:\n%s", url, r.StatusCode, string(body), reply)
 	}
 
 	return nil
@@ -216,7 +216,7 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 		case http.StatusUnprocessableEntity:
 			return r.Body, &ValidationError{URL: url}
 		default:
-			return r.Body, fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
+			return r.Body, fmt.Errorf("[RAWGET] non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
 	}
 
@@ -241,12 +241,12 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 	if r.StatusCode != http.StatusOK {
 		reply, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
+			return fmt.Errorf("[GET] non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
 		}
 		if r.StatusCode == http.StatusNotFound {
 			return &NotFoundError{URL: url}
 		}
-		return fmt.Errorf("non-200 from portal (%s): %d - %s\n%s", url, r.StatusCode, req.URL.String(), reply)
+		return fmt.Errorf("[GET] non-200 from portal (%s): %d - %s\n%s", url, r.StatusCode, req.URL.String(), reply)
 	}
 
 	reply, err := io.ReadAll(r.Body)

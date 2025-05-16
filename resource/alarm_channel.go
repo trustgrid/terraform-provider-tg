@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,15 +14,15 @@ func AlarmChannel() *schema.Resource {
 	md := majordomo.NewResource(
 		majordomo.ResourceArgs[tg.AlarmChannel, hcl.AlarmChannel]{
 			CreateURL: func(_ hcl.AlarmChannel) string { return "/v2/alarm-channel" },
-			OnCreateReply: func(d *schema.ResourceData, reply []byte) (string, error) {
+			OnCreateReply: func(_ context.Context, args majordomo.CallbackArgs[tg.AlarmChannel, hcl.AlarmChannel]) (string, error) {
 				var response struct {
 					ID string `json:"uid"`
 				}
-				if err := json.Unmarshal(reply, &response); err != nil {
+				if err := json.Unmarshal(args.Body, &response); err != nil {
 					return "", err
 				}
 
-				if err := d.Set("uid", response.ID); err != nil {
+				if err := args.TF.Set("uid", response.ID); err != nil {
 					return "", err
 				}
 				return response.ID, nil

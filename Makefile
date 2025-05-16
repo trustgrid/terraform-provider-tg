@@ -23,6 +23,9 @@ build:
 test:
 	go test -v ./...
 
+sweep:
+	go test -v ./acctests -v -sweep=all
+
 testacc:
 	TF_LOG=ERROR TF_ACC=1 go test -v ./...
 
