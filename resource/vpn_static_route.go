@@ -115,9 +115,8 @@ func VPNStaticRoute() *schema.Resource {
 			"metric": {
 				Description:  "Metric",
 				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      0,
-				ValidateFunc: validation.IntBetween(0, 200),
+				Required:     true,
+				ValidateFunc: validation.IntBetween(1, 200),
 			},
 			"network_cidr": {
 				Description:  "Network CIDR",
