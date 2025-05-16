@@ -36,6 +36,9 @@ func TestAccGatewayConfig_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_gateway_config.test", "path.0.host", "5.5.5.5"),
 					resource.TestCheckResourceAttr("tg_gateway_config.test", "path.0.port", "1234"),
 					resource.TestCheckResourceAttr("tg_gateway_config.test", "path.0.node", "anode"),
+					resource.TestCheckResourceAttr("tg_gateway_config.test", "path.0.default", "false"),
+					resource.TestCheckResourceAttr("tg_gateway_config.test", "path.0.enabled", "true"),
+					resource.TestCheckResourceAttr("tg_gateway_config.test", "path.0.local", "6.6.6.6"),
 					resource.TestCheckResourceAttr("tg_gateway_config.test", "route.0.route", "test-subject"),
 					resource.TestCheckResourceAttr("tg_gateway_config.test", "route.0.dest", "somewhere"),
 					resource.TestCheckResourceAttr("tg_gateway_config.test", "route.0.metric", "3"),
@@ -65,6 +68,7 @@ resource "tg_gateway_config" "test" {
     host = "5.5.5.5"
 	port = 1234
 	node = "anode"
+	local = "6.6.6.6"
   }
 
   route {

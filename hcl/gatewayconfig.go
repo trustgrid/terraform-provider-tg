@@ -39,10 +39,13 @@ type GatewayRoute struct {
 }
 
 type GatewayPath struct {
-	ID   string `tf:"id"`
-	Host string `tf:"host"`
-	Port int    `tf:"port"`
-	Node string `tf:"node"`
+	ID      string `tf:"id"`
+	Host    string `tf:"host"`
+	Port    int    `tf:"port"`
+	Node    string `tf:"node"`
+	Default bool   `tf:"default"`
+	Local   string `tf:"local"`
+	Enabled bool   `tf:"enabled"`
 }
 
 type GatewayClient struct {
@@ -81,10 +84,13 @@ func (gc GatewayConfig) ToTG() tg.GatewayConfig {
 			p.ID = uuid.NewString()
 		}
 		out.Paths[i] = tg.GatewayPath{
-			ID:   p.ID,
-			Host: p.Host,
-			Port: p.Port,
-			Node: p.Node,
+			ID:      p.ID,
+			Host:    p.Host,
+			Port:    p.Port,
+			Node:    p.Node,
+			Default: p.Default,
+			Local:   p.Local,
+			Enabled: p.Enabled,
 		}
 	}
 
@@ -130,10 +136,13 @@ func (gc GatewayConfig) UpdateFromTG(a tg.GatewayConfig) HCL[tg.GatewayConfig] {
 	gc.Paths = make([]GatewayPath, len(a.Paths))
 	for i, p := range a.Paths {
 		gc.Paths[i] = GatewayPath{
-			ID:   p.ID,
-			Host: p.Host,
-			Port: p.Port,
-			Node: p.Node,
+			ID:      p.ID,
+			Host:    p.Host,
+			Port:    p.Port,
+			Node:    p.Node,
+			Default: p.Default,
+			Local:   p.Local,
+			Enabled: p.Enabled,
 		}
 	}
 

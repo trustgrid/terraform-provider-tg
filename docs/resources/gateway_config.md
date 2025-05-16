@@ -58,7 +58,7 @@ resource "tg_gateway_config" "private-gateway" {
 
 - `cert` (String) Gateway TLS certificate
 - `client` (Block List) Private gateway clients (see [below for nested schema](#nestedblock--client))
-- `connect_to_public` (Boolean) Allow connectivity to public gateways
+- `connect_to_public` (Boolean) Allow connectivity to public gateways. Defaults to `true`.
 - `enabled` (Boolean) Enable the gateway plugin
 - `host` (String) Host IP
 - `max_client_write_mbps` (Number) Maximum gateway egress throughput
@@ -92,6 +92,12 @@ Required:
 - `host` (String) Path host
 - `node` (String) Path node
 - `port` (Number) Path host
+
+Optional:
+
+- `default` (Boolean) Allow this path to be used as a default. Defaults to `false`.
+- `enabled` (Boolean) Path enabled. Defaults to `true`.
+- `local` (String) Source IP to use for this path
 
 Read-Only:
 

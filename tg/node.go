@@ -27,10 +27,13 @@ type GatewayRoute struct {
 }
 
 type GatewayPath struct {
-	ID   string `json:"id"`
-	Host string `json:"host"`
-	Port int    `json:"port"`
-	Node string `json:"node"`
+	ID      string `json:"id"`
+	Host    string `json:"host"`
+	Port    int    `json:"port"`
+	Node    string `json:"node"`
+	Default bool   `json:"default"`
+	Local   string `json:"local"`
+	Enabled bool   `json:"enabled"`
 }
 
 type GatewayClient struct {

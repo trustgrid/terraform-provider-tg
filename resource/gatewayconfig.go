@@ -101,7 +101,7 @@ func GatewayConfig() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"public", "private", "hub"}, false),
 			},
 			"connect_to_public": {
-				Description: "Allow connectivity to public gateways",
+				Description: "Allow connectivity to public gateways. Defaults to `true`.",
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
@@ -139,6 +139,24 @@ func GatewayConfig() *schema.Resource {
 							Required:     true,
 							Description:  "Path host",
 							ValidateFunc: validation.IsPortNumber,
+						},
+						"default": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Allow this path to be used as a default. Defaults to `false`.",
+						},
+						"local": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Source IP to use for this path",
+							ValidateFunc: validation.IsIPv4Address,
+						},
+						"enabled": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Path enabled. Defaults to `true`.",
+							Default:     true,
 						},
 						"node": {
 							Type:        schema.TypeString,
