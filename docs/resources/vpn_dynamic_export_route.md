@@ -17,6 +17,7 @@ Manage a VPN dynamic export route on a node or cluster.
 
 ### Required
 
+- `metric` (Number) Metric
 - `network_cidr` (String) Network CIDR
 - `network_name` (String) Network name
 - `node` (String) Node ID
@@ -25,7 +26,6 @@ Manage a VPN dynamic export route on a node or cluster.
 
 - `cluster_fqdn` (String) Cluster FQDN - required if node_id is not specified
 - `description` (String) Description
-- `metric` (Number) Metric
 - `node_id` (String) Node ID - required if cluster_fqdn is not specified
 - `path` (String) Path
 
