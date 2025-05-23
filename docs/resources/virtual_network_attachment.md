@@ -3,12 +3,12 @@
 page_title: "tg_virtual_network_attachment Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Manage a VPN attachment for a node or cluster.
+  Manage a VPN attachment for a node or cluster. This resource is deprecated. Use tg_vpn_attachment instead.
 ---
 
 # tg_virtual_network_attachment (Resource)
 
-Manage a VPN attachment for a node or cluster.
+Manage a VPN attachment for a node or cluster. This resource is deprecated. Use `tg_vpn_attachment` instead.
 
 ## Example Usage
 
