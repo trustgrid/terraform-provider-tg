@@ -125,7 +125,7 @@ func GatewayConfig() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeString,
-							Computed:    true,
+							Required:    true,
 							Description: "Path ID",
 						},
 						"host": {
