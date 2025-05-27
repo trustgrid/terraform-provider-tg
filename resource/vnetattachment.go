@@ -17,6 +17,7 @@ type vpnAttachment struct {
 
 func VNetAttachment() *schema.Resource {
 	res := VPNAttachment()
+	res.Description = "Manage a VPN attachment for a node or cluster. This resource is deprecated. Use `tg_vpn_attachment` instead."
 	res.DeprecationMessage = "This resource is deprecated. Use tg_vpn_attachment instead."
 	return res
 }
