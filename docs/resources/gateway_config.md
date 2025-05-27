@@ -90,6 +90,7 @@ Required:
 Required:
 
 - `host` (String) Path host
+- `id` (String) Path ID
 - `node` (String) Path node
 - `port` (Number) Path host
 
@@ -98,10 +99,6 @@ Optional:
 - `default` (Boolean) Allow this path to be used as a default. Defaults to `false`.
 - `enabled` (Boolean) Path enabled. Defaults to `true`.
 - `local` (String) Source IP to use for this path
-
-Read-Only:
-
-- `id` (String) Path ID
 
 
 <a id="nestedblock--route"></a>

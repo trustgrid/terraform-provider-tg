@@ -1,7 +1,6 @@
 package hcl
 
 import (
-	"github.com/google/uuid"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
@@ -80,9 +79,6 @@ func (gc GatewayConfig) ToTG() tg.GatewayConfig {
 	}
 
 	for i, p := range gc.Paths {
-		if p.ID == "" {
-			p.ID = uuid.NewString()
-		}
 		out.Paths[i] = tg.GatewayPath{
 			ID:      p.ID,
 			Host:    p.Host,

@@ -17,7 +17,7 @@ resource "tg_vpn_interface" "node-ipsec" {
   node_id = "your-node-id"
   network = "your-vnet-name"
 
-  interface_name = "ipsec-tunnel"
+  interface_name = "enp6s0"
 
   inside_nat {
     network_cidr = "10.0.1.0/24"
@@ -43,7 +43,7 @@ resource "tg_vpn_interface" "cluster-ipsec" {
   cluster_fqdn = "your-cluster-fqdn.trustgrid.io"
   network      = "your-vnet-name"
 
-  interface_name = "ipsec-tunnel"
+  interface_name = "enp6s0"
 
   inside_nat {
     network_cidr = "10.0.1.0/24"
