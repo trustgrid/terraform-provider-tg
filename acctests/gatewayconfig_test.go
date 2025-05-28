@@ -3,6 +3,8 @@ package acctests
 import (
 	"testing"
 
+	_ "embed"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -80,4 +82,33 @@ resource "tg_gateway_config" "test" {
   }
 }
 	`
+}
+
+//go:embed test-data/gatewayconfig/gh159.hcl
+var gh159 string
+
+func TestAccGatewayConfig_GH159(t *testing.T) {
+	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider.New("test")(),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: gh159,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("tg_gateway_config.gh159", "enabled", "false"),
+					resource.TestCheckResourceAttr("tg_gateway_config.gh159", "node_id", "d70e7d73-2a1c-4388-bbb1-08ca2fd39f48"),
+					resource.TestCheckResourceAttr("tg_gateway_config.gh159", "path.0.id", "somethingsomething-somethingelsesomethingelse-local"),
+					resource.TestCheckResourceAttr("tg_gateway_config.gh159", "path.0.host", "10.0.1.18"),
+					resource.TestCheckResourceAttr("tg_gateway_config.gh159", "path.0.port", "8443"),
+					resource.TestCheckResourceAttr("tg_gateway_config.gh159", "path.0.node", "somethingsomething"),
+				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					compareValuesSame.AddStateValue("tg_gateway_config.gh159", tfjsonpath.New("id")),
+				},
+			},
+		},
+	})
 }

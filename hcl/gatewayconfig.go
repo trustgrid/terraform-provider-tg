@@ -15,7 +15,7 @@ type GatewayConfig struct {
 	Port               int    `tf:"port"`
 	MaxMBPS            int    `tf:"maxmbps"`
 	ConnectToPublic    bool   `tf:"connect_to_public"`
-	Type               string `tf:"type"`
+	Type               string `tf:"type,omitempty"`
 	MonitorHops        bool   `tf:"monitor_hops"`
 	MaxClientWriteMBPS int    `tf:"max_client_write_mbps"`
 
@@ -43,7 +43,7 @@ type GatewayPath struct {
 	Port    int    `tf:"port"`
 	Node    string `tf:"node"`
 	Default bool   `tf:"default"`
-	Local   string `tf:"local"`
+	Local   string `tf:"local,omitempty"`
 	Enabled bool   `tf:"enabled"`
 }
 
