@@ -32,7 +32,7 @@ type GatewayPath struct {
 	Port    int    `json:"port"`
 	Node    string `json:"node"`
 	Default bool   `json:"default"`
-	Local   string `json:"local"`
+	Local   string `json:"local,omitempty"`
 	Enabled bool   `json:"enabled"`
 }
 
@@ -52,7 +52,7 @@ type GatewayConfig struct {
 	Port               int    `json:"port,omitempty"`
 	MaxMBPS            int    `json:"maxmbps,omitempty"`
 	ConnectToPublic    bool   `json:"connectToPublic"`
-	Type               string `json:"type"`
+	Type               string `json:"type,omitempty"`
 	MonitorHops        bool   `json:"monitorHops,omitempty"`
 	MaxClientWriteMBPS int    `json:"maxClientWriteMbps,omitempty"`
 
