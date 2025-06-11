@@ -150,7 +150,7 @@ Required:
 
 Required:
 
-- `dest` (String) Internal interface destination
+- `dest` (String) Internal interface destination IP
 - `name` (String) Virtual interface name
 
 Read-Only:

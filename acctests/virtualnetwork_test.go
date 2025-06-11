@@ -19,7 +19,7 @@ import (
 func init() {
 	resource.AddTestSweepers("tg_virtualnetwork", &resource.Sweeper{
 		Name:         "tg_virtualnetwork",
-		Dependencies: []string{"tg_vpn_dynamic_export_route"},
+		Dependencies: []string{"tg_vpn_dynamic_export_route", "tg_vpn_dynamic_import_route", "tg_vpn_static_route"},
 		F: func(r string) error {
 			cp := tg.ClientParams{
 				APIKey:    os.Getenv("TG_API_KEY_ID"),

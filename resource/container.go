@@ -448,8 +448,8 @@ func Container() *schema.Resource {
 						"dest": {
 							Type:         schema.TypeString,
 							Required:     true,
-							Description:  "Internal interface destination",
-							ValidateFunc: validation.IsCIDR,
+							Description:  "Internal interface destination IP",
+							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 				},
@@ -586,7 +586,7 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	if _, err := tgc.Put(ctx, cr.containerURL(ct), &ct); err != nil {
+	if _, err := tgc.Put(ctx, cr.containerURL(ct), ct.ToTG()); err != nil {
 		return diag.FromErr(err)
 	}
 
