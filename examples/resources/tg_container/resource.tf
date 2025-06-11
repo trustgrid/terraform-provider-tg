@@ -19,7 +19,7 @@ resource "tg_container" "alpine" {
   drop_caps = ["MKNOD"]
 
   log_max_file_size = 100
-  log_max_num_files = 101
+  log_max_num_files = 100
 
   healthcheck {
     command      = "stat /tmp/healthy"
@@ -63,7 +63,7 @@ resource "tg_container" "alpine" {
 
   interface {
     name = "eth0"
-    dest = "10.10.14.0/255"
+    dest = "10.10.14.0"
   }
 
   vrf = "default"

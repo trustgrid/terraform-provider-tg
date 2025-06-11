@@ -1,34 +1,34 @@
 package tg
 
 type Container struct {
-	NodeID      string `tf:"node_id" json:"-"`
-	ClusterFQDN string `tf:"cluster_fqdn" json:"-"`
-	ID          string `tf:"id" json:"id"`
-	Command     string `tf:"command" json:"command,omitempty"`
-	Description string `tf:"description" json:"description"`
-	Enabled     bool   `tf:"enabled" json:"enabled"`
-	ExecType    string `tf:"exec_type" json:"execType"`
-	Hostname    string `tf:"hostname" json:"hostname,omitempty"`
+	NodeID      string `json:"-"`
+	ClusterFQDN string `json:"-"`
+	ID          string `json:"id"`
+	Command     string `json:"command,omitempty"`
+	Description string `json:"description"`
+	Enabled     bool   `json:"enabled"`
+	ExecType    string `json:"execType"`
+	Hostname    string `json:"hostname,omitempty"`
 	Image       struct {
 		Repository string `json:"repository"`
 		Tag        string `json:"tag"`
 	} `json:"image"`
-	Name                string `tf:"name" json:"name"`
-	Privileged          bool   `tf:"privileged" json:"privileged"`
-	RequireConnectivity bool   `tf:"require_connectivity" json:"requireConnectivity"`
-	StopTime            int    `tf:"stop_time" json:"stopTime,omitempty"`
-	UseInit             bool   `tf:"use_init" json:"useInit"`
-	User                string `tf:"user" json:"user,omitempty"`
+	Name                string `json:"name"`
+	Privileged          bool   `json:"privileged"`
+	RequireConnectivity bool   `json:"requireConnectivity"`
+	StopTime            int    `json:"stopTime,omitempty"`
+	UseInit             bool   `json:"useInit"`
+	User                string `json:"user,omitempty"`
 
 	Config ContainerConfig `json:"-"`
 }
 
 type Volume struct {
-	NodeID      string `tf:"node_id" json:"-"`
-	ClusterFQDN string `tf:"cluster_fqdn" json:"-"`
+	NodeID      string `json:"-"`
+	ClusterFQDN string `json:"-"`
 
-	Name      string `tf:"name" json:"name"`
-	Encrypted bool   `tf:"encrypted" json:"encrypted"`
+	Name      string `json:"name"`
+	Encrypted bool   `json:"encrypted"`
 }
 
 type ContainerVar struct {
