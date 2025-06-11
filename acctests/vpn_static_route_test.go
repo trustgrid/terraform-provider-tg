@@ -48,6 +48,9 @@ func init() {
 				return fmt.Errorf("error getting VPN static routes: %w", err)
 			}
 
+			// Just create this and wait for the other sweeper to clean up after you
+			client.Post(context.Background(), "/v2/domain/"+client.Domain+"/network", tg.VirtualNetwork{Name: "test-vnet"})
+
 			for _, r := range routes {
 				if err := client.Delete(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/route/%s", testNodeID, "test-vnet", r.UID), nil); err != nil {
 					return err
