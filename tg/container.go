@@ -103,7 +103,7 @@ type ContainerConfig struct {
 	} `json:"capabilities"`
 	Variables []ContainerVar `json:"variables"`
 	Logging   struct {
-		MaxFileSize int `json:"maxFileSize,omitempty"`
+		MaxFileSize int `json:"maxLogFileSize,omitempty"`
 		NumFiles    int `json:"numFiles,omitempty"`
 	} `json:"logging,omitempty"`
 	HealthCheck     *HealthCheck              `json:"healthcheck,omitempty"`
