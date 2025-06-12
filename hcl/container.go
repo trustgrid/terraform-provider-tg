@@ -1,6 +1,9 @@
 package hcl
 
 import (
+	"slices"
+	"strings"
+
 	"github.com/google/uuid"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
@@ -220,6 +223,21 @@ func (tfc *Container) ToTG() tg.Container {
 	return c
 }
 
+func (tfc *Container) Sort() {
+	slices.SortStableFunc(tfc.Mounts, func(a, b ContainerMount) int {
+		return strings.Compare(a.Dest, b.Dest)
+	})
+	slices.SortStableFunc(tfc.PortMappings, func(a, b ContainerPortMapping) int {
+		return a.HostPort - b.HostPort
+	})
+	slices.SortStableFunc(tfc.VirtualNetworks, func(a, b ContainerVirtualNetwork) int {
+		return strings.Compare(a.Network, b.Network)
+	})
+	slices.SortStableFunc(tfc.Interfaces, func(a, b ContainerInterface) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+}
+
 func (tfc *Container) UpdateFromTG(c tg.Container) {
 	tfc.NodeID = c.NodeID
 	tfc.ClusterFQDN = c.ClusterFQDN
@@ -332,4 +350,6 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 			Dest: i.Dest,
 		})
 	}
+
+	tfc.Sort()
 }

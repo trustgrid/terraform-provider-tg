@@ -562,6 +562,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	ct.Sort()
 
 	ct.ID = uuid.New().String()
 
@@ -585,6 +586,7 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta an
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	ct.Sort()
 
 	if _, err := tgc.Put(ctx, cr.containerURL(ct), ct.ToTG()); err != nil {
 		return diag.FromErr(err)

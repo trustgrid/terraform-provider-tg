@@ -13,6 +13,7 @@ resource "tg_container" "alpine" {
 
   variables = {
     "foo" = "bar"
+    "x"   = "y"
   }
 
   add_caps  = ["NET_ADMIN"]
@@ -37,6 +38,11 @@ resource "tg_container" "alpine" {
     mem_high = 25
     mem_max  = 45
     limits {
+      type = "nofile"
+      soft = 10
+      hard = 5
+    }
+    limits {
       type = "nice"
       soft = 10
       hard = 5
@@ -50,9 +56,21 @@ resource "tg_container" "alpine" {
     iface          = "ens160"
   }
 
+  port_mapping {
+    protocol       = "tcp"
+    container_port = 81
+    host_port      = 8081
+    iface          = "ens160"
+  }
+
   virtual_network {
     network = "my-vnet"
     ip      = "1.1.1.1"
+  }
+
+  virtual_network {
+    network = "my-vnet2"
+    ip      = "1.1.1.2"
   }
 
   interface {
@@ -60,9 +78,20 @@ resource "tg_container" "alpine" {
     dest = "10.10.14.0"
   }
 
+  interface {
+    name = "eth1"
+    dest = "10.10.14.1"
+  }
+
   mount {
     dest   = "/var/log/agent"
     source = "te-agent-logs"
+    type   = "volume"
+  }
+
+  mount {
+    dest   = "/var/log/other"
+    source = "te-agent-logs2"
     type   = "volume"
   }
 
