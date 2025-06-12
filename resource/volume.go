@@ -134,5 +134,9 @@ func (vr *volume) Read(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(err)
 	}
 
+	if err := hcl.EncodeResourceData(v, d); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
