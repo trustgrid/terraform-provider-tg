@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -538,6 +539,7 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c hcl.Con
 
 	g.Go(func() error {
 		err = tgc.Get(ctx, cr.containerURL(c)+"/interface", &cc.Interfaces)
+		slog.Error("container interfaces", "err", err, "interfaces", cc.Interfaces)
 		if err != nil {
 			return err
 		}
@@ -631,6 +633,10 @@ func (cr *container) Read(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	tf.UpdateFromTG(ct)
+
+	if err := hcl.EncodeResourceData(tf, d); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }

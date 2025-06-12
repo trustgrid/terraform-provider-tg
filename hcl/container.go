@@ -244,8 +244,8 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 		tfc.VRF = c.Config.VRF.Name
 	}
 
-	tfc.AddCaps = append(tfc.AddCaps, c.Config.Capabilities.AddCaps...)
-	tfc.DropCaps = append(tfc.DropCaps, c.Config.Capabilities.DropCaps...)
+	tfc.AddCaps = c.Config.Capabilities.AddCaps
+	tfc.DropCaps = c.Config.Capabilities.DropCaps
 
 	for _, v := range c.Config.Variables {
 		tfc.Variables[v.Name] = v.Value
@@ -293,6 +293,7 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 		tfc.Limits = []ContainerLimit{tlimit}
 	}
 
+	tfc.Mounts = make([]ContainerMount, 0)
 	for _, m := range c.Config.Mounts {
 		tfc.Mounts = append(tfc.Mounts, ContainerMount{
 			UID:    m.UID,
@@ -302,6 +303,7 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 		})
 	}
 
+	tfc.PortMappings = make([]ContainerPortMapping, 0)
 	for _, pm := range c.Config.PortMappings {
 		tfc.PortMappings = append(tfc.PortMappings, ContainerPortMapping{
 			UID:           pm.UID,
@@ -312,6 +314,7 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 		})
 	}
 
+	tfc.VirtualNetworks = make([]ContainerVirtualNetwork, 0)
 	for _, vnet := range c.Config.VirtualNetworks {
 		tfc.VirtualNetworks = append(tfc.VirtualNetworks, ContainerVirtualNetwork{
 			UID:           vnet.UID,
@@ -321,6 +324,7 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 		})
 	}
 
+	tfc.Interfaces = make([]ContainerInterface, 0)
 	for _, i := range c.Config.Interfaces {
 		tfc.Interfaces = append(tfc.Interfaces, ContainerInterface{
 			UID:  i.UID,
