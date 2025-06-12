@@ -13,16 +13,18 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/provider"
 )
 
-//go:embed test-data/container/create.hcl
-var containerCreate string
+//go:embed test-data/container-volume/create.hcl
+var volCreate string
 
-//go:embed test-data/container/update.hcl
-var containerUpdate string
+//go:embed test-data/container-volume/update.hcl
+var volUpdate string
 
-func TestAccContainer_HappyPath(t *testing.T) {
+func TestAccContainerVolume_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
 
 	provider := provider.New("test")()
+
+	rn := "tg_container_volume.test_vol"
 
 	resource.Test(t, resource.TestCase{
 		Providers: map[string]*schema.Provider{
@@ -30,37 +32,31 @@ func TestAccContainer_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: containerCreate,
+				Config: volCreate,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("tg_container.alpine", "id"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "name", "alpine-lister"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "command", "ls -lR"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "exec_type", "onDemand"),
+					resource.TestCheckResourceAttrSet(rn, "id"),
+					resource.TestCheckResourceAttr(rn, "name", "test-vol"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
-					compareValuesSame.AddStateValue("tg_container.alpine", tfjsonpath.New("id")),
+					compareValuesSame.AddStateValue(rn, tfjsonpath.New("id")),
 				},
 			},
 			{
-				Config: containerUpdate,
+				Config: volUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("tg_container.alpine", "id"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "name", "alpine-lister"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "command", "ls -lR"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "exec_type", "service"),
+					resource.TestCheckResourceAttrSet(rn, "id"),
+					resource.TestCheckResourceAttr(rn, "name", "test-vol2"),
 					//checkIDPAPISide(provider, idpName, "SAML", idpDescription),
 				),
 			},
 			{
-				Config: containerCreate,
+				Config: volCreate,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("tg_container.alpine", "id"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "name", "alpine-lister"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "command", "ls -lR"),
-					resource.TestCheckResourceAttr("tg_container.alpine", "exec_type", "onDemand"),
+					resource.TestCheckResourceAttrSet(rn, "id"),
+					resource.TestCheckResourceAttr(rn, "name", "test-vol"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
-					compareValuesSame.AddStateValue("tg_container.alpine", tfjsonpath.New("id")),
+					compareValuesSame.AddStateValue(rn, tfjsonpath.New("id")),
 				},
 			},
 		},

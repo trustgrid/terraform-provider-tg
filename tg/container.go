@@ -24,11 +24,11 @@ type Container struct {
 }
 
 type Volume struct {
-	NodeID      string `json:"-"`
-	ClusterFQDN string `json:"-"`
+	NodeID      string `tf:"node_id" json:"-"`
+	ClusterFQDN string `tf:"cluster_fqdn" json:"-"`
 
-	Name      string `json:"name"`
-	Encrypted bool   `json:"encrypted"`
+	Name      string `tf:"name" json:"name"`
+	Encrypted bool   `tf:"encrypted" json:"encrypted"`
 }
 
 type ContainerVar struct {

@@ -60,5 +60,11 @@ resource "tg_container" "alpine" {
     dest = "10.10.14.0"
   }
 
+  mount {
+    dest   = "/var/log/agent"
+    source = "te-agent-logs"
+    type   = "volume"
+  }
+
   vrf = "default"
 }
