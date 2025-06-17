@@ -3,6 +3,7 @@ package hcl
 import (
 	"crypto/md5" //nolint:gosec // md5 is fine for this
 	"fmt"
+
 	"slices"
 
 	"github.com/trustgrid/terraform-provider-tg/tg"
