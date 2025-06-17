@@ -562,7 +562,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	ct.Sort()
+	ct.SetUIDs()
 
 	ct.ID = uuid.New().String()
 
@@ -576,6 +576,9 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
+	if err := hcl.EncodeResourceData(ct, d); err != nil {
+		return diag.FromErr(err)
+	}
 	return nil
 }
 
@@ -586,13 +589,17 @@ func (cr *container) Update(ctx context.Context, d *schema.ResourceData, meta an
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	ct.Sort()
+	ct.SetUIDs()
 
 	if _, err := tgc.Put(ctx, cr.containerURL(ct), ct.ToTG()); err != nil {
 		return diag.FromErr(err)
 	}
 
 	if err := cr.writeExtendedConfig(ctx, tgc, ct); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := hcl.EncodeResourceData(ct, d); err != nil {
 		return diag.FromErr(err)
 	}
 
