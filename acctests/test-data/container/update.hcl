@@ -55,6 +55,12 @@ resource "tg_container" "alpine" {
     ip      = "1.1.1.1"
   }
 
+  mount {
+    dest   = "/var/lib/te-browserbot"
+    source = "te-agent-logs3"
+    type   = "volume"
+  }
+
   interface {
     name = "eth0"
     dest = "10.10.14.0"
