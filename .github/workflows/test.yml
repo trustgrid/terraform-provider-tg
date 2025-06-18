@@ -23,3 +23,11 @@ jobs:
           args: --tests=false
           version: latest
           only-new-issues: true
+
+      - name: test
+        run: make testacc
+        env:
+          TG_API_KEY: ${{ secrets.TG_API_KEY }}
+          TG_API_KEY_SECRET: ${{ secrets.TG_API_KEY_SECRET }}
+          TG_API_HOST: api.dev.trustgrid.io
+          TG_ORG_ID: dddb37c1-f707-4a55-bb72-a5978461771a
