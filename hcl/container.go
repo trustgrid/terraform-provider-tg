@@ -1,10 +1,11 @@
 package hcl
 
 import (
-	"slices"
-	"strings"
+	"crypto/md5" //nolint:gosec // md5 is fine for this
+	"fmt"
 
-	"github.com/google/uuid"
+	"slices"
+
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
@@ -171,9 +172,6 @@ func (tfc *Container) ToTG() tg.Container {
 			Source: m.Source,
 			Dest:   m.Dest,
 		}
-		if m.UID == "" {
-			m.UID = uuid.NewString()
-		}
 		cc.Mounts = append(cc.Mounts, mount)
 	}
 
@@ -185,9 +183,6 @@ func (tfc *Container) ToTG() tg.Container {
 			HostPort:      m.HostPort,
 			ContainerPort: m.ContainerPort,
 		}
-		if pm.UID == "" {
-			pm.UID = uuid.NewString()
-		}
 		cc.PortMappings = append(cc.PortMappings, pm)
 	}
 
@@ -198,9 +193,6 @@ func (tfc *Container) ToTG() tg.Container {
 			IP:            vn.IP,
 			AllowOutbound: vn.AllowOutbound,
 		}
-		if vnet.UID == "" {
-			vnet.UID = uuid.NewString()
-		}
 		cc.VirtualNetworks = append(cc.VirtualNetworks, vnet)
 	}
 
@@ -209,9 +201,6 @@ func (tfc *Container) ToTG() tg.Container {
 			UID:  i.UID,
 			Name: i.Name,
 			Dest: i.Dest,
-		}
-		if iface.UID == "" {
-			iface.UID = uuid.NewString()
 		}
 		cc.Interfaces = append(cc.Interfaces, iface)
 	}
@@ -223,19 +212,102 @@ func (tfc *Container) ToTG() tg.Container {
 	return c
 }
 
-func (tfc *Container) Sort() {
-	slices.SortStableFunc(tfc.Mounts, func(a, b ContainerMount) int {
-		return strings.Compare(a.Dest, b.Dest)
-	})
-	slices.SortStableFunc(tfc.PortMappings, func(a, b ContainerPortMapping) int {
-		return a.HostPort - b.HostPort
-	})
-	slices.SortStableFunc(tfc.VirtualNetworks, func(a, b ContainerVirtualNetwork) int {
-		return strings.Compare(a.Network, b.Network)
-	})
-	slices.SortStableFunc(tfc.Interfaces, func(a, b ContainerInterface) int {
-		return strings.Compare(a.Name, b.Name)
-	})
+func md5sum(format string, args ...interface{}) string {
+	return fmt.Sprintf("%x", md5.Sum(fmt.Appendf(nil, format, args...))) //nolint:gosec // md5 is fine for this
+}
+
+func (tfc *Container) SetUIDs() {
+	for i, iface := range tfc.Interfaces {
+		tfc.Interfaces[i].UID = md5sum("%s-%s", iface.Name, iface.Dest)
+	}
+
+	for i, mount := range tfc.Mounts {
+		tfc.Mounts[i].UID = md5sum("%s-%s-%s", mount.Type, mount.Source, mount.Dest)
+	}
+
+	for i, pm := range tfc.PortMappings {
+		tfc.PortMappings[i].UID = md5sum("%s-%s-%d-%d", pm.Protocol, pm.IFace, pm.HostPort, pm.ContainerPort)
+	}
+
+	for i, vnet := range tfc.VirtualNetworks {
+		tfc.VirtualNetworks[i].UID = md5sum("%s-%s-%t", vnet.Network, vnet.IP, vnet.AllowOutbound)
+	}
+}
+
+func (tfc *Container) updateMounts(c tg.Container) {
+	existing := make(map[string]int)
+	for i := range tfc.Mounts {
+		existing[tfc.Mounts[i].UID] = i
+	}
+
+	tfc.Mounts = make([]ContainerMount, 0)
+	for _, m := range slices.SortedFunc(slices.Values(c.Config.Mounts), func(a, b tg.Mount) int {
+		return existing[a.UID] - existing[b.UID]
+	}) {
+		tfc.Mounts = append(tfc.Mounts, ContainerMount{
+			UID:    m.UID,
+			Type:   m.Type,
+			Source: m.Source,
+			Dest:   m.Dest,
+		})
+	}
+}
+
+func (tfc *Container) updateInterfaces(c tg.Container) {
+	existing := make(map[string]int)
+	for i := range tfc.Interfaces {
+		existing[tfc.Interfaces[i].UID] = i
+	}
+
+	tfc.Interfaces = make([]ContainerInterface, 0)
+	for _, i := range slices.SortedFunc(slices.Values(c.Config.Interfaces), func(a, b tg.ContainerInterface) int {
+		return existing[a.UID] - existing[b.UID]
+	}) {
+		tfc.Interfaces = append(tfc.Interfaces, ContainerInterface{
+			UID:  i.UID,
+			Name: i.Name,
+			Dest: i.Dest,
+		})
+	}
+}
+
+func (tfc *Container) updateVirtualNetworks(c tg.Container) {
+	existing := make(map[string]int)
+	for i := range tfc.VirtualNetworks {
+		existing[tfc.VirtualNetworks[i].UID] = i
+	}
+
+	tfc.VirtualNetworks = make([]ContainerVirtualNetwork, 0)
+	for _, vnet := range slices.SortedFunc(slices.Values(c.Config.VirtualNetworks), func(a, b tg.ContainerVirtualNetwork) int {
+		return existing[a.UID] - existing[b.UID]
+	}) {
+		tfc.VirtualNetworks = append(tfc.VirtualNetworks, ContainerVirtualNetwork{
+			UID:           vnet.UID,
+			Network:       vnet.Network,
+			IP:            vnet.IP,
+			AllowOutbound: vnet.AllowOutbound,
+		})
+	}
+}
+
+func (tfc *Container) updatePortMappings(c tg.Container) {
+	existing := make(map[string]int)
+	for i := range tfc.PortMappings {
+		existing[tfc.PortMappings[i].UID] = i
+	}
+
+	tfc.PortMappings = make([]ContainerPortMapping, 0)
+	for _, pm := range slices.SortedFunc(slices.Values(c.Config.PortMappings), func(a, b tg.PortMapping) int {
+		return existing[a.UID] - existing[b.UID]
+	}) {
+		tfc.PortMappings = append(tfc.PortMappings, ContainerPortMapping{
+			UID:           pm.UID,
+			Protocol:      pm.Protocol,
+			IFace:         pm.IFace,
+			HostPort:      pm.HostPort,
+			ContainerPort: pm.ContainerPort,
+		})
+	}
 }
 
 func (tfc *Container) UpdateFromTG(c tg.Container) {
@@ -311,45 +383,8 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 		tfc.Limits = []ContainerLimit{tlimit}
 	}
 
-	tfc.Mounts = make([]ContainerMount, 0)
-	for _, m := range c.Config.Mounts {
-		tfc.Mounts = append(tfc.Mounts, ContainerMount{
-			UID:    m.UID,
-			Type:   m.Type,
-			Source: m.Source,
-			Dest:   m.Dest,
-		})
-	}
-
-	tfc.PortMappings = make([]ContainerPortMapping, 0)
-	for _, pm := range c.Config.PortMappings {
-		tfc.PortMappings = append(tfc.PortMappings, ContainerPortMapping{
-			UID:           pm.UID,
-			Protocol:      pm.Protocol,
-			IFace:         pm.IFace,
-			HostPort:      pm.HostPort,
-			ContainerPort: pm.ContainerPort,
-		})
-	}
-
-	tfc.VirtualNetworks = make([]ContainerVirtualNetwork, 0)
-	for _, vnet := range c.Config.VirtualNetworks {
-		tfc.VirtualNetworks = append(tfc.VirtualNetworks, ContainerVirtualNetwork{
-			UID:           vnet.UID,
-			Network:       vnet.Network,
-			IP:            vnet.IP,
-			AllowOutbound: vnet.AllowOutbound,
-		})
-	}
-
-	tfc.Interfaces = make([]ContainerInterface, 0)
-	for _, i := range c.Config.Interfaces {
-		tfc.Interfaces = append(tfc.Interfaces, ContainerInterface{
-			UID:  i.UID,
-			Name: i.Name,
-			Dest: i.Dest,
-		})
-	}
-
-	tfc.Sort()
+	tfc.updateMounts(c)
+	tfc.updatePortMappings(c)
+	tfc.updateVirtualNetworks(c)
+	tfc.updateInterfaces(c)
 }

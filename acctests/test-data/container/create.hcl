@@ -50,6 +50,20 @@ resource "tg_container" "alpine" {
   }
 
   port_mapping {
+    protocol       = "udp"
+    container_port = 82
+    host_port      = 8082
+    iface          = "ens160"
+  }
+
+  port_mapping {
+    protocol       = "udp"
+    container_port = 83
+    host_port      = 8083
+    iface          = "ens160"
+  }
+
+  port_mapping {
     protocol       = "tcp"
     container_port = 80
     host_port      = 8080
@@ -61,6 +75,11 @@ resource "tg_container" "alpine" {
     container_port = 81
     host_port      = 8081
     iface          = "ens160"
+  }
+
+  virtual_network {
+    network = "my-vnet3"
+    ip      = "1.1.1.3"
   }
 
   virtual_network {
@@ -84,8 +103,20 @@ resource "tg_container" "alpine" {
   }
 
   mount {
+    dest   = "/var/lib/te-agent"
+    source = "te-agent-logs4"
+    type   = "volume"
+  }
+
+  mount {
     dest   = "/var/log/agent"
     source = "te-agent-logs"
+    type   = "volume"
+  }
+
+  mount {
+    dest   = "/var/lib/te-browserbot"
+    source = "te-agent-logs3"
     type   = "volume"
   }
 
