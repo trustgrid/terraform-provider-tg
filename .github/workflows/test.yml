@@ -25,7 +25,8 @@ jobs:
           only-new-issues: true
 
       - name: test
-        run: make testacc
+        run: |
+          make sweep testacc
         env:
           TG_API_KEY_ID: ${{ secrets.TG_API_KEY }}
           TG_API_KEY_SECRET: ${{ secrets.TG_API_KEY_SECRET }}
