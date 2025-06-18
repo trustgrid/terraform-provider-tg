@@ -77,14 +77,11 @@ resource "tg_container" "alpine" {
     iface          = "ens160"
   }
 
-  < < < < < < < HEAD
   virtual_network {
     network = "my-vnet3"
     ip      = "1.1.1.3"
   }
 
-  == == == =
-  > > > > > > > main
   virtual_network {
     network = "my-vnet"
     ip      = "1.1.1.1"
