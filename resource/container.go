@@ -483,6 +483,23 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c hcl.Con
 
 	cc := tg.ContainerConfig{}
 	g.Go(func() error {
+		err = tgc.Get(ctx, cr.containerURL(c)+"/healthcheck", &cc.HealthCheck)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		err = tgc.Get(ctx, cr.containerURL(c)+"/limit", &cc.Limits)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	g.Go(func() error {
 		err = tgc.Get(ctx, cr.containerURL(c)+"/capability", &cc.Capabilities)
 		if err != nil {
 			return err
