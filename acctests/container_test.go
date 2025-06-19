@@ -3,7 +3,6 @@ package acctests
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"slices"
 	"testing"
 
@@ -252,7 +251,7 @@ func checkPortMappings(portMappings []tg.PortMapping) error {
 	case !slices.ContainsFunc(portMappings, func(pm tg.PortMapping) bool {
 		return pm.Protocol == "udp" && pm.ContainerPort == 83 && pm.HostPort == 8083 && pm.IFace == "ens160"
 	}):
-		return fmt.Errorf("expected 83->8082 udp port mapping to be present, but wasn't")
+		return fmt.Errorf("expected 83->8083 udp port mapping to be present, but wasn't")
 	case !slices.ContainsFunc(portMappings, func(pm tg.PortMapping) bool {
 		return pm.Protocol == "tcp" && pm.ContainerPort == 80 && pm.HostPort == 8080 && pm.IFace == "ens160"
 	}):
@@ -403,7 +402,6 @@ func checkCreateContainerAPISide(provider *schema.Provider) resource.TestCheckFu
 		case checkLimits(config.Limits) != nil:
 			return fmt.Errorf("limits verification failed: %w", checkLimits(config.Limits))
 		case checkPortMappings(config.PortMappings) != nil:
-			slog.Error("port mappings", "portMappings", config.PortMappings)
 			return fmt.Errorf("port mappings verification failed: %w", checkPortMappings(config.PortMappings))
 		case checkVNets(config.VirtualNetworks) != nil:
 			return fmt.Errorf("virtual networks verification failed: %w", checkVNets(config.VirtualNetworks))
