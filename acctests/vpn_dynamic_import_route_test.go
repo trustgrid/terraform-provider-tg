@@ -43,6 +43,9 @@ func init() {
 				return fmt.Errorf("error creating client: %w", err)
 			}
 
+			// Just create this and wait for the other sweeper to clean up after you
+			client.Post(context.Background(), "/v2/domain/"+client.Domain+"/network", tg.VirtualNetwork{Name: "test-vnet"})
+
 			routes := make([]tg.VPNRoute, 0)
 			if err := client.Get(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/dynamic/import-route", testNodeID, "test-vnet"), &routes); err != nil {
 				return fmt.Errorf("error getting VPN dynamic routes: %w", err)
