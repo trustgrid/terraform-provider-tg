@@ -483,83 +483,39 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c hcl.Con
 
 	cc := tg.ContainerConfig{}
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/healthcheck", &cc.HealthCheck)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, cr.containerURL(c)+"/healthcheck", &cc.HealthCheck)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/limit", &cc.Limits)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/capability", &cc.Capabilities)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, cr.containerURL(c)+"/limit", &cc.Limits)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/variable", &cc.Variables)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, cr.containerURL(c)+"/capability", &cc.Capabilities)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/logging", &cc.Logging)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, cr.containerURL(c)+"/variable", &cc.Variables)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/mount", &cc.Mounts)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, cr.containerURL(c)+"/logging", &cc.Logging)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/port-mapping", &cc.PortMappings)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, cr.containerURL(c)+"/mount", &cc.Mounts)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/virtual-network", &cc.VirtualNetworks)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, cr.containerURL(c)+"/port-mapping", &cc.PortMappings)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/interface", &cc.Interfaces)
-		if err != nil {
-			return err
-		}
+		return tgc.Get(ctx, cr.containerURL(c)+"/virtual-network", &cc.VirtualNetworks)
+	})
 
-		return nil
+	g.Go(func() error {
+		return tgc.Get(ctx, cr.containerURL(c)+"/interface", &cc.Interfaces)
 	})
 
 	err = g.Wait()

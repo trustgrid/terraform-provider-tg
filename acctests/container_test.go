@@ -163,84 +163,39 @@ func getContainer(ctx context.Context, tgc *tg.Client, entity string, entityID s
 
 	cc := tg.ContainerConfig{}
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/healthcheck", &cc.HealthCheck)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/healthcheck", &cc.HealthCheck)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/limit", &cc.Limits)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/limit", &cc.Limits)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/capability", &cc.Capabilities)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/capability", &cc.Capabilities)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/variable", &cc.Variables)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/variable", &cc.Variables)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/logging", &cc.Logging)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/logging", &cc.Logging)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/mount", &cc.Mounts)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/mount", &cc.Mounts)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/port-mapping", &cc.PortMappings)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/port-mapping", &cc.PortMappings)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/virtual-network", &cc.VirtualNetworks)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/virtual-network", &cc.VirtualNetworks)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, containerURL+"/interface", &cc.Interfaces)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/interface", &cc.Interfaces)
 	})
 
 	err = g.Wait()
