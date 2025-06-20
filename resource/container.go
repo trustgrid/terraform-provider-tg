@@ -481,68 +481,43 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c hcl.Con
 
 	g := errgroup.Group{}
 
+	containerURL := cr.containerURL(c)
+
 	cc := tg.ContainerConfig{}
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/capability", &cc.Capabilities)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/healthcheck", &cc.HealthCheck)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/variable", &cc.Variables)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/limit", &cc.Limits)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/logging", &cc.Logging)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/capability", &cc.Capabilities)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/mount", &cc.Mounts)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/variable", &cc.Variables)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/port-mapping", &cc.PortMappings)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/logging", &cc.Logging)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/virtual-network", &cc.VirtualNetworks)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tgc.Get(ctx, containerURL+"/mount", &cc.Mounts)
 	})
 
 	g.Go(func() error {
-		err = tgc.Get(ctx, cr.containerURL(c)+"/interface", &cc.Interfaces)
-		if err != nil {
-			return err
-		}
+		return tgc.Get(ctx, containerURL+"/port-mapping", &cc.PortMappings)
+	})
 
-		return nil
+	g.Go(func() error {
+		return tgc.Get(ctx, containerURL+"/virtual-network", &cc.VirtualNetworks)
+	})
+
+	g.Go(func() error {
+		return tgc.Get(ctx, containerURL+"/interface", &cc.Interfaces)
 	})
 
 	err = g.Wait()
