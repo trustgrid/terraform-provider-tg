@@ -269,6 +269,7 @@ type Node struct {
 	Cluster string               `json:"cluster"`
 	Keys    map[string]PublicKey `json:"keys"`
 	Tags    map[string]string    `json:"tags"`
+	Online  bool                 `json:"online"`
 	Device  Device               `json:"device"`
 	Config  struct {
 		Gateway    GatewayConfig    `json:"gateway"`
