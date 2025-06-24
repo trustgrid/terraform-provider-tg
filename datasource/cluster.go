@@ -65,7 +65,7 @@ func Cluster() *schema.Resource {
 							Computed:    true,
 						},
 						"enabled": {
-							Description: "True when the node is ACTIVE",
+							Description: "True when the node is ENABLED",
 							Type:        schema.TypeBool,
 							Computed:    true,
 						},
