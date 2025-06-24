@@ -55,12 +55,12 @@ func Cluster() *schema.Resource {
 							Computed:    true,
 						},
 						"configured_active": {
-							Description: "Whether the member is configured as active",
+							Description: "Whether the member is configured to be the active cluster member",
 							Type:        schema.TypeBool,
 							Computed:    true,
 						},
 						"active": {
-							Description: "Whether the member is active",
+							Description: "Whether the member is the active cluster member",
 							Type:        schema.TypeBool,
 							Computed:    true,
 						},
