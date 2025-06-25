@@ -21,5 +21,19 @@ Fetch a cluster.
 
 ### Read-Only
 
+- `health` (String) Cluster Health
 - `id` (String) The ID of this resource.
+- `members` (List of Object) Cluster Members (see [below for nested schema](#nestedatt--members))
 - `name` (String) Name
+
+<a id="nestedatt--members"></a>
+### Nested Schema for `members`
+
+Read-Only:
+
+- `active` (Boolean)
+- `configured_active` (Boolean)
+- `enabled` (Boolean)
+- `name` (String)
+- `online` (Boolean)
+- `uid` (String)
