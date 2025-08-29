@@ -350,7 +350,7 @@ func NetworkConfig() *schema.Resource {
 							},
 						},
 						"cloud_route": {
-							Description: "Cluster interface routes",
+							Description: "Cluster interface routes - these will update AWS/Azure VPC route tables",
 							Type:        schema.TypeList,
 							Optional:    true,
 							Elem: &schema.Resource{
