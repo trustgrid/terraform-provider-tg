@@ -27,7 +27,7 @@ output "license" {
 
 ### Required
 
-- `name` (String) Node Name
+- `name` (String) Node Name - lowercase letters and numbers only
 
 ### Read-Only
 
