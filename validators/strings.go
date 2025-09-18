@@ -25,16 +25,18 @@ func IsHostname(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
-var lowercase = regexp.MustCompile(`^[a-z0-9]+$`)
+var lowercase = regexp.MustCompile(`^[a-z0-9-]+$`)
 
-func StringIsLowercaseAndNumbers(i interface{}, k string) (warnings []string, errors []error) {
+func IsNodeName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 
 	switch {
 	case !ok:
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 	case !lowercase.MatchString(v):
-		errors = append(errors, fmt.Errorf("expected %s to contain only lowercase letters and numbers, got: %s", k, v))
+		errors = append(errors, fmt.Errorf("expected %s to contain only lowercase letters, numbers, and dashes, got: %s", k, v))
+	case strings.HasPrefix(v, "-"), strings.HasSuffix(v, "-"):
+		errors = append(errors, fmt.Errorf("expected %s to not start or end with a dash, but got: %s", k, v))
 	}
 
 	return warnings, errors
