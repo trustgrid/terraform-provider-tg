@@ -31,11 +31,11 @@ func License() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Description:  "Node Name - lowercase letters and numbers only",
+				Description:  "Node Name - lowercase letters, numbers, and dashes only",
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validators.StringIsLowercaseAndNumbers,
+				ValidateFunc: validators.IsNodeName,
 			},
 			"uid": {
 				Description: "Node UID",

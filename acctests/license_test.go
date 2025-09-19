@@ -65,7 +65,7 @@ func TestAcc_License_BadName(t *testing.T) {
 						Check: resource.ComposeTestCheckFunc(
 							resource.TestCheckResourceAttrSet("tg_license.test", "name"),
 						),
-						ExpectError: regexp.MustCompile("expected name to contain only lowercase letters and numbers"),
+						ExpectError: regexp.MustCompile("expected name to contain only lowercase letters, numbers, and dashes"),
 					},
 				},
 			})
