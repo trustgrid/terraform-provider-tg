@@ -102,7 +102,7 @@ func VPNDynamicImportRoute() *schema.Resource {
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"network_name": {
-				Description: "Network name",
+				Description: "Network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,

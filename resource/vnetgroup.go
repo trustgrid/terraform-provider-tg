@@ -30,7 +30,7 @@ func VNetGroup() *schema.Resource {
 				Required:    true,
 			},
 			"network": {
-				Description: "Virtual network name",
+				Description: "Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,

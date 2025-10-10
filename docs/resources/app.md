@@ -73,7 +73,7 @@ resource "tg_app" "mywgapp" {
 - `session_duration` (Number) Session Duration
 - `tls_verification_mode` (String) TLS Verification Mode
 - `trust_mode` (String) Trust Mode
-- `virtual_network` (String) Virtual network name
+- `virtual_network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 - `virtual_source_ip` (String) Virtual source IP, if using a virtual network
 - `visibility_groups` (List of String) Visibility Groups
 - `vrf` (String) VRF

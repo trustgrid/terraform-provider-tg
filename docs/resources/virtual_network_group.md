@@ -25,7 +25,7 @@ resource "tg_virtual_network_group" "my-network-group" {
 ### Required
 
 - `name` (String) Group name
-- `network` (String) Virtual network name
+- `network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 
 ### Optional
 
