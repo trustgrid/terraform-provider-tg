@@ -29,7 +29,7 @@ resource "tg_virtual_network_route" "route1" {
 
 - `dest` (String) Destination Node or Cluster name
 - `metric` (Number) Metric
-- `network` (String) Virtual network name
+- `network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 - `network_cidr` (String) Network CIDR
 
 ### Optional

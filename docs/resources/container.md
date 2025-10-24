@@ -221,7 +221,7 @@ Read-Only:
 Required:
 
 - `ip` (String) Virtual IP address
-- `network` (String) Virtual network name to attach
+- `network` (String) Virtual network name to attach - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 
 Optional:
 

@@ -72,7 +72,7 @@ resource "tg_vpn_interface" "cluster-ipsec" {
 ### Required
 
 - `interface_name` (String) Interface name
-- `network` (String) Virtual network name
+- `network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 
 ### Optional
 

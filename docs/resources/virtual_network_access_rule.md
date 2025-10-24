@@ -32,7 +32,7 @@ resource "tg_virtual_network_access_rule" "acl1" {
 - `action` (String) Allow/Reject/Drop
 - `dest` (String) Destination CIDR or exact string "public" or "private"
 - `line_number` (Number) Line Number
-- `network` (String) Virtual network name
+- `network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 - `protocol` (String) Protocol
 - `source` (String) Source CIDR
 

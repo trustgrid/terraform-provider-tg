@@ -414,7 +414,7 @@ func Container() *schema.Resource {
 						"network": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "Virtual network name to attach",
+							Description: "Virtual network name to attach - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph",
 						},
 						"ip": {
 							Type:        schema.TypeString,

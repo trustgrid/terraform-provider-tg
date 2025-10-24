@@ -27,7 +27,7 @@ resource "tg_virtual_network_object" "my_object" {
 
 - `cidr` (String) Object CIDR
 - `name` (String) Object name
-- `network` (String) Virtual network name
+- `network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 
 ### Read-Only
 
