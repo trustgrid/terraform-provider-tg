@@ -26,7 +26,7 @@ resource "tg_virtual_network_group_membership" "membership_example" {
 ### Required
 
 - `group` (String) Group name
-- `network` (String) Virtual network name
+- `network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 - `object` (String) Object name
 
 ### Read-Only

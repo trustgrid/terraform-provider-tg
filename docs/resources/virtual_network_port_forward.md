@@ -28,7 +28,7 @@ resource "tg_virtual_network_port_forward" "port_forward1" {
 ### Required
 
 - `ip` (String) IP address
-- `network` (String) Virtual network name
+- `network` (String) Virtual network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 - `node` (String) Node or Cluster name
 - `port` (Number) Port
 - `service` (String) Destination service name

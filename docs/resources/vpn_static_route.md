@@ -19,7 +19,7 @@ Manage a VPN static route on a node or cluster.
 
 - `metric` (Number) Metric
 - `network_cidr` (String) Network CIDR
-- `network_name` (String) Network name
+- `network_name` (String) Network name - use the tg_virtual_network resource's exported name to help Terraform build a consistent dependency graph
 - `node` (String) Node ID
 
 ### Optional
