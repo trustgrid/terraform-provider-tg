@@ -43,7 +43,6 @@ func ClusterMember() *schema.Resource {
 			"active": {
 				Description: "Whether the node should be the active cluster member",
 				Type:        schema.TypeBool,
-				Optional:    true,
 				Computed:    true,
 			},
 		},
