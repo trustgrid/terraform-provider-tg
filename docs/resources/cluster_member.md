@@ -32,10 +32,7 @@ resource "tg_cluster_member" "member-2" {
 - `cluster_fqdn` (String) Node cluster FQDN
 - `node_id` (String) Node ID
 
-### Optional
-
-- `active` (Boolean) Whether the node should be the active cluster member
-
 ### Read-Only
 
+- `active` (Boolean) Whether the node should be the active cluster member
 - `id` (String) The ID of this resource.
