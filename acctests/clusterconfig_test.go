@@ -27,7 +27,7 @@ func TestAccClusterConfig_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: clusterConfigTestConfig(nodeID, true, "10.20.30.40", 7946, "10.20.30.41", 7947, true),
+				Config: clusterConfigTestConfig(nodeID, true, "10.20.30.40", 7946, "10.20.30.41", 7947),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "id", nodeID),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "node_id", nodeID),
@@ -36,7 +36,6 @@ func TestAccClusterConfig_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "port", "7946"),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "status_host", "10.20.30.41"),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "status_port", "7947"),
-					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "active", "true"),
 					checkClusterConfigAPISide(provider, nodeID, true, "10.20.30.40", 7946, "10.20.30.41", 7947),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -44,7 +43,7 @@ func TestAccClusterConfig_HappyPath(t *testing.T) {
 				},
 			},
 			{
-				Config: clusterConfigTestConfig(nodeID, true, "10.20.30.50", 7950, "10.20.30.51", 7951, true),
+				Config: clusterConfigTestConfig(nodeID, true, "10.20.30.50", 7950, "10.20.30.51", 7951),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "id", nodeID),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "node_id", nodeID),
@@ -53,7 +52,6 @@ func TestAccClusterConfig_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "port", "7950"),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "status_host", "10.20.30.51"),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "status_port", "7951"),
-					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "active", "true"),
 					checkClusterConfigAPISide(provider, nodeID, true, "10.20.30.50", 7950, "10.20.30.51", 7951),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -61,7 +59,7 @@ func TestAccClusterConfig_HappyPath(t *testing.T) {
 				},
 			},
 			{
-				Config: clusterConfigTestConfig(nodeID, false, "10.20.30.50", 7950, "10.20.30.51", 7951, true),
+				Config: clusterConfigTestConfig(nodeID, false, "10.20.30.50", 7950, "10.20.30.51", 7951),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "id", nodeID),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "node_id", nodeID),
@@ -70,7 +68,6 @@ func TestAccClusterConfig_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "port", "7950"),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "status_host", "10.20.30.51"),
 					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "status_port", "7951"),
-					resource.TestCheckResourceAttr("tg_node_cluster_config.test", "active", "true"),
 					checkClusterConfigAPISide(provider, nodeID, false, "10.20.30.50", 7950, "10.20.30.51", 7951),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -81,7 +78,7 @@ func TestAccClusterConfig_HappyPath(t *testing.T) {
 	})
 }
 
-func clusterConfigTestConfig(nodeID string, enabled bool, host string, port int, statusHost string, statusPort int, active bool) string {
+func clusterConfigTestConfig(nodeID string, enabled bool, host string, port int, statusHost string, statusPort int) string {
 	return fmt.Sprintf(`
 resource "tg_node_cluster_config" "test" {
   node_id      = "%s"
@@ -90,9 +87,8 @@ resource "tg_node_cluster_config" "test" {
   port         = %d
   status_host  = "%s"
   status_port  = %d
-  active       = %t
 }
-	`, nodeID, enabled, host, port, statusHost, statusPort, active)
+	`, nodeID, enabled, host, port, statusHost, statusPort)
 }
 
 func checkClusterConfigAPISide(provider *schema.Provider, nodeID string, enabled bool, host string, port int, statusHost string, statusPort int) resource.TestCheckFunc {

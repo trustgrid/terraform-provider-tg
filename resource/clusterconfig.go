@@ -64,12 +64,6 @@ func ClusterConfig() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
-			"active": {
-				Description: "Whether the node should be the active cluster member. *This is only set on create.*",
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Computed:    true,
-			},
 		},
 	}
 }
@@ -123,21 +117,8 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	oldActive, activeSet := d.GetOk("active")
-
 	if err := hcl.EncodeResourceData(cc, d); err != nil {
 		return diag.FromErr(err)
-	}
-
-	oa, ok := oldActive.(bool)
-	if !ok {
-		return diag.FromErr(fmt.Errorf("expected active to be a bool"))
-	}
-
-	if activeSet {
-		if err := d.Set("active", oa); err != nil {
-			return diag.FromErr(err)
-		}
 	}
 
 	if err := d.Set("node_id", d.Id()); err != nil {
@@ -162,7 +143,6 @@ func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	tf.Active = existing.Active
 	if err := cr.writeConfig(ctx, tgc, tf); err != nil {
 		return diag.FromErr(err)
 	}
