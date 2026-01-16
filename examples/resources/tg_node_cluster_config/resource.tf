@@ -6,7 +6,6 @@ resource "tg_node_cluster_config" "cluster-active-member" {
   status_host = "1.1.1.1"
   status_port = 8080
   enabled     = true
-  active      = true
 }
 
 resource "tg_node_cluster_config" "cluster-passive-member" {
@@ -16,5 +15,4 @@ resource "tg_node_cluster_config" "cluster-passive-member" {
   status_host = "1.1.1.1"
   status_port = 8080
   enabled     = true
-  active      = false
 }

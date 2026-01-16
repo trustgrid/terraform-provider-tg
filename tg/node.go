@@ -123,7 +123,7 @@ type ClusterConfig struct {
 	StatusHost string `tf:"status_host" json:"statusHost,omitempty"`
 	StatusPort int    `tf:"status_port" json:"statusPort,omitempty"`
 
-	Active bool `tf:"active" json:"master"`
+	Active bool `tf:"-" json:"master"`
 }
 
 type NetworkTunnel struct {
