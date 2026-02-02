@@ -1,68 +1,37 @@
 {
-  "project": "terraform-provider-tg",
-  "branchName": "gh/141/permissions-resources",
-  "description": "Permissions Resources and Data Sources - Add support for managing Users, Group Memberships, Service Users, and Policies via Terraform.",
-  "userStories": [
+  "title": "Reconcile User Resource with API",
+  "description": "Align User resource and related code with the Trustgrid API UserModel. Remove fields that do not exist in the API and ensure correct mapping.",
+  "branchName": "fix-user-resource-schema",
+  "tasks": [
     {
-      "id": "US-001",
-      "title": "Implement Policy Resource and Data Sources",
-      "description": "As an admin, I want to define access control policies using structured HCL so that I can reuse them across service users.",
-      "acceptanceCriteria": [
-        "Implement `resource \"tg_policy\"` with structured HCL blocks (statement, action, effect, resource, condition)",
-        "Implement `data \"tg_policy\"` to look up by ID or Name",
-        "Implement `data \"tg_policies\"` to list all policies with optional filtering",
-        "Add unit tests/acceptance tests for Policy resource and data sources",
-        "Typecheck passes"
-      ],
-      "priority": 1,
-      "passes": true,
-      "notes": "✅ Completed: Resource tg_policy was already implemented. Added data sources tg_policy (lookup by name) and tg_policies (list all with optional name filtering). Added comprehensive acceptance tests. Build and typecheck pass successfully."
+      "description": "Update tg/user.go to match UserModel API schema",
+      "prompt": "Update `tg/user.go`. `User` struct should have `Email` (string, json:email), `PolicyIDs` ([]string, json:policyIds), `Status` (string, json:status). Remove `FirstName`, `LastName`, `Phone`, `Admin`, `Active`. Note: `Status` is 'active' or 'inactive'. Keep `UID` as it is needed for ID.",
+      "subagent_type": "ralph"
     },
     {
-      "id": "US-002",
-      "title": "Implement User Resource and Data Sources",
-      "description": "As an admin, I want to manage Trustgrid users via Terraform so I can provision and update user accounts automatically.",
-      "acceptanceCriteria": [
-        "Implement `resource \"tg_user\"` (Create, Read, Update, Delete) - ignoring invites",
-        "Implement `data \"tg_user\"` to look up by ID or Email",
-        "Implement `data \"tg_users\"` to list users with filtering",
-        "Add unit tests/acceptance tests for User resource and data sources",
-        "Typecheck passes"
-      ],
-      "priority": 2,
-      "passes": true,
-      "notes": "✅ Completed: Implemented tg_user resource with full CRUD operations supporting email, first_name, last_name, phone, admin, and active fields. Added tg_user data source with lookup by UID or email. Added tg_users data source with filtering by email, admin status, and active status. Created comprehensive acceptance tests covering all operations and both data sources. Unit tests for HCL conversion pass. Go build, go vet, and unit tests all pass successfully."
+      "description": "Update hcl/user.go to match new tg.User",
+      "prompt": "Update `hcl/user.go`. `User` struct should align with new `tg.User`. Remove `first_name`, `last_name`, `phone`, `admin`, `active` attributes. Add `policy_ids` (list of strings) and `status` (string). Update `UpdateFromTG` and `ToTG` functions accordingly.",
+      "subagent_type": "ralph"
     },
     {
-      "id": "US-003",
-      "title": "Implement Group Membership Resource",
-      "description": "As an admin, I want to manage group memberships separately from the group definition to avoid conflicts.",
-      "acceptanceCriteria": [
-        "Implement `resource \"tg_group_membership\"` linking `group_id` and `user_id`",
-        "Support creating (adding user) and deleting (removing user) memberships",
-        "Add unit tests/acceptance tests for Group Membership resource",
-        "Typecheck passes"
-      ],
-      "priority": 3,
-      "passes": true,
-      "notes": "✅ Completed: Implemented tg_group_membership resource that links group_id and user_id (UIDs) instead of emails. The resource supports Create, Read, and Delete operations. It internally resolves user UIDs to emails for API compatibility with the existing /v2/group/{id}/members endpoint. Added comprehensive acceptance tests including single user membership and multiple users in a group. The resource is registered in the provider. Go build, go vet, and unit tests all pass successfully."
+      "description": "Update resource/user.go to match new hcl.User",
+      "prompt": "Update `resource/user.go`. Remove `first_name`, `last_name`, `phone`, `admin`, `active` fields from schema. Add `policy_ids` (TypeList, Elem string, Optional) and `status` (TypeString, Optional, Default 'active', ValidateFunc for enum). Update `Create`, `Update` logic if needed (majordomo should handle it if struct matches).",
+      "subagent_type": "ralph"
     },
     {
-      "id": "US-004",
-      "title": "Implement Service User Resource and Data Sources",
-      "description": "As an admin, I want to provision Service Users for automation purposes without managing their keys in Terraform.",
-      "acceptanceCriteria": [
-        "Implement `resource \"tg_service_user\"` (Create, Read, Update, Delete)",
-        "Support assigning Policies to Service Users via `policy_ids`",
-        "Implement `data \"tg_service_user\"` to look up by ID or Name",
-        "Implement `data \"tg_service_users\"` to list service users",
-        "Ensure API keys are NOT managed/returned by this resource",
-        "Add unit tests/acceptance tests for Service User resource and data sources",
-        "Typecheck passes"
-      ],
-      "priority": 4,
-      "passes": true,
-      "notes": "✅ Completed: Resource tg_serviceuser was already implemented with full CRUD support. Added data sources tg_service_user (lookup by name) and tg_service_users (list all with optional filtering by name and status). The resource correctly generates API keys only on creation (via AfterCreate callback) and doesn't manage them on subsequent operations, meeting the requirement that API keys are not managed after creation. Added comprehensive acceptance tests for both data sources including lookup by name and filtered listing. Added unit tests for ServiceUser HCL conversion (ToTG and UpdateFromTG methods). Registered data sources in provider. Go build, go vet, and unit tests all pass successfully."
+      "description": "Update datasource/user.go to match new structure",
+      "prompt": "Update `datasource/user.go` and `datasource/users.go` to match the new User schema. Ensure fields like `first_name` etc are removed and replaced with `status`, `policy_ids`.",
+      "subagent_type": "ralph"
+    },
+    {
+      "description": "Fix User acceptance tests",
+      "prompt": "Update `acctests/user_test.go` to use the new schema fields. Remove references to `first_name` etc. Test `status` and `policy_ids`.",
+      "subagent_type": "ralph"
+    },
+    {
+      "description": "Review GroupMembership payload",
+      "prompt": "Check `resource/group_membership.go`. Ensure that `Create` method sends the correct payload to `/v2/group/{id}/members`. The `GroupMember` API schema has `user` field. If the current code sends `email`, verify if it should be `user` (containing email) or just `email`. If uncertain, assume `user` key is safer if `GroupMember` schema has `user`. Update if necessary.",
+      "subagent_type": "ralph"
     }
   ]
 }
