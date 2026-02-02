@@ -41,3 +41,9 @@ type GroupMember struct {
 	GroupID string `tf:"group_id"`
 	Email   string `tf:"email"`
 }
+
+// GroupMembership holds the HCL representation of a group membership using user UIDs
+type GroupMembership struct {
+	GroupID string `tf:"group_id"`
+	UserID  string `tf:"user_id"`
+}

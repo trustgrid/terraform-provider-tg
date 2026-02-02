@@ -44,8 +44,8 @@
         "Typecheck passes"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "✅ Completed: Implemented tg_group_membership resource that links group_id and user_id (UIDs) instead of emails. The resource supports Create, Read, and Delete operations. It internally resolves user UIDs to emails for API compatibility with the existing /v2/group/{id}/members endpoint. Added comprehensive acceptance tests including single user membership and multiple users in a group. The resource is registered in the provider. Go build, go vet, and unit tests all pass successfully."
     },
     {
       "id": "US-004",
@@ -61,8 +61,8 @@
         "Typecheck passes"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "✅ Completed: Resource tg_serviceuser was already implemented with full CRUD support. Added data sources tg_service_user (lookup by name) and tg_service_users (list all with optional filtering by name and status). The resource correctly generates API keys only on creation (via AfterCreate callback) and doesn't manage them on subsequent operations, meeting the requirement that API keys are not managed after creation. Added comprehensive acceptance tests for both data sources including lookup by name and filtered listing. Added unit tests for ServiceUser HCL conversion (ToTG and UpdateFromTG methods). Registered data sources in provider. Go build, go vet, and unit tests all pass successfully."
     }
   ]
 }

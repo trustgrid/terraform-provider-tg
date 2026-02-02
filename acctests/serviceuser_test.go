@@ -66,3 +66,80 @@ func testAccCheckServiceUserExists(provider *schema.Provider, name string) resou
 		return nil
 	}
 }
+
+func TestAccServiceUserDataSource_ByName(t *testing.T) {
+	provider := provider.New("test")()
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: serviceUserDataSourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "name", "tf-test-user-ds"),
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "status", "active"),
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "policy_ids.#", "1"),
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "policy_ids.0", "builtin-tg-access-admin"),
+				),
+			},
+		},
+	})
+}
+
+func serviceUserDataSourceConfig() string {
+	return `
+resource "tg_serviceuser" "test" {
+  name = "tf-test-user-ds"
+  status = "active"
+  policy_ids = ["builtin-tg-access-admin"]
+}
+
+data "tg_service_user" "test" {
+  name = tg_serviceuser.test.name
+}
+	`
+}
+
+func TestAccServiceUsersDataSource_List(t *testing.T) {
+	provider := provider.New("test")()
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: serviceUsersDataSourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.tg_service_users.all", "service_users.#"),
+					resource.TestCheckResourceAttrSet("data.tg_service_users.all", "names.#"),
+					// Check filtered results contain our test user
+					resource.TestCheckResourceAttr("data.tg_service_users.filtered", "service_users.#", "1"),
+					resource.TestCheckResourceAttr("data.tg_service_users.filtered", "service_users.0.name", "tf-test-user-list"),
+					resource.TestCheckResourceAttr("data.tg_service_users.filtered", "service_users.0.status", "active"),
+				),
+			},
+		},
+	})
+}
+
+func serviceUsersDataSourceConfig() string {
+	return `
+resource "tg_serviceuser" "test" {
+  name = "tf-test-user-list"
+  status = "active"
+  policy_ids = ["builtin-tg-access-admin"]
+}
+
+data "tg_service_users" "all" {
+  depends_on = [tg_serviceuser.test]
+}
+
+data "tg_service_users" "filtered" {
+  name_filter = "tf-test-user-list"
+  depends_on = [tg_serviceuser.test]
+}
+	`
+}

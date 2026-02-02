@@ -75,6 +75,54 @@ func TestAccPolicy_HappyPath(t *testing.T) {
 	})
 }
 
+func TestAccPolicyDataSource_HappyPath(t *testing.T) {
+	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
+
+	provider := provider.New("test")()
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: policyDataSourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.tg_policy.test", "name", "tf-test-policy-ds"),
+					resource.TestCheckResourceAttr("data.tg_policy.test", "description", "test data source policy"),
+					resource.TestCheckResourceAttr("data.tg_policy.test", "resources.0", "*"),
+					resource.TestCheckResourceAttr("data.tg_policy.test", "statement.0.effect", "allow"),
+					resource.TestCheckResourceAttr("data.tg_policy.test", "statement.0.actions.0", "nodes::read"),
+				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					compareValuesSame.AddStateValue("data.tg_policy.test", tfjsonpath.New("id")),
+				},
+			},
+		},
+	})
+}
+
+func TestAccPoliciesDataSource_HappyPath(t *testing.T) {
+	provider := provider.New("test")()
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: policiesDataSourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.tg_policies.all", "names.#"),
+					resource.TestCheckResourceAttrSet("data.tg_policies.all", "policies.#"),
+					resource.TestCheckResourceAttrSet("data.tg_policies.filtered", "names.#"),
+					resource.TestCheckResourceAttrSet("data.tg_policies.filtered", "policies.#"),
+				),
+			},
+		},
+	})
+}
+
 func policyConfig() string {
 	return `
 resource "tg_policy" "test" {
@@ -137,6 +185,61 @@ resource "tg_policy" "test" {
 	actions = ["nodes::cluster", "certificates::modify"]
 	effect = "deny"
   }
+}
+`
+}
+
+func policyDataSourceConfig() string {
+	return `
+resource "tg_policy" "test" {
+  name = "tf-test-policy-ds"
+  description = "test data source policy"
+  resources = ["*"]
+
+  statement {
+    actions = ["nodes::read"]
+	effect = "allow"
+  }
+}
+
+data "tg_policy" "test" {
+  name = tg_policy.test.name
+  depends_on = [tg_policy.test]
+}
+`
+}
+
+func policiesDataSourceConfig() string {
+	return `
+resource "tg_policy" "test1" {
+  name = "tf-test-policies-ds-1"
+  description = "test policies data source 1"
+  resources = ["*"]
+
+  statement {
+    actions = ["nodes::read"]
+	effect = "allow"
+  }
+}
+
+resource "tg_policy" "test2" {
+  name = "tf-test-policies-ds-2"
+  description = "test policies data source 2"
+  resources = ["*"]
+
+  statement {
+    actions = ["nodes::write"]
+	effect = "deny"
+  }
+}
+
+data "tg_policies" "all" {
+  depends_on = [tg_policy.test1, tg_policy.test2]
+}
+
+data "tg_policies" "filtered" {
+  name_filter = "tf-test-policies-ds"
+  depends_on = [tg_policy.test1, tg_policy.test2]
 }
 `
 }
