@@ -91,6 +91,8 @@ func Alarm() *schema.Resource {
 }
 ```
 
+**GET API INFO FROM https://apidocs.trustgrid.io/page-data/shared/oas-index.yaml.json**
+
 **Custom CRUD (for complex resources like Container):**
 ```go
 func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -102,6 +104,8 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
     // ... implementation
 }
 ```
+
+**GET API INFO FROM https://apidocs.trustgrid.io/page-data/shared/oas-index.yaml.json**
 
 ### Error Handling
 ```go
@@ -166,4 +170,4 @@ goimports, gosec, gocritic, revive. Nolint comments require explanation:
 
 ## API
 
-Find API interactions at apidocs.trustgrid.io. **USE THOSE** for typing information and URLs and HTTP verbs.
+Find API interactions at https://apidocs.trustgrid.io/page-data/shared/oas-index.yaml.json. **ALL types, fields, URLs, and verbs MUST come from that document**.

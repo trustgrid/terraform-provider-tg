@@ -105,7 +105,7 @@ func (r *groupmembership) Create(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	payload := map[string]string{
-		"email": user.Email,
+		"user": user.Email,
 	}
 
 	_, err = tgc.Post(ctx, "/v2/group/"+tf.GroupID+"/members", &payload)
