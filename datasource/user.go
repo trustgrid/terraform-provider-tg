@@ -47,7 +47,10 @@ func User() *schema.Resource {
 func (r *user) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	email := d.Get("email").(string)
+	email, ok := d.Get("email").(string)
+	if !ok {
+		return diag.FromErr(errors.New("email must be provided"))
+	}
 
 	var tgUser tg.User
 	var err error

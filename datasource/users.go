@@ -100,6 +100,9 @@ func (ds *users) read(ctx context.Context, d *schema.ResourceData, meta any) dia
 	tgc := tg.GetClient(meta)
 
 	filter, err := hcl.DecodeResourceData[userFilter](d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	users := make([]tg.User, 0)
 	err = tgc.Get(ctx, "/user", &users)
