@@ -53,7 +53,7 @@ func (h *HCLVPNInterface) resourceURL() string {
 }
 
 func VPNInterface() *schema.Resource {
-	r := vpnany
+	r := vpnInterface{}
 
 	return &schema.Resource{
 		Description: "Manage a VPN interface for a node or a cluster.",
@@ -283,7 +283,7 @@ func (vn *vpnInterface) Read(ctx context.Context, d *schema.ResourceData, meta a
 		return diag.FromErr(err)
 	}
 
-	ifaces := []tg.VPNany
+	ifaces := make([]tg.VPNInterface, 0)
 	if err := tgc.Get(ctx, tf.url(), &ifaces); err != nil {
 		return diag.FromErr(err)
 	}
