@@ -29,11 +29,10 @@ func TestAccUser_HappyPath(t *testing.T) {
 				Config: userConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_user.test", "email", "tf-test-user@example.com"),
-					resource.TestCheckResourceAttr("tg_user.test", "first_name", "Test"),
-					resource.TestCheckResourceAttr("tg_user.test", "last_name", "User"),
-					resource.TestCheckResourceAttr("tg_user.test", "phone", "+1-555-1234"),
-					resource.TestCheckResourceAttr("tg_user.test", "admin", "false"),
-					resource.TestCheckResourceAttr("tg_user.test", "active", "true"),
+					resource.TestCheckResourceAttr("tg_user.test", "status", "active"),
+					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.#", "2"),
+					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.0", "policy-1"),
+					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.1", "policy-2"),
 					resource.TestCheckResourceAttrSet("tg_user.test", "uid"),
 					testAcc_CheckUserAPISide(provider, "tf-test-user@example.com"),
 				),
@@ -45,11 +44,9 @@ func TestAccUser_HappyPath(t *testing.T) {
 				Config: userConfigUpdated(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_user.test", "email", "tf-test-user@example.com"),
-					resource.TestCheckResourceAttr("tg_user.test", "first_name", "Updated"),
-					resource.TestCheckResourceAttr("tg_user.test", "last_name", "Name"),
-					resource.TestCheckResourceAttr("tg_user.test", "phone", "+1-555-5678"),
-					resource.TestCheckResourceAttr("tg_user.test", "admin", "true"),
-					resource.TestCheckResourceAttr("tg_user.test", "active", "true"),
+					resource.TestCheckResourceAttr("tg_user.test", "status", "inactive"),
+					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.#", "1"),
+					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.0", "policy-3"),
 					resource.TestCheckResourceAttrSet("tg_user.test", "uid"),
 				),
 			},
@@ -71,8 +68,7 @@ func TestAccUserDataSource_ByEmail(t *testing.T) {
 				Config: userDataSourceConfigByEmail(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.tg_user.test", "email", "tf-test-user-ds@example.com"),
-					resource.TestCheckResourceAttr("data.tg_user.test", "first_name", "DataSource"),
-					resource.TestCheckResourceAttr("data.tg_user.test", "last_name", "Test"),
+					resource.TestCheckResourceAttr("data.tg_user.test", "status", "active"),
 					resource.TestCheckResourceAttrSet("data.tg_user.test", "uid"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -97,8 +93,7 @@ func TestAccUserDataSource_ByUID(t *testing.T) {
 				Config: userDataSourceConfigByUID(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.tg_user.test", "email", "tf-test-user-ds-uid@example.com"),
-					resource.TestCheckResourceAttr("data.tg_user.test", "first_name", "UID"),
-					resource.TestCheckResourceAttr("data.tg_user.test", "last_name", "Lookup"),
+					resource.TestCheckResourceAttr("data.tg_user.test", "status", "active"),
 					resource.TestCheckResourceAttrSet("data.tg_user.test", "uid"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -136,11 +131,8 @@ func userConfig() string {
 	return `
 resource "tg_user" "test" {
   email      = "tf-test-user@example.com"
-  first_name = "Test"
-  last_name  = "User"
-  phone      = "+1-555-1234"
-  admin      = false
-  active     = true
+  status     = "active"
+  policy_ids = ["policy-1", "policy-2"]
 }
 `
 }
@@ -149,11 +141,8 @@ func userConfigUpdated() string {
 	return `
 resource "tg_user" "test" {
   email      = "tf-test-user@example.com"
-  first_name = "Updated"
-  last_name  = "Name"
-  phone      = "+1-555-5678"
-  admin      = true
-  active     = true
+  status     = "inactive"
+  policy_ids = ["policy-3"]
 }
 `
 }
@@ -231,6 +220,8 @@ func testAcc_CheckUserAPISide(provider *schema.Provider, email string) resource.
 				switch {
 				case user.Email != email:
 					return fmt.Errorf("expected user email to be %s but got %s", email, user.Email)
+				case user.Status == "":
+					return fmt.Errorf("expected user to have a status")
 				}
 				return nil
 			}

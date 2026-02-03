@@ -13,11 +13,8 @@ type User struct {
 func (u User) UpdateFromTG(o tg.User) HCL[tg.User] {
 	return User{
 		Email:     o.Email,
-		FirstName: o.FirstName,
-		LastName:  o.LastName,
-		Phone:     o.Phone,
-		Admin:     o.Admin,
-		Active:    o.Active,
+		PolicyIDs: o.PolicyIDs,
+		Status:    o.Status,
 	}
 }
 
@@ -25,10 +22,7 @@ func (u User) UpdateFromTG(o tg.User) HCL[tg.User] {
 func (u User) ToTG() tg.User {
 	return tg.User{
 		Email:     u.Email,
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
-		Phone:     u.Phone,
-		Admin:     u.Admin,
-		Active:    u.Active,
+		PolicyIDs: u.PolicyIDs,
+		Status:    u.Status,
 	}
 }

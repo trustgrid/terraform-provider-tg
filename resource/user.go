@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/majordomo"
 	"github.com/trustgrid/terraform-provider-tg/tg"
@@ -40,32 +41,17 @@ func User() *schema.Resource {
 			"policy_ids": {
 				Description: "List of policy IDs assigned to the user",
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
-			"last_name": {
-				Description: "User's last name",
-				Type:        schema.TypeString,
-				Required:    true,
-			},
-			"phone": {
-				Description: "User's phone number",
-				Type:        schema.TypeString,
-				Optional:    true,
-			},
-			"admin": {
-				Description: "Whether the user is an admin",
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-			},
-			"active": {
-				Description: "Whether the user is active",
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
+			"status": {
+				Description:  "User status (active or inactive)",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "active",
+				ValidateFunc: validation.StringInSlice([]string{"active", "inactive"}, false),
 			},
 		},
 	}

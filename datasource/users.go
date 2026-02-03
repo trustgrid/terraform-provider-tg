@@ -28,14 +28,9 @@ func Users() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
-			"admin_filter": {
-				Description: "Filter users by admin status (true, false, or omit for all)",
-				Type:        schema.TypeBool,
-				Optional:    true,
-			},
-			"active_filter": {
-				Description: "Filter users by active status (true, false, or omit for all)",
-				Type:        schema.TypeBool,
+			"status_filter": {
+				Description: "Filter users by status (active, inactive, or omit for all)",
+				Type:        schema.TypeString,
 				Optional:    true,
 			},
 			"users": {
@@ -54,29 +49,17 @@ func Users() *schema.Resource {
 							Description: "User email",
 							Computed:    true,
 						},
-						"first_name": {
+						"policy_ids": {
+							Type:        schema.TypeList,
+							Description: "List of policy IDs assigned to the user",
+							Computed:    true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"status": {
 							Type:        schema.TypeString,
-							Description: "User's first name",
-							Computed:    true,
-						},
-						"last_name": {
-							Type:        schema.TypeString,
-							Description: "User's last name",
-							Computed:    true,
-						},
-						"phone": {
-							Type:        schema.TypeString,
-							Description: "User's phone number",
-							Computed:    true,
-						},
-						"admin": {
-							Type:        schema.TypeBool,
-							Description: "Whether the user is an admin",
-							Computed:    true,
-						},
-						"active": {
-							Type:        schema.TypeBool,
-							Description: "Whether the user is active",
+							Description: "User status (active or inactive)",
 							Computed:    true,
 						},
 					},
@@ -96,8 +79,7 @@ func Users() *schema.Resource {
 
 type userFilter struct {
 	EmailFilter  string `tf:"email_filter"`
-	AdminFilter  *bool  `tf:"admin_filter"`
-	ActiveFilter *bool  `tf:"active_filter"`
+	StatusFilter string `tf:"status_filter"`
 }
 
 func (f *userFilter) match(u tg.User) bool {
@@ -105,11 +87,7 @@ func (f *userFilter) match(u tg.User) bool {
 		return false
 	}
 
-	if f.AdminFilter != nil && u.Admin != *f.AdminFilter {
-		return false
-	}
-
-	if f.ActiveFilter != nil && u.Active != *f.ActiveFilter {
+	if f.StatusFilter != "" && u.Status != f.StatusFilter {
 		return false
 	}
 
@@ -137,11 +115,8 @@ func (ds *users) read(ctx context.Context, d *schema.ResourceData, meta any) dia
 			emails = append(emails, user.Email)
 			userList = append(userList, map[string]any{
 				"email":      user.Email,
-				"first_name": user.FirstName,
-				"last_name":  user.LastName,
-				"phone":      user.Phone,
-				"admin":      user.Admin,
-				"active":     user.Active,
+				"policy_ids": user.PolicyIDs,
+				"status":     user.Status,
 			})
 		}
 	}

@@ -27,29 +27,17 @@ func User() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 			},
-			"first_name": {
-				Description: "User's first name",
+			"policy_ids": {
+				Description: "List of policy IDs assigned to the user",
+				Type:        schema.TypeList,
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"status": {
+				Description: "User status (active or inactive)",
 				Type:        schema.TypeString,
-				Computed:    true,
-			},
-			"last_name": {
-				Description: "User's last name",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
-			"phone": {
-				Description: "User's phone number",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
-			"admin": {
-				Description: "Whether the user is an admin",
-				Type:        schema.TypeBool,
-				Computed:    true,
-			},
-			"active": {
-				Description: "Whether the user is active",
-				Type:        schema.TypeBool,
 				Computed:    true,
 			},
 		},
