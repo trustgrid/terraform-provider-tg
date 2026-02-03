@@ -8,17 +8,19 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type usersDS struct{}
+type users struct{}
 
-// Users returns the TF schema for listing users
 func Users() *schema.Resource {
+	ds := users{}
+
 	return &schema.Resource{
 		Description: "Fetches users from Trustgrid",
 
-		ReadContext: usersRead,
+		ReadContext: ds.read,
 
 		Schema: map[string]*schema.Schema{
 			"email_filter": {
@@ -99,11 +101,8 @@ type userFilter struct {
 }
 
 func (f *userFilter) match(u tg.User) bool {
-	if f.EmailFilter != "" {
-		// Simple substring match
-		if !strings.Contains(u.Email, f.EmailFilter) {
-			return false
-		}
+	if !strings.Contains(u.Email, f.EmailFilter) {
+		return false
 	}
 
 	if f.AdminFilter != nil && u.Admin != *f.AdminFilter {
@@ -117,45 +116,26 @@ func (f *userFilter) match(u tg.User) bool {
 	return true
 }
 
-func usersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (ds *users) read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
 
 	tgc := tg.GetClient(meta)
 
-	// Get filter from user input
-	filter := userFilter{}
-	if emailFilter, ok := d.Get("email_filter").(string); ok && emailFilter != "" {
-		filter.EmailFilter = emailFilter
-	}
-
-	// Check if admin_filter was set
-	if adminFilterRaw, ok := d.GetOk("admin_filter"); ok {
-		if adminFilter, ok := adminFilterRaw.(bool); ok {
-			filter.AdminFilter = &adminFilter
-		}
-	}
-
-	// Check if active_filter was set
-	if activeFilterRaw, ok := d.GetOk("active_filter"); ok {
-		if activeFilter, ok := activeFilterRaw.(bool); ok {
-			filter.ActiveFilter = &activeFilter
-		}
-	}
+	filter, err := hcl.DecodeResourceData[userFilter](d)
 
 	users := make([]tg.User, 0)
-	err := tgc.Get(ctx, "/v2/user", &users)
+	err = tgc.Get(ctx, "/user", &users)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	emails := make([]string, 0)
-	userList := make([]map[string]interface{}, 0)
+	userList := make([]map[string]any, 0)
 
 	for _, user := range users {
 		if filter.match(user) {
 			emails = append(emails, user.Email)
-			userList = append(userList, map[string]interface{}{
-				"uid":        user.UID,
+			userList = append(userList, map[string]any{
 				"email":      user.Email,
 				"first_name": user.FirstName,
 				"last_name":  user.LastName,

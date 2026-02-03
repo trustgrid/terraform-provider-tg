@@ -20,8 +20,6 @@ func TestAccGroupMembership_HappyPath(t *testing.T) {
 	groupName := "tf-test-membership-group"
 	groupDescription := "Terraform test group for membership testing"
 	userEmail := "tf-test-membership-user@example.com"
-	userFirstName := "Membership"
-	userLastName := "Test"
 
 	provider := provider.New("test")()
 
@@ -31,7 +29,7 @@ func TestAccGroupMembership_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: groupMembershipConfig(groupName, groupDescription, userEmail, userFirstName, userLastName),
+				Config: groupMembershipConfig(groupName, groupDescription, userEmail),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_group_membership.test", "id"),
 					resource.TestCheckResourceAttrSet("tg_group_membership.test", "group_id"),
@@ -73,7 +71,7 @@ func TestAccGroupMembership_MultipleUsers(t *testing.T) {
 	})
 }
 
-func groupMembershipConfig(groupName, groupDescription, email, firstName, lastName string) string {
+func groupMembershipConfig(groupName, groupDescription, email string) string {
 	return fmt.Sprintf(`
 resource "tg_group" "membership_test" {
   name        = "%s"
@@ -82,9 +80,6 @@ resource "tg_group" "membership_test" {
 
 resource "tg_user" "membership_test" {
   email      = "%s"
-  first_name = "%s"
-  last_name  = "%s"
-  admin      = false
   active     = true
 }
 
@@ -92,7 +87,7 @@ resource "tg_group_membership" "test" {
   group_id = tg_group.membership_test.uid
   user_id  = tg_user.membership_test.uid
 }
-`, groupName, groupDescription, email, firstName, lastName)
+`, groupName, groupDescription, email)
 }
 
 func groupMembershipMultipleUsersConfig(groupName, groupDescription string) string {
@@ -104,17 +99,11 @@ resource "tg_group" "multi_membership_test" {
 
 resource "tg_user" "multi_test1" {
   email      = "tf-test-multi-membership-1@example.com"
-  first_name = "Multi"
-  last_name  = "Test1"
-  admin      = false
   active     = true
 }
 
 resource "tg_user" "multi_test2" {
   email      = "tf-test-multi-membership-2@example.com"
-  first_name = "Multi"
-  last_name  = "Test2"
-  admin      = false
   active     = true
 }
 
@@ -159,11 +148,6 @@ func checkGroupMembershipAPISide(provider *schema.Provider) resource.TestCheckFu
 			return fmt.Errorf("user resource not found")
 		}
 
-		userID := userRS.Primary.Attributes["uid"]
-		if userID == "" {
-			return fmt.Errorf("no User UID found in state")
-		}
-
 		userEmail := userRS.Primary.Attributes["email"]
 		if userEmail == "" {
 			return fmt.Errorf("no User email found in state")
@@ -171,7 +155,7 @@ func checkGroupMembershipAPISide(provider *schema.Provider) resource.TestCheckFu
 
 		// Get the user to verify they exist
 		var user tg.User
-		err := client.Get(context.Background(), "/v2/user/"+userID, &user)
+		err := client.Get(context.Background(), "/user/"+userEmail, &user)
 		if err != nil {
 			return fmt.Errorf("error getting user: %w", err)
 		}
@@ -192,7 +176,7 @@ func checkGroupMembershipAPISide(provider *schema.Provider) resource.TestCheckFu
 		}
 
 		if !found {
-			return fmt.Errorf("user with email %s (UID: %s) not found in group", userEmail, userID)
+			return fmt.Errorf("user with email %s not found in group", userEmail)
 		}
 
 		return nil

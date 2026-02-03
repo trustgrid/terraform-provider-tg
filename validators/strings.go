@@ -8,7 +8,7 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-func IsHostname(i interface{}, k string) (warnings []string, errors []error) {
+func IsHostname(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 
 	switch {
@@ -27,7 +27,7 @@ func IsHostname(i interface{}, k string) (warnings []string, errors []error) {
 
 var lowercase = regexp.MustCompile(`^[a-z0-9-]+$`)
 
-func IsNodeName(i interface{}, k string) (warnings []string, errors []error) {
+func IsNodeName(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 
 	switch {

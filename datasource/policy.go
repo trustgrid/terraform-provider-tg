@@ -13,7 +13,6 @@ import (
 type policyDS struct {
 }
 
-// Policy returns the TF schema for a policy data source
 func Policy() *schema.Resource {
 	r := policyDS{}
 
@@ -235,7 +234,6 @@ func Policy() *schema.Resource {
 	}
 }
 
-// Read will look up a policy by the name provided. Errors if not found.
 func (r *policyDS) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
@@ -256,7 +254,6 @@ func (r *policyDS) Read(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.FromErr(err)
 	}
 
-	// Use name as the ID since policies don't have a separate UID
 	d.SetId(name)
 
 	return nil

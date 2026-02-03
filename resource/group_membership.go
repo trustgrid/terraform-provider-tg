@@ -51,25 +51,21 @@ func (r *groupmembership) Read(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	// First, get the user's email from their UID
 	var user tg.User
-	err = tgc.Get(ctx, "/v2/user/"+tf.UserID, &user)
+	err = tgc.Get(ctx, "/user/"+tf.UserID, &user)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):
-		// User not found, membership doesn't exist
 		d.SetId("")
 		return nil
 	case err != nil:
 		return diag.FromErr(err)
 	}
 
-	// Now check if this user is in the group
 	members := []tg.GroupMember{}
 	err = tgc.Get(ctx, "/v2/group/"+tf.GroupID+"/members", &members)
 	switch {
 	case errors.As(err, &nferr):
-		// Group not found, membership doesn't exist
 		d.SetId("")
 		return nil
 	case err != nil:
@@ -97,15 +93,8 @@ func (r *groupmembership) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	// First, get the user's email from their UID
-	var user tg.User
-	err = tgc.Get(ctx, "/v2/user/"+tf.UserID, &user)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting user: %w", err))
-	}
-
 	payload := map[string]string{
-		"email": user.Email,
+		"user": tf.UserID,
 	}
 
 	_, err = tgc.Post(ctx, "/v2/group/"+tf.GroupID+"/members", &payload)
@@ -126,14 +115,7 @@ func (r *groupmembership) Delete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	// First, get the user's email from their UID
-	var user tg.User
-	err = tgc.Get(ctx, "/v2/user/"+tf.UserID, &user)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting user: %w", err))
-	}
-
-	if err := tgc.Delete(ctx, "/v2/group/"+tf.GroupID+"/members/"+user.Email, nil); err != nil {
+	if err := tgc.Delete(ctx, "/v2/group/"+tf.GroupID+"/members/"+tf.UserID, nil); err != nil {
 		return diag.FromErr(fmt.Errorf("error issuing delete to group membership API: %w", err))
 	}
 

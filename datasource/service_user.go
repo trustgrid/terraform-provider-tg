@@ -13,7 +13,6 @@ import (
 type serviceUserDS struct {
 }
 
-// ServiceUser returns the TF schema for a service user data source
 func ServiceUser() *schema.Resource {
 	r := serviceUserDS{}
 
@@ -45,7 +44,6 @@ func ServiceUser() *schema.Resource {
 	}
 }
 
-// Read will look up a service user by the name provided. Errors if not found.
 func (r *serviceUserDS) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
@@ -66,7 +64,6 @@ func (r *serviceUserDS) Read(ctx context.Context, d *schema.ResourceData, meta a
 		return diag.FromErr(err)
 	}
 
-	// Use name as the ID
 	d.SetId(name)
 
 	return nil

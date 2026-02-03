@@ -212,7 +212,7 @@ func (tfc *Container) ToTG() tg.Container {
 	return c
 }
 
-func md5sum(format string, args ...interface{}) string {
+func md5sum(format string, args ...any) string {
 	return fmt.Sprintf("%x", md5.Sum(fmt.Appendf(nil, format, args...))) //nolint:gosec // md5 is fine for this
 }
 

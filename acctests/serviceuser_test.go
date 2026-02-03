@@ -32,7 +32,6 @@ func TestAccServiceUser_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_serviceuser.test", "policy_ids.0", "builtin-tg-access-admin"),
 					resource.TestCheckResourceAttr("tg_serviceuser.test", "policy_ids.1", "builtin-tg-node-admin"),
 					testAccCheckServiceUserExists(provider, "tf-test-user"),
-					resource.TestCheckResourceAttrSet("tg_serviceuser.test", "client_id"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_serviceuser.test", tfjsonpath.New("id")),

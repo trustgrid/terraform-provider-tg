@@ -161,11 +161,9 @@ resource "tg_user" "test" {
 func userDataSourceConfigByEmail() string {
 	return `
 resource "tg_user" "test" {
-  email      = "tf-test-user-ds@example.com"
-  first_name = "DataSource"
-  last_name  = "Test"
-  admin      = false
-  active     = true
+  email  = "tf-test-user-ds@example.com"
+  status = "active"
+  policy_ids = ["builtin-tg-admin"]
 }
 
 data "tg_user" "test" {
@@ -178,11 +176,9 @@ data "tg_user" "test" {
 func userDataSourceConfigByUID() string {
 	return `
 resource "tg_user" "test" {
-  email      = "tf-test-user-ds-uid@example.com"
-  first_name = "UID"
-  last_name  = "Lookup"
-  admin      = false
-  active     = true
+  email  = "tf-test-user-ds-uid@example.com"
+  status = "active"
+  policy_ids = ["builtin-tg-admin"]
 }
 
 data "tg_user" "test" {
@@ -195,19 +191,15 @@ data "tg_user" "test" {
 func usersDataSourceConfig() string {
 	return `
 resource "tg_user" "test1" {
-  email      = "tf-test-users-ds-1@example.com"
-  first_name = "Users"
-  last_name  = "Test1"
-  admin      = false
-  active     = true
+  email  = "tf-test-users-ds-1@example.com"
+  status = "active"
+  policy_ids = ["builtin-tg-admin"]
 }
 
 resource "tg_user" "test2" {
-  email      = "tf-test-users-ds-2@example.com"
-  first_name = "Users"
-  last_name  = "Test2"
-  admin      = true
-  active     = true
+  email  = "tf-test-users-ds-2@example.com"
+  status = "active"
+  policy_ids = ["builtin-tg-admin"]
 }
 
 data "tg_users" "all" {
@@ -220,7 +212,6 @@ data "tg_users" "filtered" {
 }
 
 data "tg_users" "admin_only" {
-  admin_filter = true
   depends_on   = [tg_user.test1, tg_user.test2]
 }
 `
@@ -231,17 +222,13 @@ func testAcc_CheckUserAPISide(provider *schema.Provider, email string) resource.
 		client := provider.Meta().(*tg.Client)
 
 		users := make([]tg.User, 0)
-		if err := client.Get(context.Background(), "/v2/user", &users); err != nil {
+		if err := client.Get(context.Background(), "/user"+email, &users); err != nil {
 			return err
 		}
 
 		for _, user := range users {
 			if user.Email == email {
 				switch {
-				case user.FirstName == "":
-					return fmt.Errorf("expected user to have a first name")
-				case user.LastName == "":
-					return fmt.Errorf("expected user to have a last name")
 				case user.Email != email:
 					return fmt.Errorf("expected user email to be %s but got %s", email, user.Email)
 				}

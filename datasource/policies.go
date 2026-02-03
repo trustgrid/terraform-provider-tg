@@ -3,6 +3,7 @@ package datasource
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -10,14 +11,15 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type policiesDS struct{}
+type policies struct{}
 
-// Policies returns the TF schema for listing policies
 func Policies() *schema.Resource {
+	var p policies
+
 	return &schema.Resource{
 		Description: "Fetches policies from Trustgrid",
 
-		ReadContext: policiesRead,
+		ReadContext: p.read,
 
 		Schema: map[string]*schema.Schema{
 			"name_filter": {
@@ -61,32 +63,17 @@ type policyFilter struct {
 }
 
 func (f *policyFilter) match(p tg.Policy) bool {
-	if f.NameFilter != "" {
-		// Simple substring match
-		if len(p.Name) == 0 {
-			return false
-		}
-		// Check if name contains the filter string
-		found := false
-		for i := 0; i <= len(p.Name)-len(f.NameFilter); i++ {
-			if p.Name[i:i+len(f.NameFilter)] == f.NameFilter {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
+	if f.NameFilter == "" {
+		return true
 	}
-	return true
+	return strings.Contains(p.Name, f.NameFilter)
 }
 
-func policiesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (p *policies) read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
 
 	tgc := tg.GetClient(meta)
 
-	// Get filter from user input
 	filter := policyFilter{}
 	if nameFilter, ok := d.Get("name_filter").(string); ok {
 		filter.NameFilter = nameFilter
@@ -99,12 +86,12 @@ func policiesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	names := make([]string, 0)
-	policyList := make([]map[string]interface{}, 0)
+	policyList := make([]map[string]any, 0)
 
 	for _, policy := range policies {
 		if filter.match(policy) {
 			names = append(names, policy.Name)
-			policyList = append(policyList, map[string]interface{}{
+			policyList = append(policyList, map[string]any{
 				"name":        policy.Name,
 				"description": policy.Description,
 			})

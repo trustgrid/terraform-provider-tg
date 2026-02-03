@@ -11,14 +11,15 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-type serviceUsersDS struct{}
+type serviceUsers struct{}
 
-// ServiceUsers returns the TF schema for listing service users
 func ServiceUsers() *schema.Resource {
+	ds := serviceUsers{}
+
 	return &schema.Resource{
 		Description: "Fetches service users from Trustgrid",
 
-		ReadContext: serviceUsersRead,
+		ReadContext: ds.read,
 
 		Schema: map[string]*schema.Schema{
 			"name_filter": {
@@ -76,11 +77,8 @@ type serviceUserFilter struct {
 }
 
 func (f *serviceUserFilter) match(su tg.ServiceUser) bool {
-	if f.NameFilter != "" {
-		// Simple substring match
-		if !strings.Contains(su.Name, f.NameFilter) {
-			return false
-		}
+	if !strings.Contains(su.Name, f.NameFilter) {
+		return false
 	}
 
 	if f.StatusFilter != "" && su.Status != f.StatusFilter {
@@ -90,12 +88,11 @@ func (f *serviceUserFilter) match(su tg.ServiceUser) bool {
 	return true
 }
 
-func serviceUsersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func (s *serviceUsers) read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId(fmt.Sprintf("%d", time.Now().Unix()))
 
 	tgc := tg.GetClient(meta)
 
-	// Get filter from user input
 	filter := serviceUserFilter{}
 	if nameFilter, ok := d.Get("name_filter").(string); ok && nameFilter != "" {
 		filter.NameFilter = nameFilter
@@ -111,12 +108,12 @@ func serviceUsersRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 	}
 
 	names := make([]string, 0)
-	serviceUserList := make([]map[string]interface{}, 0)
+	serviceUserList := make([]map[string]any, 0)
 
 	for _, su := range serviceUsers {
 		if filter.match(su) {
 			names = append(names, su.Name)
-			serviceUserList = append(serviceUserList, map[string]interface{}{
+			serviceUserList = append(serviceUserList, map[string]any{
 				"name":       su.Name,
 				"status":     su.Status,
 				"policy_ids": su.PolicyIDs,

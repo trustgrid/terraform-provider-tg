@@ -228,7 +228,7 @@ resource "tg_policy" "test2" {
   resources = ["*"]
 
   statement {
-    actions = ["nodes::write"]
+    actions = ["nodes::read"]
 	effect = "deny"
   }
 }
