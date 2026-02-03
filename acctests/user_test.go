@@ -34,6 +34,7 @@ func TestAccUser_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.0", "policy-1"),
 					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.1", "policy-2"),
 					resource.TestCheckResourceAttrSet("tg_user.test", "uid"),
+					resource.TestCheckResourceAttrSet("tg_user.test", "idp"),
 					testAcc_CheckUserAPISide(provider, "tf-test-user@example.com"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -48,6 +49,7 @@ func TestAccUser_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.#", "1"),
 					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.0", "policy-3"),
 					resource.TestCheckResourceAttrSet("tg_user.test", "uid"),
+					resource.TestCheckResourceAttrSet("tg_user.test", "idp"),
 				),
 			},
 		},
@@ -129,8 +131,15 @@ func TestAccUsersDataSource_HappyPath(t *testing.T) {
 
 func userConfig() string {
 	return `
+resource "tg_idp" "test" {
+  name        = "tf-test-user-idp"
+  type        = "SAML"
+  description = "Test IDP for user tests"
+}
+
 resource "tg_user" "test" {
   email      = "tf-test-user@example.com"
+  idp        = tg_idp.test.uid
   status     = "active"
   policy_ids = ["policy-1", "policy-2"]
 }
@@ -139,8 +148,15 @@ resource "tg_user" "test" {
 
 func userConfigUpdated() string {
 	return `
+resource "tg_idp" "test" {
+  name        = "tf-test-user-idp"
+  type        = "SAML"
+  description = "Test IDP for user tests"
+}
+
 resource "tg_user" "test" {
   email      = "tf-test-user@example.com"
+  idp        = tg_idp.test.uid
   status     = "inactive"
   policy_ids = ["policy-3"]
 }
@@ -149,9 +165,16 @@ resource "tg_user" "test" {
 
 func userDataSourceConfigByEmail() string {
 	return `
+resource "tg_idp" "test" {
+  name        = "tf-test-user-ds-email-idp"
+  type        = "SAML"
+  description = "Test IDP for user data source tests"
+}
+
 resource "tg_user" "test" {
-  email  = "tf-test-user-ds@example.com"
-  status = "active"
+  email      = "tf-test-user-ds@example.com"
+  idp        = tg_idp.test.uid
+  status     = "active"
   policy_ids = ["builtin-tg-admin"]
 }
 
@@ -164,9 +187,16 @@ data "tg_user" "test" {
 
 func userDataSourceConfigByUID() string {
 	return `
+resource "tg_idp" "test" {
+  name        = "tf-test-user-ds-uid-idp"
+  type        = "SAML"
+  description = "Test IDP for user data source tests"
+}
+
 resource "tg_user" "test" {
-  email  = "tf-test-user-ds-uid@example.com"
-  status = "active"
+  email      = "tf-test-user-ds-uid@example.com"
+  idp        = tg_idp.test.uid
+  status     = "active"
   policy_ids = ["builtin-tg-admin"]
 }
 
@@ -179,15 +209,23 @@ data "tg_user" "test" {
 
 func usersDataSourceConfig() string {
 	return `
+resource "tg_idp" "test" {
+  name        = "tf-test-users-ds-idp"
+  type        = "SAML"
+  description = "Test IDP for users data source tests"
+}
+
 resource "tg_user" "test1" {
-  email  = "tf-test-users-ds-1@example.com"
-  status = "active"
+  email      = "tf-test-users-ds-1@example.com"
+  idp        = tg_idp.test.uid
+  status     = "active"
   policy_ids = ["builtin-tg-admin"]
 }
 
 resource "tg_user" "test2" {
-  email  = "tf-test-users-ds-2@example.com"
-  status = "active"
+  email      = "tf-test-users-ds-2@example.com"
+  idp        = tg_idp.test.uid
+  status     = "active"
   policy_ids = ["builtin-tg-admin"]
 }
 

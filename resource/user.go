@@ -38,6 +38,11 @@ func User() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
+			"idp": {
+				Description: "Identity provider ID",
+				Type:        schema.TypeString,
+				Required:    true,
+			},
 			"policy_ids": {
 				Description: "List of policy IDs assigned to the user",
 				Type:        schema.TypeList,
