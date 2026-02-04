@@ -3,6 +3,7 @@ package acctests
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -17,9 +18,10 @@ import (
 
 func TestAccGroupMembership_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
-	groupName := "tf-test-membership-group"
+	suffix := rand.Intn(10000)
+	groupName := fmt.Sprintf("tf-test-membership-group-%d", suffix)
 	groupDescription := "Terraform test group for membership testing"
-	userEmail := "tf-test-membership-user@example.com"
+	memberEmail := "testuser@trustgrid.io"
 
 	provider := provider.New("test")()
 
@@ -29,12 +31,12 @@ func TestAccGroupMembership_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: groupMembershipConfig(groupName, groupDescription, userEmail),
+				Config: groupMembershipConfig(groupName, groupDescription, memberEmail),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_group_membership.test", "id"),
 					resource.TestCheckResourceAttrSet("tg_group_membership.test", "group_id"),
-					resource.TestCheckResourceAttrSet("tg_group_membership.test", "user_id"),
-					checkGroupMembershipAPISide(provider),
+					resource.TestCheckResourceAttr("tg_group_membership.test", "email", memberEmail),
+					checkGroupMembershipAPISide(provider, memberEmail),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_group_membership.test", tfjsonpath.New("id")),
@@ -45,8 +47,11 @@ func TestAccGroupMembership_HappyPath(t *testing.T) {
 }
 
 func TestAccGroupMembership_MultipleUsers(t *testing.T) {
-	groupName := "tf-test-multi-membership-group"
+	suffix := rand.Intn(10000)
+	groupName := fmt.Sprintf("tf-test-multi-membership-group-%d", suffix)
 	groupDescription := "Terraform test group for multiple membership testing"
+	email1 := "testuser@trustgrid.io"
+	email2 := "testuser2@trustgrid.io"
 
 	provider := provider.New("test")()
 
@@ -56,15 +61,13 @@ func TestAccGroupMembership_MultipleUsers(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: groupMembershipMultipleUsersConfig(groupName, groupDescription),
+				Config: groupMembershipMultipleUsersConfig(groupName, groupDescription, email1, email2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_group_membership.test1", "id"),
 					resource.TestCheckResourceAttrSet("tg_group_membership.test2", "id"),
-					resource.TestCheckResourceAttrSet("tg_group_membership.test1", "group_id"),
-					resource.TestCheckResourceAttrSet("tg_group_membership.test1", "user_id"),
-					resource.TestCheckResourceAttrSet("tg_group_membership.test2", "group_id"),
-					resource.TestCheckResourceAttrSet("tg_group_membership.test2", "user_id"),
-					checkMultipleGroupMembershipsAPISide(provider),
+					resource.TestCheckResourceAttr("tg_group_membership.test1", "email", email1),
+					resource.TestCheckResourceAttr("tg_group_membership.test2", "email", email2),
+					checkMultipleGroupMembershipsAPISide(provider, email1, email2),
 				),
 			},
 		},
@@ -78,48 +81,33 @@ resource "tg_group" "membership_test" {
   description = "%s"
 }
 
-resource "tg_user" "membership_test" {
-  email      = "%s"
-  active     = true
-}
-
 resource "tg_group_membership" "test" {
   group_id = tg_group.membership_test.uid
-  user_id  = tg_user.membership_test.uid
+  email    = "%s"
 }
 `, groupName, groupDescription, email)
 }
 
-func groupMembershipMultipleUsersConfig(groupName, groupDescription string) string {
+func groupMembershipMultipleUsersConfig(groupName, groupDescription, email1, email2 string) string {
 	return fmt.Sprintf(`
 resource "tg_group" "multi_membership_test" {
   name        = "%s"
   description = "%s"
 }
 
-resource "tg_user" "multi_test1" {
-  email      = "tf-test-multi-membership-1@example.com"
-  active     = true
-}
-
-resource "tg_user" "multi_test2" {
-  email      = "tf-test-multi-membership-2@example.com"
-  active     = true
-}
-
 resource "tg_group_membership" "test1" {
   group_id = tg_group.multi_membership_test.uid
-  user_id  = tg_user.multi_test1.uid
+  email    = "%s"
 }
 
 resource "tg_group_membership" "test2" {
   group_id = tg_group.multi_membership_test.uid
-  user_id  = tg_user.multi_test2.uid
+  email    = "%s"
 }
-`, groupName, groupDescription)
+`, groupName, groupDescription, email1, email2)
 }
 
-func checkGroupMembershipAPISide(provider *schema.Provider) resource.TestCheckFunc {
+func checkGroupMembershipAPISide(provider *schema.Provider, email string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := provider.Meta().(*tg.Client)
 
@@ -143,47 +131,29 @@ func checkGroupMembershipAPISide(provider *schema.Provider) resource.TestCheckFu
 			return fmt.Errorf("no Group UID found in state")
 		}
 
-		userRS, ok := s.RootModule().Resources["tg_user.membership_test"]
-		if !ok {
-			return fmt.Errorf("user resource not found")
-		}
-
-		userEmail := userRS.Primary.Attributes["email"]
-		if userEmail == "" {
-			return fmt.Errorf("no User email found in state")
-		}
-
-		// Get the user to verify they exist
-		var user tg.User
-		err := client.Get(context.Background(), "/user/"+userEmail, &user)
-		if err != nil {
-			return fmt.Errorf("error getting user: %w", err)
-		}
-
-		// Get group members and verify the user is in the group
 		var members []tg.GroupMember
-		err = client.Get(context.Background(), "/v2/group/"+groupID+"/members", &members)
+		err := client.Get(context.Background(), "/v2/group/"+groupID+"/members", &members)
 		if err != nil {
 			return fmt.Errorf("error getting group members: %w", err)
 		}
 
 		found := false
 		for _, member := range members {
-			if member.User == userEmail {
+			if member.User == email {
 				found = true
 				break
 			}
 		}
 
 		if !found {
-			return fmt.Errorf("user with email %s not found in group", userEmail)
+			return fmt.Errorf("user with email %s not found in group (members: %+v)", email, members)
 		}
 
 		return nil
 	}
 }
 
-func checkMultipleGroupMembershipsAPISide(provider *schema.Provider) resource.TestCheckFunc {
+func checkMultipleGroupMembershipsAPISide(provider *schema.Provider, email1, email2 string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := provider.Meta().(*tg.Client)
 
@@ -197,17 +167,15 @@ func checkMultipleGroupMembershipsAPISide(provider *schema.Provider) resource.Te
 			return fmt.Errorf("no Group UID found in state")
 		}
 
-		// Get group members
 		var members []tg.GroupMember
 		err := client.Get(context.Background(), "/v2/group/"+groupID+"/members", &members)
 		if err != nil {
 			return fmt.Errorf("error getting group members: %w", err)
 		}
 
-		// Check that both users are in the group
 		expectedEmails := map[string]bool{
-			"tf-test-multi-membership-1@example.com": false,
-			"tf-test-multi-membership-2@example.com": false,
+			email1: false,
+			email2: false,
 		}
 
 		for _, member := range members {

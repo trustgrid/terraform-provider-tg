@@ -15,7 +15,7 @@ resource "tg_policy" "read_only" {
 # 2. Look up a policy by name using data source
 data "tg_policy" "existing" {
   name = "example-read-only-policy"
-  
+
   depends_on = [tg_policy.read_only]
 }
 
@@ -25,7 +25,7 @@ data "tg_policies" "all" {
 }
 
 data "tg_policies" "filtered" {
-  name_filter = "example"  # Returns policies containing "example" in the name
+  name_filter = "example" # Returns policies containing "example" in the name
 }
 
 # Output examples

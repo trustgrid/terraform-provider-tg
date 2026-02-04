@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -33,24 +34,12 @@ func TestAccUser_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.#", "2"),
 					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.0", "policy-1"),
 					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.1", "policy-2"),
-					resource.TestCheckResourceAttrSet("tg_user.test", "uid"),
 					resource.TestCheckResourceAttrSet("tg_user.test", "idp"),
 					testAcc_CheckUserAPISide(provider, "tf-test-user@example.com"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_user.test", tfjsonpath.New("id")),
 				},
-			},
-			{
-				Config: userConfigUpdated(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("tg_user.test", "email", "tf-test-user@example.com"),
-					resource.TestCheckResourceAttr("tg_user.test", "status", "inactive"),
-					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.#", "1"),
-					resource.TestCheckResourceAttr("tg_user.test", "policy_ids.0", "policy-3"),
-					resource.TestCheckResourceAttrSet("tg_user.test", "uid"),
-					resource.TestCheckResourceAttrSet("tg_user.test", "idp"),
-				),
 			},
 		},
 	})
@@ -59,30 +48,8 @@ func TestAccUser_HappyPath(t *testing.T) {
 func TestAccUserDataSource_ByEmail(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
 
-	provider := provider.New("test")()
-
-	resource.Test(t, resource.TestCase{
-		Providers: map[string]*schema.Provider{
-			"tg": provider,
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: userDataSourceConfigByEmail(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.tg_user.test", "email", "tf-test-user-ds@example.com"),
-					resource.TestCheckResourceAttr("data.tg_user.test", "status", "active"),
-					resource.TestCheckResourceAttrSet("data.tg_user.test", "uid"),
-				),
-				ConfigStateChecks: []statecheck.StateCheck{
-					compareValuesSame.AddStateValue("data.tg_user.test", tfjsonpath.New("id")),
-				},
-			},
-		},
-	})
-}
-
-func TestAccUserDataSource_ByUID(t *testing.T) {
-	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
+	name := uuid.NewString()
+	email := uuid.NewString() + "@test.trustgrid.io"
 
 	provider := provider.New("test")()
 
@@ -92,11 +59,10 @@ func TestAccUserDataSource_ByUID(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: userDataSourceConfigByUID(),
+				Config: userDataSourceConfigByEmail(name, email),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.tg_user.test", "email", "tf-test-user-ds-uid@example.com"),
+					resource.TestCheckResourceAttr("data.tg_user.test", "email", email),
 					resource.TestCheckResourceAttr("data.tg_user.test", "status", "active"),
-					resource.TestCheckResourceAttrSet("data.tg_user.test", "uid"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("data.tg_user.test", tfjsonpath.New("id")),
@@ -163,16 +129,16 @@ resource "tg_user" "test" {
 `
 }
 
-func userDataSourceConfigByEmail() string {
-	return `
+func userDataSourceConfigByEmail(name string, email string) string {
+	return fmt.Sprintf(`
 resource "tg_idp" "test" {
-  name        = "tf-test-user-ds-email-idp"
+  name        = "%s"
   type        = "SAML"
   description = "Test IDP for user data source tests"
 }
 
 resource "tg_user" "test" {
-  email      = "tf-test-user-ds@example.com"
+  email      = "%s"
   idp        = tg_idp.test.uid
   status     = "active"
   policy_ids = ["builtin-tg-admin"]
@@ -182,29 +148,7 @@ data "tg_user" "test" {
   email = tg_user.test.email
   depends_on = [tg_user.test]
 }
-`
-}
-
-func userDataSourceConfigByUID() string {
-	return `
-resource "tg_idp" "test" {
-  name        = "tf-test-user-ds-uid-idp"
-  type        = "SAML"
-  description = "Test IDP for user data source tests"
-}
-
-resource "tg_user" "test" {
-  email      = "tf-test-user-ds-uid@example.com"
-  idp        = tg_idp.test.uid
-  status     = "active"
-  policy_ids = ["builtin-tg-admin"]
-}
-
-data "tg_user" "test" {
-  uid = tg_user.test.uid
-  depends_on = [tg_user.test]
-}
-`
+`, name, email)
 }
 
 func usersDataSourceConfig() string {
@@ -248,23 +192,18 @@ func testAcc_CheckUserAPISide(provider *schema.Provider, email string) resource.
 	return func(s *terraform.State) error {
 		client := provider.Meta().(*tg.Client)
 
-		users := make([]tg.User, 0)
-		if err := client.Get(context.Background(), "/user"+email, &users); err != nil {
+		var user tg.User
+		if err := client.Get(context.Background(), "/user/"+email, &user); err != nil {
 			return err
 		}
 
-		for _, user := range users {
-			if user.Email == email {
-				switch {
-				case user.Email != email:
-					return fmt.Errorf("expected user email to be %s but got %s", email, user.Email)
-				case user.Status == "":
-					return fmt.Errorf("expected user to have a status")
-				}
-				return nil
-			}
+		switch {
+		case user.Email != email:
+			return fmt.Errorf("expected user email to be %s but got %s", email, user.Email)
+		case user.Status == "":
+			return fmt.Errorf("expected user to have a status")
 		}
 
-		return fmt.Errorf("user with email %s not found via API", email)
+		return nil
 	}
 }

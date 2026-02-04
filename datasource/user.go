@@ -35,6 +35,14 @@ func User() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"idp": {
+				Description: "IDP ID for the user",
+				Type:        schema.TypeString,
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"status": {
 				Description: "User status (active or inactive)",
 				Type:        schema.TypeString,
@@ -53,25 +61,9 @@ func (r *user) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	var tgUser tg.User
-	var err error
 
-	users := make([]tg.User, 0)
-	err = tgc.Get(ctx, "/user"+email, nil)
-	if err != nil {
+	if err := tgc.Get(ctx, "/user/"+email, &tgUser); err != nil {
 		return diag.FromErr(err)
-	}
-
-	found := false
-	for _, u := range users {
-		if u.Email == email {
-			tgUser = u
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return diag.FromErr(errors.New("user with email " + email + " not found"))
 	}
 
 	tf := hcl.User{}.UpdateFromTG(tgUser)

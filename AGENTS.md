@@ -152,6 +152,10 @@ func TestAccAlarm_HappyPath(t *testing.T) {
 }
 ```
 
+Use the testify library for its assert functions and require functions.
+
+Only in special cases should you use `t.Errorf`.
+
 ## Environment Variables
 
 - `TG_API_KEY_ID`, `TG_API_KEY_SECRET` - API credentials

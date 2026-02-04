@@ -117,6 +117,7 @@ func (ds *users) read(ctx context.Context, d *schema.ResourceData, meta any) dia
 		if filter.match(user) {
 			emails = append(emails, user.Email)
 			userList = append(userList, map[string]any{
+				"uid":        user.UID,
 				"email":      user.Email,
 				"policy_ids": user.PolicyIDs,
 				"status":     user.Status,

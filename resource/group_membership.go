@@ -14,12 +14,12 @@ import (
 type groupmembership struct {
 }
 
-// GroupMembership returns a Terraform resource for managing a user group membership using user UIDs.
+// GroupMembership returns a Terraform resource for managing a user group membership.
 func GroupMembership() *schema.Resource {
 	r := groupmembership{}
 
 	return &schema.Resource{
-		Description: "Manages a user group membership using user UIDs instead of emails.",
+		Description: "Manages a user group membership.",
 
 		ReadContext:   r.Read,
 		DeleteContext: r.Delete,
@@ -32,8 +32,8 @@ func GroupMembership() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			"user_id": {
-				Description: "User UID",
+			"email": {
+				Description: "User email",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -51,8 +51,9 @@ func (r *groupmembership) Read(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	var user tg.User
-	err = tgc.Get(ctx, "/user/"+tf.UserID, &user)
+	members := []tg.GroupMember{}
+
+	err = tgc.Get(ctx, "/v2/group/"+tf.GroupID+"/members", &members)
 	var nferr *tg.NotFoundError
 	switch {
 	case errors.As(err, &nferr):
@@ -62,18 +63,8 @@ func (r *groupmembership) Read(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	members := []tg.GroupMember{}
-	err = tgc.Get(ctx, "/v2/group/"+tf.GroupID+"/members", &members)
-	switch {
-	case errors.As(err, &nferr):
-		d.SetId("")
-		return nil
-	case err != nil:
-		return diag.FromErr(err)
-	}
-
 	for _, m := range members {
-		if m.User == user.Email {
+		if m.User == tf.Email {
 			return nil
 		}
 	}
@@ -94,7 +85,7 @@ func (r *groupmembership) Create(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	payload := map[string]string{
-		"user": tf.UserID,
+		"email": tf.Email,
 	}
 
 	_, err = tgc.Post(ctx, "/v2/group/"+tf.GroupID+"/members", &payload)
@@ -102,7 +93,7 @@ func (r *groupmembership) Create(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	d.SetId(tf.GroupID + "-" + tf.UserID)
+	d.SetId(tf.GroupID + "-" + tf.Email)
 	return nil
 }
 
@@ -115,7 +106,7 @@ func (r *groupmembership) Delete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	if err := tgc.Delete(ctx, "/v2/group/"+tf.GroupID+"/members/"+tf.UserID, nil); err != nil {
+	if err := tgc.Delete(ctx, "/v2/group/"+tf.GroupID+"/members/"+tf.Email, nil); err != nil {
 		return diag.FromErr(fmt.Errorf("error issuing delete to group membership API: %w", err))
 	}
 
