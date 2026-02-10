@@ -283,7 +283,7 @@ func (vn *vpnInterface) Read(ctx context.Context, d *schema.ResourceData, meta a
 		return diag.FromErr(err)
 	}
 
-	ifaces := []tg.VPNInterface{}
+	ifaces := make([]tg.VPNInterface, 0)
 	if err := tgc.Get(ctx, tf.url(), &ifaces); err != nil {
 		return diag.FromErr(err)
 	}

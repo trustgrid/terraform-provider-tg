@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -55,7 +56,7 @@ func init() {
 
 func TestAccIDP_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
-	idpName := "tf-test-idp"
+	idpName := "tf-test-idp-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	idpDescription := "Terraform test IDP"
 	updatedDescription := "Updated Terraform test IDP"
 
@@ -99,7 +100,7 @@ func TestAccIDP_HappyPath(t *testing.T) {
 }
 
 func TestAccIDP_MultipleTypes(t *testing.T) {
-	idpBaseName := "tf-test-idp"
+	idpBaseName := "tf-test-idp-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	idpDescription := "Terraform test IDP"
 
 	provider := provider.New("test")()
