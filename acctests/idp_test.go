@@ -3,8 +3,11 @@ package acctests
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,9 +18,45 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
+func init() {
+	resource.AddTestSweepers("tg_idp", &resource.Sweeper{
+		Name: "tg_idp",
+		F: func(r string) error {
+			cp := tg.ClientParams{
+				APIKey:    os.Getenv("TG_API_KEY_ID"),
+				APISecret: os.Getenv("TG_API_KEY_SECRET"),
+				APIHost:   os.Getenv("TG_API_HOST"),
+			}
+			client, err := tg.NewClient(context.Background(), cp)
+			if err != nil {
+				return fmt.Errorf("error creating client: %w", err)
+			}
+
+			// List all IDPs
+			var idps []tg.IDP
+			err = client.Get(context.Background(), "/v2/idp", &idps)
+			if err != nil {
+				return fmt.Errorf("error listing IDPs: %w", err)
+			}
+
+			// Delete any test IDPs
+			for _, idp := range idps {
+				if strings.HasPrefix(idp.Name, "tf-test-idp") {
+					err := client.Delete(context.Background(), "/v2/idp/"+idp.UID, nil)
+					if err != nil {
+						return fmt.Errorf("error deleting IDP %s: %w", idp.Name, err)
+					}
+				}
+			}
+
+			return nil
+		},
+	})
+}
+
 func TestAccIDP_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
-	idpName := "tf-test-idp"
+	idpName := "tf-test-idp-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	idpDescription := "Terraform test IDP"
 	updatedDescription := "Updated Terraform test IDP"
 
@@ -61,7 +100,7 @@ func TestAccIDP_HappyPath(t *testing.T) {
 }
 
 func TestAccIDP_MultipleTypes(t *testing.T) {
-	idpBaseName := "tf-test-idp"
+	idpBaseName := "tf-test-idp-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	idpDescription := "Terraform test IDP"
 
 	provider := provider.New("test")()

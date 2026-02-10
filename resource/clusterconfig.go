@@ -130,13 +130,6 @@ func (cr *clusterconfig) Read(ctx context.Context, d *schema.ResourceData, meta 
 
 func (cr *clusterconfig) Update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	existing, err := cr.getConfig(ctx, tgc, d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	if existing == nil {
-		existing = &tg.ClusterConfig{}
-	}
 
 	tf, err := hcl.DecodeResourceData[tg.ClusterConfig](d)
 	if err != nil {

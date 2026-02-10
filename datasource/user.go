@@ -1,0 +1,78 @@
+package datasource
+
+import (
+	"context"
+	"errors"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/trustgrid/terraform-provider-tg/hcl"
+	"github.com/trustgrid/terraform-provider-tg/tg"
+)
+
+type user struct {
+}
+
+func User() *schema.Resource {
+	r := user{}
+
+	return &schema.Resource{
+		Description: "Fetch a user by email.",
+
+		ReadContext: r.Read,
+
+		Schema: map[string]*schema.Schema{
+			"email": {
+				Description: "User email address",
+				Type:        schema.TypeString,
+				Required:    true,
+			},
+			"policy_ids": {
+				Description: "List of policy IDs assigned to the user",
+				Type:        schema.TypeList,
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"idp": {
+				Description: "IDP ID for the user",
+				Type:        schema.TypeString,
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"status": {
+				Description: "User status (active or inactive)",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+		},
+	}
+}
+
+func (r *user) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	tgc := tg.GetClient(meta)
+
+	email, ok := d.Get("email").(string)
+	if !ok {
+		return diag.FromErr(errors.New("email must be provided"))
+	}
+
+	var tgUser tg.User
+
+	if err := tgc.Get(ctx, "/user/"+email, &tgUser); err != nil {
+		return diag.FromErr(err)
+	}
+
+	tf := hcl.User{}.UpdateFromTG(tgUser)
+
+	if err := hcl.EncodeResourceData(tf, d); err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(tgUser.Email)
+
+	return nil
+}

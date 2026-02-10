@@ -138,7 +138,7 @@ func TestDecode_Maps(t *testing.T) {
 		},
 	}
 	d := res.TestResourceData()
-	d.Set("evs", map[string]interface{}{"hi": "five"})
+	d.Set("evs", map[string]any{"hi": "five"})
 
 	u, err := DecodeResourceData[unset](d)
 	assert.NoError(t, err)
@@ -355,7 +355,7 @@ func TestEncode_NestedStruct(t *testing.T) {
 		t.Errorf("error encoding data; node_id should have been 5 but was: %s", d.Get("node_id"))
 	}
 
-	clients := d.Get("client").([]interface{})
+	clients := d.Get("client").([]any)
 	if clients[0].(map[string]any)["name"] != "client1" {
 		t.Errorf("error encoding data; client name should have been client1 but was %s", clients[0].(map[string]any)["name"])
 	}
@@ -370,7 +370,7 @@ func TestEncode_NestedStruct(t *testing.T) {
 		t.Errorf("error encoding data; node_id should have been 5 but was: %s", d.Get("node_id"))
 	}
 
-	clients = d.Get("client").([]interface{})
+	clients = d.Get("client").([]any)
 	if clients[0].(map[string]any)["name"] != "client1" {
 		t.Errorf("error encoding data; client name should have been client1 but was %s", clients[0].(map[string]any)["name"])
 	}

@@ -1,3 +1,6 @@
+TEST ?= .*
+LOG_LEVEL ?= ERROR
+
 .PHONY: docs
 
 install-osx:
@@ -27,7 +30,7 @@ sweep:
 	go test -v ./acctests -v -sweep=all
 
 testacc:
-	TF_LOG=ERROR TF_ACC=1 go test -v ./...
+	TF_LOG=$(LOG_LEVEL) TF_ACC=1 go test -v -timeout=5m -run '$(TEST)' ./...
 
 lint:
 	golangci-lint run --tests=false ./...

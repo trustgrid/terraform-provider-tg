@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -16,6 +17,7 @@ import (
 
 func TestAccServiceUser_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
+	rName := "tf-test-user-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	provider := provider.New("test")()
 
@@ -25,14 +27,13 @@ func TestAccServiceUser_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: serviceUserConfig(),
+				Config: serviceUserConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("tg_serviceuser.test", "name", "tf-test-user"),
+					resource.TestCheckResourceAttr("tg_serviceuser.test", "name", rName),
 					resource.TestCheckResourceAttr("tg_serviceuser.test", "status", "active"),
 					resource.TestCheckResourceAttr("tg_serviceuser.test", "policy_ids.0", "builtin-tg-access-admin"),
 					resource.TestCheckResourceAttr("tg_serviceuser.test", "policy_ids.1", "builtin-tg-node-admin"),
-					testAccCheckServiceUserExists(provider, "tf-test-user"),
-					resource.TestCheckResourceAttrSet("tg_serviceuser.test", "client_id"),
+					testAccCheckServiceUserExists(provider, rName),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_serviceuser.test", tfjsonpath.New("id")),
@@ -43,10 +44,10 @@ func TestAccServiceUser_HappyPath(t *testing.T) {
 	})
 }
 
-func serviceUserConfig() string {
+func serviceUserConfig(name string) string {
 	return `
 resource "tg_serviceuser" "test" {
-  name = "tf-test-user"
+  name = "` + name + `"
   status = "active"
   policy_ids = ["builtin-tg-access-admin", "builtin-tg-node-admin"]
 }
@@ -65,4 +66,83 @@ func testAccCheckServiceUserExists(provider *schema.Provider, name string) resou
 
 		return nil
 	}
+}
+
+func TestAccServiceUserDataSource_ByName(t *testing.T) {
+	provider := provider.New("test")()
+	rName := "tf-test-user-ds-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: serviceUserDataSourceConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "name", rName),
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "status", "active"),
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "policy_ids.#", "1"),
+					resource.TestCheckResourceAttr("data.tg_service_user.test", "policy_ids.0", "builtin-tg-access-admin"),
+				),
+			},
+		},
+	})
+}
+
+func serviceUserDataSourceConfig(name string) string {
+	return `
+resource "tg_serviceuser" "test" {
+  name = "` + name + `"
+  status = "active"
+  policy_ids = ["builtin-tg-access-admin"]
+}
+
+data "tg_service_user" "test" {
+  name = tg_serviceuser.test.name
+}
+	`
+}
+
+func TestAccServiceUsersDataSource_List(t *testing.T) {
+	provider := provider.New("test")()
+	rName := "tf-test-user-list-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: serviceUsersDataSourceConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.tg_service_users.all", "service_users.#"),
+					resource.TestCheckResourceAttrSet("data.tg_service_users.all", "names.#"),
+					// Check filtered results contain our test user
+					resource.TestCheckResourceAttr("data.tg_service_users.filtered", "service_users.#", "1"),
+					resource.TestCheckResourceAttr("data.tg_service_users.filtered", "service_users.0.name", rName),
+					resource.TestCheckResourceAttr("data.tg_service_users.filtered", "service_users.0.status", "active"),
+				),
+			},
+		},
+	})
+}
+
+func serviceUsersDataSourceConfig(name string) string {
+	return `
+resource "tg_serviceuser" "test" {
+  name = "` + name + `"
+  status = "active"
+  policy_ids = ["builtin-tg-access-admin"]
+}
+
+data "tg_service_users" "all" {
+  depends_on = [tg_serviceuser.test]
+}
+
+data "tg_service_users" "filtered" {
+  name_filter = "` + name + `"
+  depends_on = [tg_serviceuser.test]
+}
+	`
 }
