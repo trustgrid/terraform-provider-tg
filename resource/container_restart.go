@@ -33,7 +33,6 @@ func ContainerRestart() *schema.Resource {
 		Description: "Trigger a container restart when triggers change. This resource is useful for forcing a container to pull new images when the image tag or other configuration changes. The restart is performed by disabling the container, waiting briefly, and re-enabling it.",
 
 		ReadContext:   cr.Read,
-		UpdateContext: cr.Update,
 		DeleteContext: cr.Delete,
 		CreateContext: cr.Create,
 
@@ -156,14 +155,6 @@ func (cr *containerRestart) Create(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(cr.resourceID(tf))
 
-	return nil
-}
-
-// Update is not called because triggers has ForceNew: true.
-// When triggers change, Terraform will destroy and recreate the resource,
-// which calls Create and performs the restart.
-func (cr *containerRestart) Update(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
-	// This should never be called since all mutable attributes have ForceNew: true
 	return nil
 }
 
