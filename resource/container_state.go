@@ -97,6 +97,10 @@ func (cs *containerState) Create(ctx context.Context, d *schema.ResourceData, me
 
 	d.SetId(cs.resourceID(tf))
 
+	if err := hcl.EncodeResourceData(tf, d); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
@@ -119,6 +123,10 @@ func (cs *containerState) Update(ctx context.Context, d *schema.ResourceData, me
 
 	// Write back the updated container
 	if _, err := tgc.Put(ctx, cs.containerURL(tf), current); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := hcl.EncodeResourceData(tf, d); err != nil {
 		return diag.FromErr(err)
 	}
 
