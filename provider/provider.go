@@ -89,6 +89,7 @@ func New(version string) func() *schema.Provider {
 				"tg_compute_limits":                   resource.CPULimits(),
 				"tg_connector":                        resource.Connector(),
 				"tg_container":                        resource.Container(),
+				"tg_container_state":                  resource.ContainerState(),
 				"tg_container_volume":                 resource.Volume(),
 				"tg_gateway_config":                   resource.GatewayConfig(),
 				"tg_group":                            resource.Group(),

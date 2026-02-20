@@ -94,6 +94,17 @@ type ContainerVirtualNetwork struct {
 	AllowOutbound bool   `json:"allowOutbound"`
 }
 
+// ContainerState represents the enabled state of a container for the container_state resource.
+// This type only contains the fields needed for the state management API operations.
+// Note: NodeID, ClusterFQDN, and ContainerID have json:"-" tags because they are used
+// for URL construction/routing only, not as part of the API request/response payloads.
+type ContainerState struct {
+	NodeID      string `json:"-"`
+	ClusterFQDN string `json:"-"`
+	ContainerID string `json:"-"`
+	Enabled     bool   `json:"enabled"`
+}
+
 type ContainerConfig struct {
 	VRF *ContainerVRF
 
