@@ -5,15 +5,14 @@ import (
 	_ "embed"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	"github.com/stretchr/testify/assert"
 	"github.com/trustgrid/terraform-provider-tg/provider"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
@@ -73,6 +72,12 @@ func TestAccContainerRestart_HappyPath(t *testing.T) {
 			{
 				// Step 2: Change triggers - should recreate resource (ForceNew) and perform restart
 				Config: containerRestartTriggerChange,
+				// Verify ForceNew behavior: the plan should show destroy-before-create
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(rn, plancheck.ResourceActionDestroyBeforeCreate),
+					},
+				},
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(rn, "id"),
 					resource.TestCheckResourceAttr(rn, "triggers.image_tag", "v2"),
@@ -80,23 +85,22 @@ func TestAccContainerRestart_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttrSet(rn, "container_id"),
 					// Verify the container is still enabled after restart
 					checkContainerRestartAPISide(provider, true),
-					// Verify the resource ID is the same (node_id/container_id doesn't change)
-					// but a restart was triggered (ForceNew destroys and recreates)
+					// Verify the resource ID format remains stable (node_id/container_id doesn't change)
+					// even though the resource was destroyed and recreated (ForceNew behavior)
 					func(s *terraform.State) error {
 						rs, ok := s.RootModule().Resources[rn]
 						if !ok {
 							return fmt.Errorf("container_restart resource not found")
 						}
 						// The resource ID should be the same since it's based on node_id/container_id
-						// but the resource was destroyed and recreated (ForceNew behavior)
-						assert.Equal(t, firstResourceID, rs.Primary.ID, "Resource ID should remain stable")
+						if firstResourceID != rs.Primary.ID {
+							return fmt.Errorf("resource ID should remain stable, expected %q, got %q", firstResourceID, rs.Primary.ID)
+						}
 						return nil
 					},
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
-					// ID should differ because ForceNew recreated the resource
-					// Note: Actually the ID format is node_id/container_id which stays the same,
-					// but the resource itself was recreated. We use ConfigPlanChecks to verify ForceNew.
+					// The triggers map should differ between steps (v1 -> v2)
 					compareValuesDiffer.AddStateValue(rn, tfjsonpath.New("triggers")),
 				},
 			},
@@ -168,15 +172,12 @@ func TestAccContainerRestart_IDFormat(t *testing.T) {
 }
 
 // TestAccContainerRestart_ForceNewOnTriggerChange verifies that changing triggers causes
-// the resource to be replaced (ForceNew behavior), which triggers a new restart
+// the resource to be replaced (ForceNew behavior), which triggers a new restart.
+// This test explicitly verifies the plan shows a destroy-before-create action.
 func TestAccContainerRestart_ForceNewOnTriggerChange(t *testing.T) {
 	provider := provider.New("test")()
 
 	rn := "tg_container_restart.test"
-
-	// Track restart times by querying API
-	var initialRestartTime time.Time
-	var afterTriggerChangeTime time.Time
 
 	resource.Test(t, resource.TestCase{
 		Providers: map[string]*schema.Provider{
@@ -189,37 +190,20 @@ func TestAccContainerRestart_ForceNewOnTriggerChange(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(rn, "id"),
 					resource.TestCheckResourceAttr(rn, "triggers.image_tag", "v1"),
-					// Record the time after initial creation
-					func(_ *terraform.State) error {
-						initialRestartTime = time.Now()
-						return nil
-					},
 				),
 			},
 			{
-				// Step 2: Change triggers - ForceNew should cause recreation
+				// Step 2: Change triggers - ForceNew should cause destroy-before-create
 				Config: containerRestartTriggerChange,
+				// This is the key assertion: verify ForceNew behavior via plan check
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(rn, plancheck.ResourceActionDestroyBeforeCreate),
+					},
+				},
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(rn, "id"),
 					resource.TestCheckResourceAttr(rn, "triggers.image_tag", "v2"),
-					// Record the time after trigger change
-					func(_ *terraform.State) error {
-						afterTriggerChangeTime = time.Now()
-						return nil
-					},
-				),
-			},
-			{
-				// Step 3: Verify the restart happened by checking times
-				Config: containerRestartTriggerChange,
-				Check: resource.ComposeTestCheckFunc(
-					func(_ *terraform.State) error {
-						// The trigger change should have happened after initial creation
-						if !afterTriggerChangeTime.After(initialRestartTime) {
-							return fmt.Errorf("restart time should be after initial creation")
-						}
-						return nil
-					},
 				),
 			},
 		},
