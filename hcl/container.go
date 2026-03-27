@@ -9,6 +9,34 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
+// ContainerState represents the enabled state of a container for Terraform.
+type ContainerState struct {
+	NodeID      string `tf:"node_id"`
+	ClusterFQDN string `tf:"cluster_fqdn"`
+	ContainerID string `tf:"container_id"`
+	Enabled     bool   `tf:"enabled"`
+}
+
+// ToTG converts the HCL ContainerState to the API type.
+func (h ContainerState) ToTG() tg.ContainerState {
+	return tg.ContainerState{
+		NodeID:      h.NodeID,
+		ClusterFQDN: h.ClusterFQDN,
+		ContainerID: h.ContainerID,
+		Enabled:     h.Enabled,
+	}
+}
+
+// UpdateFromTG updates the HCL ContainerState from the API type.
+func (h ContainerState) UpdateFromTG(c tg.ContainerState) HCL[tg.ContainerState] {
+	return ContainerState{
+		NodeID:      h.NodeID,
+		ClusterFQDN: h.ClusterFQDN,
+		ContainerID: h.ContainerID,
+		Enabled:     c.Enabled,
+	}
+}
+
 type ContainerImage struct {
 	Repository string `tf:"repository"`
 	Tag        string `tf:"tag"`

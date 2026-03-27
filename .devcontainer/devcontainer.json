@@ -1,0 +1,20 @@
+{
+  "name": "terraform-provider-tg",
+  "image": "mcr.microsoft.com/devcontainers/go:1.24",
+  "features": {
+    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/dhouj/features/golangci-lint:1": {}
+  },
+  "postCreateCommand": "go mod download",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "hashicorp.terraform"
+      ]
+    }
+  },
+  "remoteEnv": {
+    "TF_LOG": "ERROR"
+  }
+}
