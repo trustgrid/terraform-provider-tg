@@ -3,6 +3,7 @@ package acctests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	_ "embed"
@@ -16,6 +17,25 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/provider"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
+
+func init() {
+	resource.AddTestSweepers("tg_vnetobject_network", &resource.Sweeper{
+		Name: "tg_vnetobject_network",
+		F: func(r string) error {
+			cp := tg.ClientParams{
+				APIKey:    os.Getenv("TG_API_KEY_ID"),
+				APISecret: os.Getenv("TG_API_KEY_SECRET"),
+				APIHost:   os.Getenv("TG_API_HOST"),
+			}
+			client, err := tg.NewClient(context.Background(), cp)
+			if err != nil {
+				return fmt.Errorf("error creating client: %w", err)
+			}
+
+			return client.Delete(context.Background(), "/v2/domain/"+client.Domain+"/network/test-obj", nil)
+		},
+	})
+}
 
 //go:embed test-data/vnet-object/create.hcl
 var vnetObjCreate string
