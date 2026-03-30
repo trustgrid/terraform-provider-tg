@@ -1,6 +1,6 @@
 module github.com/trustgrid/terraform-provider-tg
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.48.0
-	golang.org/x/sync v0.19.0
+	golang.org/x/sync v0.20.0
 )
 
 require (
