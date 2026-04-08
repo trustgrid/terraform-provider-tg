@@ -94,6 +94,13 @@ type ContainerVirtualNetwork struct {
 	AllowOutbound bool   `json:"allowOutbound"`
 }
 
+type ContainerState struct {
+	NodeID      string `json:"-"`
+	ClusterFQDN string `json:"-"`
+	ContainerID string `json:"-"`
+	Enabled     bool   `json:"enabled"`
+}
+
 type ContainerConfig struct {
 	VRF *ContainerVRF
 
