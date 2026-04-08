@@ -38,3 +38,5 @@ website/vendor
 .envrc
 settings.json
 .opencode
+docs/prd*
+docs/progress*
