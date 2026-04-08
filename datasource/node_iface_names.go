@@ -142,11 +142,14 @@ var deviceCatalog = map[string][]ifaceInfo{
 func ifacesForDevice(device tg.Device) []ifaceInfo {
 	// If the API provides explicit WAN/LAN lists, use those (like NodeDeviceInfo.ts does)
 	if device.WAN != "" || len(device.LAN) > 0 {
-		ifaces := []ifaceInfo{{
-			osName:      device.WAN,
-			name:        "NIC1",
-			description: "WAN Interface",
-		}}
+		var ifaces []ifaceInfo
+		if device.WAN != "" {
+			ifaces = append(ifaces, ifaceInfo{
+				osName:      device.WAN,
+				name:        "NIC1",
+				description: "WAN Interface",
+			})
+		}
 		for i, lan := range device.LAN {
 			nicNum := i + 2
 			desc := "LAN Interface"
