@@ -94,6 +94,13 @@ type ContainerVirtualNetwork struct {
 	AllowOutbound bool   `json:"allowOutbound"`
 }
 
+type ContainerState struct {
+	NodeID      string `json:"-"`
+	ClusterFQDN string `json:"-"`
+	ContainerID string `json:"-"`
+	Enabled     bool   `json:"enabled"`
+}
+
 type ContainerConfig struct {
 	VRF *ContainerVRF
 
@@ -105,7 +112,7 @@ type ContainerConfig struct {
 	Logging   struct {
 		MaxFileSize int `json:"maxLogFileSize,omitempty"`
 		NumFiles    int `json:"numFiles,omitempty"`
-	} `json:"logging,omitempty"`
+	} `json:"logging"`
 	HealthCheck     *HealthCheck              `json:"healthcheck,omitempty"`
 	Limits          *ContainerLimits          `json:"limits,omitempty"`
 	Mounts          []Mount                   `json:"mounts"`
