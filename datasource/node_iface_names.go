@@ -141,7 +141,7 @@ var deviceCatalog = map[string][]ifaceInfo{
 
 func ifacesForDevice(device tg.Device) []ifaceInfo {
 	// If the API provides explicit WAN/LAN lists, use those (like NodeDeviceInfo.ts does)
-	if device.WAN != "" {
+	if device.WAN != "" || len(device.LAN) > 0 {
 		ifaces := []ifaceInfo{{
 			osName:      device.WAN,
 			name:        "NIC1",
@@ -183,7 +183,7 @@ type nodeIfaceNames struct{}
 func NodeIfaceNames() *schema.Resource {
 	r := nodeIfaceNames{}
 	return &schema.Resource{
-		Description: "Returns the portal name and OS-level interface name for each NIC on a node",
+		Description: "Returns the portal name, description, and OS-level interface name for each NIC on a node",
 
 		ReadContext: r.Read,
 

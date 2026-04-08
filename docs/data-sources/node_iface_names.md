@@ -3,12 +3,12 @@
 page_title: "tg_node_iface_names Data Source - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Returns the portal name and OS-level interface name for each NIC on a node
+  Returns the portal name, description, and OS-level interface name for each NIC on a node
 ---
 
 # tg_node_iface_names (Data Source)
 
-Returns the portal name and OS-level interface name for each NIC on a node
+Returns the portal name, description, and OS-level interface name for each NIC on a node
 
 ## Example Usage
 

@@ -112,7 +112,7 @@ type ContainerConfig struct {
 	Logging   struct {
 		MaxFileSize int `json:"maxLogFileSize,omitempty"`
 		NumFiles    int `json:"numFiles,omitempty"`
-	} `json:"logging"`
+	} `json:"logging,omitempty"`
 	HealthCheck     *HealthCheck              `json:"healthcheck,omitempty"`
 	Limits          *ContainerLimits          `json:"limits,omitempty"`
 	Mounts          []Mount                   `json:"mounts"`
