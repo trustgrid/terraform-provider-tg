@@ -485,39 +485,39 @@ func (cr *container) getContainer(ctx context.Context, tgc *tg.Client, c hcl.Con
 
 	cc := tg.ContainerConfig{}
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/healthcheck", &cc.HealthCheck)
+		return tgc.GetOptional(ctx, containerURL+"/healthcheck", &cc.HealthCheck)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/limit", &cc.Limits)
+		return tgc.GetOptional(ctx, containerURL+"/limit", &cc.Limits)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/capability", &cc.Capabilities)
+		return tgc.GetOptional(ctx, containerURL+"/capability", &cc.Capabilities)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/variable", &cc.Variables)
+		return tgc.GetOptional(ctx, containerURL+"/variable", &cc.Variables)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/logging", &cc.Logging)
+		return tgc.GetOptional(ctx, containerURL+"/logging", &cc.Logging)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/mount", &cc.Mounts)
+		return tgc.GetOptional(ctx, containerURL+"/mount", &cc.Mounts)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/port-mapping", &cc.PortMappings)
+		return tgc.GetOptional(ctx, containerURL+"/port-mapping", &cc.PortMappings)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/virtual-network", &cc.VirtualNetworks)
+		return tgc.GetOptional(ctx, containerURL+"/virtual-network", &cc.VirtualNetworks)
 	})
 
 	g.Go(func() error {
-		return tgc.Get(ctx, containerURL+"/interface", &cc.Interfaces)
+		return tgc.GetOptional(ctx, containerURL+"/interface", &cc.Interfaces)
 	})
 
 	err = g.Wait()

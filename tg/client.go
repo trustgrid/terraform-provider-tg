@@ -261,3 +261,48 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 
 	return nil
 }
+
+// GetOptional is like Get but silently returns nil when the server responds
+// with HTTP 200 and an empty body, which some endpoints do when no data exists.
+func (tg *Client) GetOptional(ctx context.Context, url string, out any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/%s", tg.APIHost, strings.TrimPrefix(url, "/")), nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", tg.authHeader())
+	req.Header.Set("Accept", "application/json")
+
+	r, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusOK {
+		reply, err := io.ReadAll(r.Body)
+		if err != nil {
+			return fmt.Errorf("[GET] non-200 from portal (%s): %d; couldn't read body: %w", url, r.StatusCode, err)
+		}
+		if r.StatusCode == http.StatusNotFound {
+			return &NotFoundError{URL: url}
+		}
+		return fmt.Errorf("[GET] non-200 from portal (%s): %d - %s\n%s", url, r.StatusCode, req.URL.String(), reply)
+	}
+
+	reply, err := io.ReadAll(r.Body)
+	if err != nil {
+		return fmt.Errorf("error reading reply: %w", err)
+	}
+
+	if len(reply) == 0 {
+		return nil
+	}
+
+	err = json.Unmarshal(reply, out)
+	if err != nil {
+		return fmt.Errorf("error decoding json: %w\n\nreply:\n%s", err, string(reply))
+	}
+
+	return nil
+}
