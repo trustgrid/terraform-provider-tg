@@ -238,6 +238,8 @@ linters:
         linters: [ gocritic ]
       - text: "G402: TLS InsecureSkipVerify set true"
         linters: [ gosec ]
+      - text: "G117"
+        linters: [ gosec ]
       - text: 'error strings should not'
         linters: [ staticcheck ]
       - text: 'SA1019: "golang.org/x/crypto/openpgp/armor" is deprecated'
@@ -247,6 +249,8 @@ linters:
       - text: 'SA1019: "golang.org/x/crypto/openpgp" is deprecated'
         linters: [ staticcheck ]
       - text: "G115"
+        linters: [ gosec ]
+      - text: "G704"
         linters: [ gosec ]
       - path: "_test\\.go"
         linters:

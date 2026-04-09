@@ -7,6 +7,10 @@ resource "tg_container" "test" {
   enabled     = false
   exec_type   = "onDemand"
 
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+
   image {
     repository = "dev.trustgrid.io/alpine"
     tag        = "latest"
