@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -30,11 +32,15 @@ func ContainerRestart() *schema.Resource {
 	cr := containerRestart{}
 
 	return &schema.Resource{
-		Description: "Trigger a container restart when triggers change. This resource is useful for forcing a container to pull new images when the image tag or other configuration changes. The restart is performed by disabling the container, waiting briefly, and re-enabling it.",
+		Description: "Trigger a container restart when triggers change. This resource is useful for forcing a container to pull new images when the image tag or other configuration changes. The restart is performed by disabling the container, waiting briefly, and re-enabling it. If the container is already disabled, no restart is performed.",
 
 		ReadContext:   cr.Read,
 		DeleteContext: cr.Delete,
 		CreateContext: cr.Create,
+
+		Importer: &schema.ResourceImporter{
+			StateContext: importContainerResource,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {
@@ -95,8 +101,9 @@ func (cr *containerRestart) resourceID(c containerRestartHCL) string {
 	return c.ClusterFQDN + "/" + c.ContainerID
 }
 
-// performRestart disables the container, waits briefly, then enables it.
-// This forces the container to stop and start, pulling any new images in the process.
+// performRestart disables the container (if it is enabled), waits briefly,
+// then re-enables it. If the container is already disabled, it is left as-is
+// and no restart is performed.
 func (cr *containerRestart) performRestart(ctx context.Context, tgc *tg.Client, tf containerRestartHCL) error {
 	url := cr.containerURL(tf)
 
@@ -106,8 +113,11 @@ func (cr *containerRestart) performRestart(ctx context.Context, tgc *tg.Client, 
 		return err
 	}
 
-	// Remember original state for recovery if re-enable fails
-	originalEnabled := current.Enabled
+	// Only restart if the container is currently enabled.
+	// A disabled container should not be force-enabled by a restart.
+	if !current.Enabled {
+		return nil
+	}
 
 	// Disable the container
 	current.Enabled = false
@@ -121,16 +131,15 @@ func (cr *containerRestart) performRestart(ctx context.Context, tgc *tg.Client, 
 		// Continue with restart
 	case <-ctx.Done():
 		// Context was cancelled - attempt to restore original state
-		current.Enabled = originalEnabled
+		current.Enabled = true
 		_, _ = tgc.Put(context.Background(), url, current) // best-effort restore, ignore error
 		return ctx.Err()
 	}
 
-	// Re-enable the container
+	// Re-enable the container (it was enabled before we started)
 	current.Enabled = true
 	if _, err := tgc.Put(ctx, url, current); err != nil {
 		// Attempt to restore original state on failure
-		current.Enabled = originalEnabled
 		if _, restoreErr := tgc.Put(context.Background(), url, current); restoreErr != nil {
 			return fmt.Errorf("restart failed and could not restore original state: %w (restore error: %s)", err, restoreErr.Error())
 		}
@@ -191,4 +200,34 @@ func (cr *containerRestart) Read(ctx context.Context, d *schema.ResourceData, me
 	// Just keep the current state as-is.
 
 	return nil
+}
+
+// importContainerResource parses an import ID of the form
+// "<node-id-or-cluster-fqdn>/<container-id>" and sets the appropriate
+// fields in state. If the first segment is a valid UUID it is treated as a
+// node_id; otherwise it is treated as a cluster_fqdn.
+func importContainerResource(_ context.Context, d *schema.ResourceData, _ any) ([]*schema.ResourceData, error) {
+	parts := strings.SplitN(d.Id(), "/", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("import ID must be in the format <node-id-or-cluster-fqdn>/<container-id>, got: %s", d.Id())
+	}
+
+	nodeOrCluster := parts[0]
+	containerID := parts[1]
+
+	if _, err := uuid.Parse(nodeOrCluster); err == nil {
+		if err := d.Set("node_id", nodeOrCluster); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := d.Set("cluster_fqdn", nodeOrCluster); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := d.Set("container_id", containerID); err != nil {
+		return nil, err
+	}
+
+	return []*schema.ResourceData{d}, nil
 }

@@ -3,162 +3,63 @@
 page_title: "tg_container_restart Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Trigger a container restart when triggers change. This resource is useful for forcing a container to pull new images when the image tag or other configuration changes.
+  Trigger a container restart when triggers change. This resource is useful for forcing a container to pull new images when the image tag or other configuration changes. The restart is performed by disabling the container, waiting briefly, and re-enabling it. If the container is already disabled, no restart is performed.
 ---
 
 # tg_container_restart (Resource)
 
-Trigger a container restart when triggers change. This resource is useful for forcing a container to pull new images when the image tag or other configuration changes. The restart is performed by disabling the container, waiting briefly, and re-enabling it.
+Trigger a container restart when triggers change. This resource is useful for forcing a container to pull new images when the image tag or other configuration changes. The restart is performed by disabling the container, waiting briefly, and re-enabling it. If the container is already disabled, no restart is performed.
 
-When the `triggers` map changes, Terraform will destroy and recreate this resource, causing the container to restart. This is particularly useful for CI/CD workflows where you want to force a container to pull a new image version.
+## How It Works
+
+When `triggers` values change, Terraform destroys and recreates this resource (ForceNew behavior). On creation, the provider:
+
+1. Reads the current container state from the API.
+2. If the container is disabled, no restart is performed and the resource is created without any changes to the container.
+3. If the container is enabled, it is disabled, the provider waits briefly for it to stop, then re-enables it. This causes the container runtime to pull any updated images.
+
+The `triggers` map is purely a Terraform-side mechanism. Changing any trigger value causes `terraform apply` to recreate this resource and perform a new restart.
 
 ## Example Usage
 
-### Restart when image tag changes
+### Image Update Workflow
 
 ```terraform
-resource "tg_container" "my_app" {
-  node_id   = var.node_id
-  name      = "my-app"
-  exec_type = "service"
-
-  image {
-    repository = "dev.trustgrid.io/my-app"
-    tag        = var.image_tag
-  }
-}
-
-resource "tg_container_restart" "my_app" {
-  node_id      = var.node_id
-  container_id = tg_container.my_app.id
+resource "tg_container_restart" "example" {
+  node_id      = "00000000-0000-0000-0000-000000000001"
+  container_id = "00000000-0000-0000-0000-000000000002"
 
   triggers = {
-    image_tag = var.image_tag
+    image_tag = "v1.2.3"
   }
 }
 ```
 
-### Restart on cluster container
+### Cluster Usage
 
 ```terraform
-resource "tg_container_restart" "cluster_app" {
-  cluster_fqdn = "my-cluster.example.trustgrid.io"
-  container_id = var.container_id
+resource "tg_container_restart" "cluster_example" {
+  cluster_fqdn = "my-cluster.example.com"
+  container_id = "00000000-0000-0000-0000-000000000002"
 
   triggers = {
-    image_tag = var.image_tag
-  }
-}
-```
-
-### Restart on multiple changes
-
-```terraform
-resource "tg_container_restart" "app" {
-  node_id      = var.node_id
-  container_id = tg_container.my_app.id
-
-  triggers = {
-    image_tag      = var.image_tag
-    config_version = var.config_version
-    restart_time   = timestamp()  # Force restart every apply
+    image_tag = "v1.2.3"
+    config_hash = "abc123"
   }
 }
 ```
 
 ## Common Use Cases
 
-### Image Update Workflow
+- **Image tag rotation**: Set `triggers = { image_tag = var.image_tag }` so that updating the image tag in your variables automatically restarts the container and pulls the new image.
+- **Configuration reload**: Trigger a restart when a configuration file or secret changes.
+- **Manual restart**: Run `terraform apply` after updating a trigger value to force a restart.
 
-The most common use case is restarting a container when a new image version is available. Since Trustgrid containers pull images when they start, you need to restart the container to pick up a new image version:
+## Behavior Notes
 
-```terraform
-variable "image_tag" {
-  description = "Docker image tag - change this to deploy a new version"
-  type        = string
-  default     = "v1.0.0"
-}
-
-resource "tg_container" "web_service" {
-  node_id     = var.node_id
-  name        = "web-service"
-  description = "Production web service"
-  enabled     = true
-  exec_type   = "service"
-
-  image {
-    repository = "dev.trustgrid.io/web-service"
-    tag        = var.image_tag
-  }
-}
-
-# This resource triggers a restart whenever image_tag changes
-resource "tg_container_restart" "web_service" {
-  node_id      = var.node_id
-  container_id = tg_container.web_service.id
-
-  triggers = {
-    image_tag = var.image_tag
-  }
-}
-```
-
-To deploy a new version:
-
-```bash
-terraform apply -var="image_tag=v1.1.0"
-```
-
-### Configuration-driven Restart
-
-Restart containers when external configuration changes:
-
-```terraform
-resource "tg_container_restart" "config_driven" {
-  node_id      = var.node_id
-  container_id = var.container_id
-
-  triggers = {
-    config_hash = sha256(file("${path.module}/app-config.json"))
-  }
-}
-```
-
-### Scheduled Restart
-
-Force a restart on every Terraform apply (use with caution):
-
-```terraform
-resource "tg_container_restart" "daily_restart" {
-  node_id      = var.node_id
-  container_id = var.container_id
-
-  triggers = {
-    always_restart = timestamp()
-  }
-}
-```
-
-### Multiple Containers with Same Trigger
-
-Restart multiple containers when a shared dependency changes:
-
-```terraform
-locals {
-  containers = ["container-1-id", "container-2-id", "container-3-id"]
-}
-
-resource "tg_container_restart" "shared_restart" {
-  for_each = toset(local.containers)
-
-  node_id      = var.node_id
-  container_id = each.value
-
-  triggers = {
-    shared_config_version = var.shared_config_version
-  }
-}
-```
+- If the container is disabled when `terraform apply` runs, the restart is skipped and the container remains disabled. It will NOT be force-enabled.
+- The `triggers` field uses `ForceNew`, so changing any trigger value causes destroy+create of this resource.
+- Delete is a no-op: removing this resource from Terraform state does not affect the container.
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
@@ -169,42 +70,24 @@ resource "tg_container_restart" "shared_restart" {
 
 ### Optional
 
-- `cluster_fqdn` (String) Cluster FQDN - the fully qualified domain name of the cluster where the container runs. Exactly one of `node_id` or `cluster_fqdn` must be specified.
-- `node_id` (String) Node ID - the UUID of the node where the container runs. Exactly one of `node_id` or `cluster_fqdn` must be specified.
+- `cluster_fqdn` (String) Cluster FQDN - the fully qualified domain name of the cluster where the container runs
+- `node_id` (String) Node ID - the UUID of the node where the container runs
 - `triggers` (Map of String) A map of arbitrary strings that, when changed, will trigger a container restart. This can be used to restart a container when an image tag, configuration, or other external value changes.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 
-~> **Note:** Exactly one of `node_id` or `cluster_fqdn` must be specified.
-
-## How It Works
-
-When this resource is created or recreated (due to trigger changes), it performs the following steps:
-
-1. Disables the container (sets `enabled = false`)
-2. Waits briefly (2 seconds) for the container to stop gracefully
-3. Re-enables the container (sets `enabled = true`)
-
-The container will then pull the latest image and start fresh.
-
-## Behavior Notes
-
-- **ForceNew on triggers:** When any value in the `triggers` map changes, Terraform will destroy and recreate the resource, causing a restart.
-- **No-op on delete:** Deleting this resource does not affect the container - it simply removes the restart trigger from Terraform state.
-- **Container must exist:** The referenced container must exist. Use explicit `depends_on` or reference the container's ID to ensure proper ordering.
-
 ## Import
 
-Container restart resources can be imported using the node ID (or cluster FQDN) and container ID separated by a slash:
+Import using node ID:
 
 ```shell
-# Import using node ID
-terraform import tg_container_restart.example 35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc/a1b2c3d4-e5f6-7890-abcd-ef1234567890
-
-# Import using cluster FQDN
-terraform import tg_container_restart.example my-cluster.example.trustgrid.io/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+terraform import tg_container_restart.example 00000000-0000-0000-0000-000000000001/00000000-0000-0000-0000-000000000002
 ```
 
-~> **Note:** When importing, any existing triggers will need to be configured in the Terraform configuration to match the desired state.
+Import using cluster FQDN:
+
+```shell
+terraform import tg_container_restart.example my-cluster.example.com/00000000-0000-0000-0000-000000000002
+```

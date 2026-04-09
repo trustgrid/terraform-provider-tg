@@ -26,6 +26,10 @@ func ContainerState() *schema.Resource {
 		DeleteContext: cs.Delete,
 		CreateContext: cs.Create,
 
+		Importer: &schema.ResourceImporter{
+			StateContext: importContainerResource,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"node_id": {
 				Description:  "Node ID - the UUID of the node where the container runs",

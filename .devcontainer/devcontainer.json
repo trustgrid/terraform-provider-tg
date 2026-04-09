@@ -1,6 +1,6 @@
 {
   "name": "terraform-provider-tg",
-  "image": "mcr.microsoft.com/devcontainers/go:1.24",
+  "image": "mcr.microsoft.com/devcontainers/go:1.25",
   "features": {
     "ghcr.io/devcontainers/features/terraform:1": {},
     "ghcr.io/dhouj/features/golangci-lint:1": {}
