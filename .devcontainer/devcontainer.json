@@ -1,6 +1,11 @@
 {
   "name": "terraform-provider-tg",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "upgradePackages": true,
@@ -41,6 +46,6 @@
       ]
     }
   },
-  "postCreateCommand": "go mod download && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+  "postCreateCommand": ".devcontainer/install-golangci-lint.sh",
   "remoteUser": "vscode"
 }
