@@ -2,11 +2,12 @@ package acctests
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -16,18 +17,6 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/provider"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
-
-//go:embed test-data/vpn-dynamic-import-route/create.hcl
-var vpnDynamicImportRouteCreate string
-
-//go:embed test-data/vpn-dynamic-import-route/update.hcl
-var vpnDynamicImportRouteUpdate string
-
-//go:embed test-data/vpn-dynamic-import-route/create-cluster.hcl
-var vpnClusterDynamicImportRouteCreate string
-
-//go:embed test-data/vpn-dynamic-import-route/update-cluster.hcl
-var vpnClusterDynamicImportRouteUpdate string
 
 func init() {
 	resource.AddTestSweepers("tg_vpn_dynamic_import_route", &resource.Sweeper{
@@ -43,27 +32,32 @@ func init() {
 				return fmt.Errorf("error creating client: %w", err)
 			}
 
-			// Just create this and wait for the other sweeper to clean up after you
-			client.Post(context.Background(), "/v2/domain/"+client.Domain+"/network", tg.VirtualNetwork{Name: "test-vnet"})
-
-			routes := make([]tg.VPNRoute, 0)
-			if err := client.Get(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/dynamic/import-route", testNodeID, "test-vnet"), &routes); err != nil {
-				return fmt.Errorf("error getting VPN dynamic routes: %w", err)
+			var vnets []tg.VirtualNetwork
+			if err := client.Get(context.Background(), "/v2/domain/"+client.Domain+"/network", &vnets); err != nil {
+				return fmt.Errorf("error listing virtual networks: %w", err)
 			}
 
-			for _, r := range routes {
-				if err := client.Delete(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/dynamic/import-route/%s", testNodeID, "test-vnet", r.UID), nil); err != nil {
-					return err
+			for _, vnet := range vnets {
+				if !strings.HasPrefix(vnet.Name, testVNetPrefix) {
+					continue
 				}
-			}
 
-			if err := client.Get(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s/dynamic/import-route", testClusterFQDN, "test-vnet"), &routes); err != nil {
-				return fmt.Errorf("error getting VPN dynamic routes: %w", err)
-			}
+				routes := make([]tg.VPNRoute, 0)
+				if err := client.Get(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/dynamic/import-route", testNodeID, vnet.Name), &routes); err == nil {
+					for _, route := range routes {
+						if err := client.Delete(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/dynamic/import-route/%s", testNodeID, vnet.Name, route.UID), nil); err != nil {
+							return err
+						}
+					}
+				}
 
-			for _, r := range routes {
-				if err := client.Delete(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s/dynamic/import-route/%s", testClusterFQDN, "test-vnet", r.UID), nil); err != nil {
-					return err
+				routes = make([]tg.VPNRoute, 0)
+				if err := client.Get(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s/dynamic/import-route", testClusterFQDN, vnet.Name), &routes); err == nil {
+					for _, route := range routes {
+						if err := client.Delete(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s/dynamic/import-route/%s", testClusterFQDN, vnet.Name, route.UID), nil); err != nil {
+							return err
+						}
+					}
 				}
 			}
 
@@ -74,6 +68,7 @@ func init() {
 
 func TestAccVPNDynamicImportRoute_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
+	networkName := newTestVNetName("vpn-dynamic-import-" + acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
 
 	provider := provider.New("test")()
 
@@ -83,34 +78,34 @@ func TestAccVPNDynamicImportRoute_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: vpnDynamicImportRouteCreate,
+				Config: vpnDynamicImportRouteConfig(networkName, "test-subject", "Test VPN Dynamic Route", "10.10.24.24/32", "1.1.1.1", 10),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_vpn_dynamic_import_route.test", "id"),
-					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", "test-vnet"),
+					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", networkName),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "node_id", testNodeID),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "node", "test-subject"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_cidr", "10.10.24.24/32"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "description", "Test VPN Dynamic Route"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "path", "1.1.1.1"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "metric", "10"),
-					checkVPNDynamicImportRouteAPISide(provider, "test-subject", "Test VPN Dynamic Route", "10.10.24.24/32", "1.1.1.1", 10),
+					checkVPNDynamicImportRouteAPISide(provider, networkName, "test-subject", "Test VPN Dynamic Route", "10.10.24.24/32", "1.1.1.1", 10),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_vpn_dynamic_import_route.test", tfjsonpath.New("id")),
 				},
 			},
 			{
-				Config: vpnDynamicImportRouteUpdate,
+				Config: vpnDynamicImportRouteConfig(networkName, "another-subject", "better description", "10.10.24.0/24", "1.1.1.2", 11),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_vpn_dynamic_import_route.test", "id"),
-					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", "test-vnet"),
+					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", networkName),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "node_id", testNodeID),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "node", "another-subject"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_cidr", "10.10.24.0/24"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "description", "better description"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "path", "1.1.1.2"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "metric", "11"),
-					checkVPNDynamicImportRouteAPISide(provider, "another-subject", "better description", "10.10.24.0/24", "1.1.1.2", 11),
+					checkVPNDynamicImportRouteAPISide(provider, networkName, "another-subject", "better description", "10.10.24.0/24", "1.1.1.2", 11),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_vpn_dynamic_import_route.test", tfjsonpath.New("id")),
@@ -122,6 +117,7 @@ func TestAccVPNDynamicImportRoute_HappyPath(t *testing.T) {
 
 func TestAccVPNDynamicImportRoute_ClusterHappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
+	networkName := newTestVNetName("vpn-dynamic-import-cluster-" + acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
 
 	provider := provider.New("test")()
 
@@ -131,32 +127,32 @@ func TestAccVPNDynamicImportRoute_ClusterHappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: vpnClusterDynamicImportRouteCreate,
+				Config: vpnClusterDynamicImportRouteConfig(networkName, "test-subject", "Test VPN Dynamic Route", "10.10.24.24/32", 10),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_vpn_dynamic_import_route.test", "id"),
-					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", "test-vnet"),
+					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", networkName),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "cluster_fqdn", testClusterFQDN),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "node", "test-subject"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_cidr", "10.10.24.24/32"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "description", "Test VPN Dynamic Route"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "metric", "10"),
-					checkClusterVPNDynamicImportRouteAPISide(provider, "test-subject", "Test VPN Dynamic Route", "10.10.24.24/32", 10),
+					checkClusterVPNDynamicImportRouteAPISide(provider, networkName, "test-subject", "Test VPN Dynamic Route", "10.10.24.24/32", 10),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_vpn_dynamic_import_route.test", tfjsonpath.New("id")),
 				},
 			},
 			{
-				Config: vpnClusterDynamicImportRouteUpdate,
+				Config: vpnClusterDynamicImportRouteConfig(networkName, "another-subject", "better description", "10.10.24.0/24", 11),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_vpn_dynamic_import_route.test", "id"),
-					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", "test-vnet"),
+					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_name", networkName),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "cluster_fqdn", testClusterFQDN),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "node", "another-subject"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "network_cidr", "10.10.24.0/24"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "description", "better description"),
 					resource.TestCheckResourceAttr("tg_vpn_dynamic_import_route.test", "metric", "11"),
-					checkClusterVPNDynamicImportRouteAPISide(provider, "another-subject", "better description", "10.10.24.0/24", 11),
+					checkClusterVPNDynamicImportRouteAPISide(provider, networkName, "another-subject", "better description", "10.10.24.0/24", 11),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_vpn_dynamic_import_route.test", tfjsonpath.New("id")),
@@ -166,12 +162,63 @@ func TestAccVPNDynamicImportRoute_ClusterHappyPath(t *testing.T) {
 	})
 }
 
-func checkClusterVPNDynamicImportRouteAPISide(provider *schema.Provider, node string, desc string, cidr string, metric int) resource.TestCheckFunc {
+func vpnDynamicImportRouteConfig(networkName string, node string, description string, cidr string, path string, metric int) string {
+	return fmt.Sprintf(`
+resource "tg_virtual_network" "test" {
+  name         = "%s"
+  network_cidr = "10.10.0.0/16"
+  description  = "Test Virtual Network"
+  no_nat       = true
+}
+
+resource "tg_vpn_attachment" "test" {
+  node_id = "%s"
+  network = tg_virtual_network.test.name
+}
+
+resource "tg_vpn_dynamic_import_route" "test" {
+  description  = "%s"
+  network_name = tg_virtual_network.test.name
+  node_id      = tg_vpn_attachment.test.node_id
+  node         = "%s"
+  network_cidr = "%s"
+  path         = "%s"
+  metric       = %d
+}
+	`, networkName, testNodeID, description, node, cidr, path, metric)
+}
+
+func vpnClusterDynamicImportRouteConfig(networkName string, node string, description string, cidr string, metric int) string {
+	return fmt.Sprintf(`
+resource "tg_virtual_network" "test" {
+  name         = "%s"
+  network_cidr = "10.10.0.0/16"
+  description  = "Test Virtual Network"
+  no_nat       = true
+}
+
+resource "tg_vpn_attachment" "test" {
+  cluster_fqdn = "%s"
+  network      = tg_virtual_network.test.name
+}
+
+resource "tg_vpn_dynamic_import_route" "test" {
+  description  = "%s"
+  network_name = tg_virtual_network.test.name
+  cluster_fqdn = tg_vpn_attachment.test.cluster_fqdn
+  node         = "%s"
+  network_cidr = "%s"
+  metric       = %d
+}
+	`, networkName, testClusterFQDN, description, node, cidr, metric)
+}
+
+func checkClusterVPNDynamicImportRouteAPISide(provider *schema.Provider, networkName string, node string, desc string, cidr string, metric int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := provider.Meta().(*tg.Client)
 
 		routes := make([]tg.VPNRoute, 0)
-		if err := client.Get(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s/dynamic/import-route", testClusterFQDN, "test-vnet"), &routes); err != nil {
+		if err := client.Get(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s/dynamic/import-route", testClusterFQDN, networkName), &routes); err != nil {
 			return fmt.Errorf("error getting VPN dynamic routes: %w", err)
 		}
 		var route tg.VPNRoute
@@ -202,12 +249,12 @@ func checkClusterVPNDynamicImportRouteAPISide(provider *schema.Provider, node st
 	}
 }
 
-func checkVPNDynamicImportRouteAPISide(provider *schema.Provider, node string, desc string, cidr string, path string, metric int) resource.TestCheckFunc {
+func checkVPNDynamicImportRouteAPISide(provider *schema.Provider, networkName string, node string, desc string, cidr string, path string, metric int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := provider.Meta().(*tg.Client)
 
 		routes := make([]tg.VPNRoute, 0)
-		if err := client.Get(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/dynamic/import-route", testNodeID, "test-vnet"), &routes); err != nil {
+		if err := client.Get(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s/dynamic/import-route", testNodeID, networkName), &routes); err != nil {
 			return fmt.Errorf("error getting VPN dynamic routes: %w", err)
 		}
 		var route tg.VPNRoute

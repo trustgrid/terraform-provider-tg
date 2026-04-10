@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -126,6 +127,10 @@ func (vn *vpnAttachment) Delete(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	if err := tgc.Delete(ctx, tf.ResourceURL(), nil); err != nil {
+		if strings.Contains(err.Error(), "Unable to find ") && strings.Contains(err.Error(), " in domain networks") {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
