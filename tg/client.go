@@ -16,9 +16,9 @@ type Client struct {
 	writeLock sync.Mutex
 
 	APIHost   string
-	APIKey    string
-	APISecret string
-	JWT       string
+	APIKey    string //nolint:gosec // provider client intentionally stores configured API credentials in memory
+	APISecret string //nolint:gosec // provider client intentionally stores configured API credentials in memory
+	JWT       string //nolint:gosec // provider client intentionally stores configured JWT in memory
 
 	Domain string
 }
@@ -40,11 +40,16 @@ func (e *NotFoundError) Error() string {
 }
 
 type ClientParams struct {
-	APIKey    string
-	APISecret string
+	APIKey    string //nolint:gosec // provider config intentionally accepts API credentials
+	APISecret string //nolint:gosec // provider config intentionally accepts API credentials
 	APIHost   string
-	JWT       string
+	JWT       string //nolint:gosec // provider config intentionally accepts JWT credentials
 	OrgID     string
+}
+
+func doRequest(req *http.Request) (*http.Response, error) {
+	//nolint:gosec // provider endpoint is intentionally operator-configurable via TG_API_HOST/provider config
+	return http.DefaultClient.Do(req)
 }
 
 func NewClient(ctx context.Context, params ClientParams) (*Client, error) {
@@ -105,7 +110,7 @@ func (tg *Client) Delete(ctx context.Context, url string, payload any) error {
 	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := doRequest(req)
 	if err != nil {
 		return err
 	}
@@ -142,7 +147,7 @@ func (tg *Client) Post(ctx context.Context, url string, payload any) ([]byte, er
 	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +184,7 @@ func (tg *Client) Put(ctx context.Context, url string, payload any) ([]byte, err
 	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +209,7 @@ func (tg *Client) RawGet(ctx context.Context, url string) (io.ReadCloser, error)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", tg.authHeader())
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +238,7 @@ func (tg *Client) Get(ctx context.Context, url string, out any) error {
 	req.Header.Set("Authorization", tg.authHeader())
 	req.Header.Set("Accept", "application/json")
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := doRequest(req)
 	if err != nil {
 		return err
 	}

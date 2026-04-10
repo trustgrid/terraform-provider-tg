@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	_ "embed"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -17,11 +16,10 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
-//go:embed test-data/vnet-group/create.hcl
-var vnetGroupCreate string
-
 func TestAccVirtualNetworkGroup_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
+	networkName := newTestVNetName("group-network-" + acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+	groupName := newTestVNetName("group-" + acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
 
 	provider := provider.New("test")()
 
@@ -31,11 +29,11 @@ func TestAccVirtualNetworkGroup_HappyPath(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: vnetGroupCreate,
+				Config: vnetGroupConfig(networkName, groupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_virtual_network_group.test", "id"),
-					resource.TestCheckResourceAttr("tg_virtual_network_group.test", "name", "test-group"),
-					checkVNetGroupAPI(provider),
+					resource.TestCheckResourceAttr("tg_virtual_network_group.test", "name", groupName),
+					checkVNetGroupAPI(provider, networkName, groupName),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_virtual_network_group.test", tfjsonpath.New("id")),
@@ -45,17 +43,32 @@ func TestAccVirtualNetworkGroup_HappyPath(t *testing.T) {
 	})
 }
 
-func checkVNetGroupAPI(provider *schema.Provider) resource.TestCheckFunc {
+func vnetGroupConfig(networkName string, groupName string) string {
+	return fmt.Sprintf(`
+resource "tg_virtual_network" "group_network" {
+  name        = "%s"
+  description = "Group Test Virtual Network"
+  no_nat      = false
+}
+
+resource "tg_virtual_network_group" "test" {
+  name    = "%s"
+  network = resource.tg_virtual_network.group_network.name
+}
+	`, networkName, groupName)
+}
+
+func checkVNetGroupAPI(provider *schema.Provider, networkName string, groupName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := provider.Meta().(*tg.Client)
 
 		var groups []tg.VNetGroup
-		if err := client.Get(context.Background(), "/v2/domain/"+client.Domain+"/network/test-group/network-group", &groups); err != nil {
+		if err := client.Get(context.Background(), "/v2/domain/"+client.Domain+"/network/"+networkName+"/network-group", &groups); err != nil {
 			return fmt.Errorf("error getting vnet groups: %w", err)
 		}
 
 		for _, obj := range groups {
-			if obj.Name == "test-group" {
+			if obj.Name == groupName {
 				return nil
 			}
 		}

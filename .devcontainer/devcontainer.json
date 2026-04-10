@@ -1,0 +1,46 @@
+{
+  "name": "terraform-provider-tg",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "upgradePackages": true,
+      "installZsh": false,
+      "configureZshAsDefaultShell": false
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.25"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest",
+      "tflint": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "go.useLanguageServer": true,
+        "go.toolsManagement.autoUpdate": true,
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "terraform.languageServer.enable": true,
+        "[go]": {
+          "editor.defaultFormatter": "golang.go"
+        },
+        "[terraform]": {
+          "editor.defaultFormatter": "hashicorp.terraform"
+        }
+      },
+      "extensions": [
+        "golang.go",
+        "hashicorp.terraform",
+        "github.vscode-github-actions",
+        "github.copilot",
+        "eamodio.gitlens"
+      ]
+    }
+  },
+  "postCreateCommand": "go mod download && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+  "remoteUser": "vscode"
+}

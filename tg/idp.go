@@ -19,7 +19,7 @@ type IDPSAMLConfig struct {
 type IDPOpenIDConfig struct {
 	Issuer           string `json:"issuer"`
 	ClientID         string `json:"clientId"`
-	Secret           string `json:"secret"`
+	Secret           string `json:"secret"` //nolint:gosec // Trustgrid API schema uses this field name
 	AuthEndpoint     string `json:"authEndpoint"`
 	TokenEndpoint    string `json:"tokenEndpoint"`
 	UserInfoEndpoint string `json:"userInfoEndpoint"`
