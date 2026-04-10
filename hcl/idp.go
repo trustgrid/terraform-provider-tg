@@ -71,7 +71,7 @@ type IDPOpenIDConfig struct {
 	UID              string `tf:"idp_id"`
 	Issuer           string `tf:"issuer"`
 	ClientID         string `tf:"client_id"`
-	Secret           string `tf:"secret"` //nolint:gosec // Terraform schema uses this field name
+	Secret           string `tf:"secret"`
 	AuthEndpoint     string `tf:"auth_endpoint"`
 	TokenEndpoint    string `tf:"token_endpoint"`
 	UserInfoEndpoint string `tf:"user_info_endpoint"`

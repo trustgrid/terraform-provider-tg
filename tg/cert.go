@@ -5,5 +5,5 @@ type Cert struct {
 
 	Body       string `tf:"body" json:"certificateBody"`
 	Chain      string `tf:"chain" json:"certificateChain"`
-	PrivateKey string `tf:"private_key" json:"privateKey"` //nolint:gosec // Trustgrid API schema uses this field name
+	PrivateKey string `tf:"private_key" json:"privateKey"`
 }

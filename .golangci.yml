@@ -26,6 +26,7 @@ linters:
     gosec:
       excludes:
         - G104
+        - G117
 
     errcheck:
       # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.

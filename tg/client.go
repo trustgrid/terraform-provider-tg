@@ -16,9 +16,9 @@ type Client struct {
 	writeLock sync.Mutex
 
 	APIHost   string
-	APIKey    string //nolint:gosec // provider client intentionally stores configured API credentials in memory
-	APISecret string //nolint:gosec // provider client intentionally stores configured API credentials in memory
-	JWT       string //nolint:gosec // provider client intentionally stores configured JWT in memory
+	APIKey    string
+	APISecret string
+	JWT       string
 
 	Domain string
 }
@@ -40,10 +40,10 @@ func (e *NotFoundError) Error() string {
 }
 
 type ClientParams struct {
-	APIKey    string //nolint:gosec // provider config intentionally accepts API credentials
-	APISecret string //nolint:gosec // provider config intentionally accepts API credentials
+	APIKey    string
+	APISecret string
 	APIHost   string
-	JWT       string //nolint:gosec // provider config intentionally accepts JWT credentials
+	JWT       string
 	OrgID     string
 }
 

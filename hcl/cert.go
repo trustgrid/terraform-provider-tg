@@ -7,7 +7,7 @@ type Cert struct {
 
 	Body       string `tf:"body"`
 	Chain      string `tf:"chain"`
-	PrivateKey string `tf:"private_key"` //nolint:gosec // Terraform schema uses this field name
+	PrivateKey string `tf:"private_key"`
 }
 
 func (c Cert) ToTG() tg.Cert {
