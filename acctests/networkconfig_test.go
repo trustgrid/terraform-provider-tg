@@ -23,21 +23,21 @@ resource "tg_network_config" "test" {
 
   interface {
     nic = "ens192"
-	vrf = "blue"
-	dhcp = false
-	gateway = "10.20.10.1"
-	ip = "10.20.10.50/24"
+    vrf = "blue"
+    dhcp = false
+    gateway = "10.20.10.1"
+    ip = "10.20.10.50/24"
 
-	cloud_route {
-	  route = "10.10.5.0/24"
+    cloud_route {
+      route = "10.10.5.0/24"
       description = "cloud desc"
-	}
+    }
 
-	route {
-	  route = "10.10.10.0/24"
-	  description = "some desc"
-	  next_hop = "127.0.0.1"
-	}
+    route {
+      route = "10.10.10.0/24"
+      description = "some desc"
+      next_hop = "127.0.0.1"
+    }
   }
 }`
 
