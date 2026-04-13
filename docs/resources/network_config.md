@@ -55,6 +55,7 @@ resource "tg_network_config" "network-1" {
 
   interface {
     nic     = "ens192"
+    vrf     = "blue"
     dhcp    = false
     gateway = "10.20.10.1"
     ip      = "10.20.10.50/24"
@@ -185,6 +186,7 @@ Optional:
 - `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
 - `speed` (Number) Interface speed
 - `subinterface` (Block List) VLAN interfaces (see [below for nested schema](#nestedblock--interface--subinterface))
+- `vrf` (String) VRF
 
 <a id="nestedblock--interface--cloud_route"></a>
 ### Nested Schema for `interface.cloud_route`

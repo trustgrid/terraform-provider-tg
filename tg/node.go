@@ -176,6 +176,7 @@ type SubInterface struct {
 
 type NetworkInterface struct {
 	NIC                string         `json:"nic"`
+	VRF                string         `json:"vrf,omitempty"`
 	Routes             []NetworkRoute `json:"routes,omitempty"`
 	CloudRoutes        []NetworkRoute `json:"cloudRoutes,omitempty"`
 	ClusterRouteTables []string       `json:"clusterRouteTables,omitempty"`

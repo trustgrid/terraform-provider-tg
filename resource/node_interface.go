@@ -64,6 +64,11 @@ func NodeInterface() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
+			"vrf": {
+				Description: "VRF name",
+				Type:        schema.TypeString,
+				Optional:    true,
+			},
 			"dns": {
 				Description: "DNS server IP addresses",
 				Type:        schema.TypeList,
@@ -195,6 +200,7 @@ func (n *nodeInterface) buildTGIface(d *schema.ResourceData, nic string) tg.Netw
 		NIC:       nic,
 		DHCP:      d.Get("dhcp").(bool),         //nolint:errcheck // schema ensures TypeBool
 		Gateway:   d.Get("gateway").(string),    //nolint:errcheck // schema ensures TypeString
+		VRF:       d.Get("vrf").(string),        //nolint:errcheck // schema ensures TypeString
 		IP:        d.Get("ip").(string),         //nolint:errcheck // schema ensures TypeString
 		Mode:      d.Get("mode").(string),       //nolint:errcheck // schema ensures TypeString
 		Duplex:    d.Get("duplex").(string),     //nolint:errcheck // schema ensures TypeString
@@ -217,6 +223,7 @@ func (n *nodeInterface) setFromTG(d *schema.ResourceData, iface tg.NetworkInterf
 		"nic":        iface.NIC,
 		"dhcp":       iface.DHCP,
 		"gateway":    iface.Gateway,
+		"vrf":        iface.VRF,
 		"ip":         iface.IP,
 		"mode":       iface.Mode,
 		"duplex":     iface.Duplex,

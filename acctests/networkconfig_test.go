@@ -23,6 +23,7 @@ resource "tg_network_config" "test" {
 
   interface {
     nic = "ens192"
+	vrf = "blue"
 	dhcp = false
 	gateway = "10.20.10.1"
 	ip = "10.20.10.50/24"
@@ -57,6 +58,7 @@ func TestAccNetworkConfig_NodeHappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_network_config.test", "dark_mode", "true"),
 					resource.TestCheckResourceAttr("tg_network_config.test", "forwarding", "true"),
 					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.nic", "ens192"),
+					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.vrf", "blue"),
 					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.dhcp", "false"),
 					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.gateway", "10.20.10.1"),
 					resource.TestCheckResourceAttr("tg_network_config.test", "interface.0.ip", "10.20.10.50/24"),
@@ -98,6 +100,8 @@ func checkNetworkConfig(ctx context.Context, provider *schema.Provider, name str
 			return fmt.Errorf("expected 1 interfaces, got %d", len(n.Config.Network.Interfaces))
 		case n.Config.Network.Interfaces[0].NIC != "ens192":
 			return fmt.Errorf("expected NIC to be ens192, got %s", n.Config.Network.Interfaces[0].NIC)
+		case n.Config.Network.Interfaces[0].VRF != "blue":
+			return fmt.Errorf("expected VRF to be blue, got %s", n.Config.Network.Interfaces[0].VRF)
 		case n.Config.Network.Interfaces[0].DHCP != false:
 			return fmt.Errorf("expected DHCP to be false, got %v", n.Config.Network.Interfaces[0].DHCP)
 		case n.Config.Network.Interfaces[0].Gateway != "10.20.10.1":
