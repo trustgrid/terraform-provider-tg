@@ -188,6 +188,7 @@ type NetworkInterface struct {
 	DNS                []string       `json:"dns,omitempty"`
 	Duplex             string         `json:"duplex,omitempty"`
 	Speed              int            `json:"speed,omitempty"`
+	MTU                int            `json:"mtu,omitempty"`
 }
 
 type VRFACL struct {

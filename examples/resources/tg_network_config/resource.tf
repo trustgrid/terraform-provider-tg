@@ -66,6 +66,7 @@ resource "tg_network_config" "network-1" {
     dhcp    = false
     gateway = "172.16.22.1"
     speed   = 1000
+    mtu     = 9000
   }
 
   vrf {

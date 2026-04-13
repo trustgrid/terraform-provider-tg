@@ -41,6 +41,7 @@ Optional:
 - `gateway` (String) Gateway IP address
 - `ip` (String) IP address
 - `mode` (String) Interface mode
+- `mtu` (Number) Interface MTU
 - `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
 - `speed` (Number) Interface speed
 - `subinterface` (Block List) VLAN interfaces (see [below for nested schema](#nestedblock--interface--subinterface))

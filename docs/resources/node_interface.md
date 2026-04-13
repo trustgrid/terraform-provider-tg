@@ -21,6 +21,7 @@ resource "tg_node_interface" "eth1" {
   dhcp    = false
   dns     = ["8.8.8.8", "1.1.1.1"]
   mode    = "manual"
+  mtu     = 1500
 }
 ```
 
@@ -41,6 +42,7 @@ resource "tg_node_interface" "eth1" {
 - `gateway` (String) Gateway IP address
 - `ip` (String) IP address in CIDR notation
 - `mode` (String) Interface mode
+- `mtu` (Number) Interface MTU
 - `node_id` (String) Node ID
 - `speed` (Number) Interface speed in Mbps
 
