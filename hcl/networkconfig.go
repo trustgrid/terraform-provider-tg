@@ -69,6 +69,7 @@ type NetworkInterface struct {
 	DNS                []string       `tf:"dns,omitempty"`
 	Duplex             string         `tf:"duplex,omitempty"`
 	Speed              int            `tf:"speed,omitempty"`
+	MTU                int            `tf:"mtu,omitempty"`
 }
 
 type VRFACL struct {
@@ -255,6 +256,7 @@ func (ni NetworkInterface) ToTG() tg.NetworkInterface {
 		Mode:               ni.Mode,
 		Duplex:             ni.Duplex,
 		Speed:              ni.Speed,
+		MTU:                ni.MTU,
 		DNS:                ni.DNS,
 		ClusterRouteTables: ni.ClusterRouteTables,
 	}
@@ -317,6 +319,7 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 			Mode:               i.Mode,
 			Duplex:             i.Duplex,
 			Speed:              i.Speed,
+			MTU:                i.MTU,
 			DNS:                i.DNS,
 			ClusterRouteTables: i.ClusterRouteTables,
 		}

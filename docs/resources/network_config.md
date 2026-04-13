@@ -80,6 +80,7 @@ resource "tg_network_config" "network-1" {
     dhcp    = false
     gateway = "172.16.22.1"
     speed   = 1000
+    mtu     = 9000
   }
 
   vrf {
@@ -180,6 +181,7 @@ Optional:
 - `gateway` (String) Gateway IP address
 - `ip` (String) IP address
 - `mode` (String) Interface mode
+- `mtu` (Number) Interface MTU
 - `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
 - `speed` (Number) Interface speed
 - `subinterface` (Block List) VLAN interfaces (see [below for nested schema](#nestedblock--interface--subinterface))

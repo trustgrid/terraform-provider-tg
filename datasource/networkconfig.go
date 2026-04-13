@@ -404,6 +404,12 @@ func NetworkConfig() *schema.Resource {
 							Optional:    true,
 							Computed:    true,
 						},
+						"mtu": {
+							Description: "Interface MTU",
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Computed:    true,
+						},
 						"dns": {
 							Description: "DNS servers",
 							Type:        schema.TypeList,

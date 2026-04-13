@@ -90,6 +90,11 @@ func NodeInterface() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 			},
+			"mtu": {
+				Description: "Interface MTU",
+				Type:        schema.TypeInt,
+				Optional:    true,
+			},
 			"cluster_ip": {
 				Description:   "Cluster IP (cluster only)",
 				Type:          schema.TypeString,
@@ -194,6 +199,7 @@ func (n *nodeInterface) buildTGIface(d *schema.ResourceData, nic string) tg.Netw
 		Mode:      d.Get("mode").(string),       //nolint:errcheck // schema ensures TypeString
 		Duplex:    d.Get("duplex").(string),     //nolint:errcheck // schema ensures TypeString
 		Speed:     d.Get("speed").(int),         //nolint:errcheck // schema ensures TypeInt
+		MTU:       d.Get("mtu").(int),           //nolint:errcheck // schema ensures TypeInt
 		ClusterIP: d.Get("cluster_ip").(string), //nolint:errcheck // schema ensures TypeString
 	}
 
@@ -215,6 +221,7 @@ func (n *nodeInterface) setFromTG(d *schema.ResourceData, iface tg.NetworkInterf
 		"mode":       iface.Mode,
 		"duplex":     iface.Duplex,
 		"speed":      iface.Speed,
+		"mtu":        iface.MTU,
 		"cluster_ip": iface.ClusterIP,
 		"dns":        iface.DNS,
 	}
