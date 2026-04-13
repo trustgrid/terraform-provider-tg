@@ -106,11 +106,7 @@ func (r *nodeInterfaceRoute) Create(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 	if !found {
-		// Interface doesn't exist yet — create it with just this route.
-		nc.Interfaces = append(nc.Interfaces, tg.NetworkInterface{
-			NIC:    nic,
-			Routes: []tg.NetworkRoute{route},
-		})
+		return diag.Errorf("interface %q not found in network config; create a tg_node_interface resource for it first", nic)
 	}
 
 	if err := putNetworkConfig(ctx, tgc, endpoint, isCluster, nc); err != nil {

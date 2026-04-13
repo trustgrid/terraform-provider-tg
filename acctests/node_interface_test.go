@@ -91,14 +91,23 @@ func checkNodeInterfaceInAPI(ctx context.Context, p *schema.Provider, name strin
 
 func nodeInterfaceRouteConfig(nextHop string) string {
 	return fmt.Sprintf(`
+resource "tg_node_interface" "route_base" {
+  node_id = %q
+  nic     = "ens192"
+  ip      = "10.20.10.50/24"
+  gateway = "10.20.10.1"
+  dhcp    = false
+}
+
 resource "tg_node_interface_route" "test" {
   node_id     = %q
   nic         = "ens192"
   route       = "10.10.10.0/24"
   next_hop    = %q
   description = "acceptance test route"
+  depends_on  = [tg_node_interface.route_base]
 }
-`, testNodeID, nextHop)
+`, testNodeID, testNodeID, nextHop)
 }
 
 func TestAccNodeInterfaceRoute_HappyPath(t *testing.T) {
@@ -171,14 +180,23 @@ func checkNodeInterfaceRouteInAPI(ctx context.Context, p *schema.Provider, name 
 
 func nodeInterfaceVLANConfig(ip string) string {
 	return fmt.Sprintf(`
+resource "tg_node_interface" "vlan_base" {
+  node_id = %q
+  nic     = "ens192"
+  ip      = "10.20.10.50/24"
+  gateway = "10.20.10.1"
+  dhcp    = false
+}
+
 resource "tg_node_interface_vlan" "test" {
   node_id     = %q
   nic         = "ens192"
   vlan_id     = 100
   ip          = %q
   description = "acceptance test vlan"
+  depends_on  = [tg_node_interface.vlan_base]
 }
-`, testNodeID, ip)
+`, testNodeID, testNodeID, ip)
 }
 
 func TestAccNodeInterfaceVLAN_HappyPath(t *testing.T) {

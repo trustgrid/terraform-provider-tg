@@ -143,10 +143,7 @@ func (n *nodeInterfaceVLAN) Create(ctx context.Context, d *schema.ResourceData, 
 		break
 	}
 	if !found {
-		nc.Interfaces = append(nc.Interfaces, tg.NetworkInterface{
-			NIC:           nic,
-			SubInterfaces: []tg.SubInterface{sub},
-		})
+		return diag.Errorf("interface %q not found in network config; create a tg_node_interface resource for it first", nic)
 	}
 
 	if err := putNetworkConfig(ctx, tgc, endpoint, isCluster, nc); err != nil {
