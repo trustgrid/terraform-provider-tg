@@ -21,7 +21,32 @@ go test -v ./acctests -run TestAccAlarm_HappyPath
 
 # Run acceptance tests (requires TG_API_KEY_ID, TG_API_KEY_SECRET)
 TF_LOG=ERROR TF_ACC=1 go test -v ./...
+
+# Generate docs (run after adding or modifying any resource or data source)
+make docs
 ```
+
+## Documentation Requirements
+
+**Every resource and data source MUST have an example file.** `make docs` reads these to
+generate the `docs/` directory automatically via `terraform-plugin-docs`.
+
+- Resources: `examples/resources/tg_{name}/resource.tf`
+- Data sources: `examples/data-sources/tg_{name}/data-source.tf`
+
+Example for a resource (`examples/resources/tg_node_interface/resource.tf`):
+```hcl
+resource "tg_node_interface" "eth1" {
+  node_id = "d70e7d73-2a1c-4388-bbb1-08ca2fd39f48"
+  nic     = "ens192"
+  ip      = "10.20.10.50/24"
+  gateway = "10.20.10.1"
+  dhcp    = false
+}
+```
+
+**Run `make docs` before committing** when you add or change a resource or data source.
+Commit the updated files under `docs/` alongside the code changes.
 
 ## Project Structure
 
@@ -175,3 +200,4 @@ goimports, gosec, gocritic, revive. Nolint comments require explanation:
 ## API
 
 Find API interactions at https://apidocs.trustgrid.io/page-data/shared/oas-index.yaml.json. **ALL types, fields, URLs, and verbs MUST come from that document**.
+
