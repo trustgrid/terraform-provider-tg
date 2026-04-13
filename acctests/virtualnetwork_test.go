@@ -39,19 +39,29 @@ func init() {
 				return fmt.Errorf("error creating client: %w", err)
 			}
 
-			var vnets []tg.VirtualNetwork
-			if err := client.Get(context.Background(), "/v2/domain/"+client.Domain+"/network", &vnets); err != nil {
-				return fmt.Errorf("error listing virtual networks: %w", err)
+			ctx := context.Background()
+
+			// Query the node directly for its VPN attachments so we catch dangling
+			// attachments even when the underlying virtual network object is already gone.
+			var nodeAttachments []tg.VPNAttachment
+			if err := client.Get(ctx, fmt.Sprintf("/v2/node/%s/vpn", testNodeID), &nodeAttachments); err != nil {
+				return fmt.Errorf("error listing node VPN attachments: %w", err)
+			}
+			for _, a := range nodeAttachments {
+				if strings.HasPrefix(a.NetworkName, testVNetPrefix) {
+					_ = client.Delete(ctx, fmt.Sprintf("/v2/node/%s/vpn/%s", testNodeID, a.NetworkName), nil)
+				}
 			}
 
-			for _, vnet := range vnets {
-				if !strings.HasPrefix(vnet.Name, testVNetPrefix) {
-					continue
+			// Same for the cluster.
+			var clusterAttachments []tg.VPNAttachment
+			if err := client.Get(ctx, fmt.Sprintf("/v2/cluster/%s/vpn", testClusterFQDN), &clusterAttachments); err != nil {
+				return fmt.Errorf("error listing cluster VPN attachments: %w", err)
+			}
+			for _, a := range clusterAttachments {
+				if strings.HasPrefix(a.NetworkName, testVNetPrefix) {
+					_ = client.Delete(ctx, fmt.Sprintf("/v2/cluster/%s/vpn/%s", testClusterFQDN, a.NetworkName), nil)
 				}
-				// Delete node attachment if present.
-				_ = client.Delete(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s", testNodeID, vnet.Name), nil)
-				// Delete cluster attachment if present.
-				_ = client.Delete(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s", testClusterFQDN, vnet.Name), nil)
 			}
 
 			return nil
