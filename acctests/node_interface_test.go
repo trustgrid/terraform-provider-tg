@@ -16,16 +16,17 @@ import (
 // tg_node_interface
 // ---------------------------------------------------------------------------
 
-func nodeInterfaceConfig(ip string) string {
+func nodeInterfaceConfig(ip, vrf string) string {
 	return fmt.Sprintf(`
 resource "tg_node_interface" "test" {
   node_id = %q
   nic     = "ens192"
   ip      = %q
+  vrf     = %q
   gateway = "10.20.10.1"
   dhcp    = false
 }
-`, testNodeID, ip)
+`, testNodeID, ip, vrf)
 }
 
 func TestAccNodeInterface_HappyPath(t *testing.T) {
@@ -35,10 +36,11 @@ func TestAccNodeInterface_HappyPath(t *testing.T) {
 		Providers: map[string]*schema.Provider{"tg": p},
 		Steps: []resource.TestStep{
 			{
-				Config: nodeInterfaceConfig("10.20.10.50/24"),
+				Config: nodeInterfaceConfig("10.20.10.50/24", "blue"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_node_interface.test", "nic", "ens192"),
 					resource.TestCheckResourceAttr("tg_node_interface.test", "ip", "10.20.10.50/24"),
+					resource.TestCheckResourceAttr("tg_node_interface.test", "vrf", "blue"),
 					resource.TestCheckResourceAttr("tg_node_interface.test", "gateway", "10.20.10.1"),
 					resource.TestCheckResourceAttr("tg_node_interface.test", "dhcp", "false"),
 					checkNodeInterfaceInAPI(t.Context(), p, "tg_node_interface.test"),
@@ -46,9 +48,10 @@ func TestAccNodeInterface_HappyPath(t *testing.T) {
 			},
 			{
 				// Update IP — verifies Update works.
-				Config: nodeInterfaceConfig("10.20.10.51/24"),
+				Config: nodeInterfaceConfig("10.20.10.51/24", "green"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_node_interface.test", "ip", "10.20.10.51/24"),
+					resource.TestCheckResourceAttr("tg_node_interface.test", "vrf", "green"),
 					checkNodeInterfaceInAPI(t.Context(), p, "tg_node_interface.test"),
 				),
 			},
@@ -66,6 +69,7 @@ func checkNodeInterfaceInAPI(ctx context.Context, p *schema.Provider, name strin
 		nodeID := rs.Primary.Attributes["node_id"]
 		nic := rs.Primary.Attributes["nic"]
 		expectedIP := rs.Primary.Attributes["ip"]
+		expectedVRF := rs.Primary.Attributes["vrf"]
 
 		client := p.Meta().(*tg.Client)
 		n := tg.Node{}
@@ -77,6 +81,9 @@ func checkNodeInterfaceInAPI(ctx context.Context, p *schema.Provider, name strin
 			if iface.NIC == nic {
 				if iface.IP != expectedIP {
 					return fmt.Errorf("interface %s: expected IP %q, got %q", nic, expectedIP, iface.IP)
+				}
+				if iface.VRF != expectedVRF {
+					return fmt.Errorf("interface %s: expected VRF %q, got %q", nic, expectedVRF, iface.VRF)
 				}
 				return nil
 			}

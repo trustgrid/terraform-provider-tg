@@ -257,6 +257,11 @@ func NetworkConfig() *schema.Resource {
 							ValidateFunc:  validation.IsIPv4Address,
 							ConflictsWith: []string{"node_id"},
 						},
+						"vrf": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "VRF",
+						},
 						"route": {
 							Description: "Interface routes",
 							Type:        schema.TypeList,
