@@ -25,9 +25,42 @@ func newTestVNetName(suffix string) string {
 }
 
 func init() {
+	resource.AddTestSweepers("tg_vpn_attachment", &resource.Sweeper{
+		Name:         "tg_vpn_attachment",
+		Dependencies: []string{"tg_vpn_dynamic_export_route", "tg_vpn_dynamic_import_route", "tg_vpn_static_route"},
+		F: func(r string) error {
+			cp := tg.ClientParams{
+				APIKey:    os.Getenv("TG_API_KEY_ID"),
+				APISecret: os.Getenv("TG_API_KEY_SECRET"),
+				APIHost:   os.Getenv("TG_API_HOST"),
+			}
+			client, err := tg.NewClient(context.Background(), cp)
+			if err != nil {
+				return fmt.Errorf("error creating client: %w", err)
+			}
+
+			var vnets []tg.VirtualNetwork
+			if err := client.Get(context.Background(), "/v2/domain/"+client.Domain+"/network", &vnets); err != nil {
+				return fmt.Errorf("error listing virtual networks: %w", err)
+			}
+
+			for _, vnet := range vnets {
+				if !strings.HasPrefix(vnet.Name, testVNetPrefix) {
+					continue
+				}
+				// Delete node attachment if present.
+				_ = client.Delete(context.Background(), fmt.Sprintf("/v2/node/%s/vpn/%s", testNodeID, vnet.Name), nil)
+				// Delete cluster attachment if present.
+				_ = client.Delete(context.Background(), fmt.Sprintf("/v2/cluster/%s/vpn/%s", testClusterFQDN, vnet.Name), nil)
+			}
+
+			return nil
+		},
+	})
+
 	resource.AddTestSweepers("tg_virtualnetwork", &resource.Sweeper{
 		Name:         "tg_virtualnetwork",
-		Dependencies: []string{"tg_vpn_dynamic_export_route", "tg_vpn_dynamic_import_route", "tg_vpn_static_route"},
+		Dependencies: []string{"tg_vpn_attachment"},
 		F: func(r string) error {
 			cp := tg.ClientParams{
 				APIKey:    os.Getenv("TG_API_KEY_ID"),
