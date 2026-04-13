@@ -1,5 +1,4 @@
 package acctests
-package acctests
 
 import (
 	"context"
