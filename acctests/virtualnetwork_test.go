@@ -25,9 +25,52 @@ func newTestVNetName(suffix string) string {
 }
 
 func init() {
+	resource.AddTestSweepers("tg_vpn_attachment", &resource.Sweeper{
+		Name:         "tg_vpn_attachment",
+		Dependencies: []string{"tg_vpn_dynamic_export_route", "tg_vpn_dynamic_import_route", "tg_vpn_static_route"},
+		F: func(r string) error {
+			cp := tg.ClientParams{
+				APIKey:    os.Getenv("TG_API_KEY_ID"),
+				APISecret: os.Getenv("TG_API_KEY_SECRET"),
+				APIHost:   os.Getenv("TG_API_HOST"),
+			}
+			client, err := tg.NewClient(context.Background(), cp)
+			if err != nil {
+				return fmt.Errorf("error creating client: %w", err)
+			}
+
+			ctx := context.Background()
+
+			// Query the node directly for its VPN attachments so we catch dangling
+			// attachments even when the underlying virtual network object is already gone.
+			var nodeAttachments []tg.VPNAttachment
+			if err := client.Get(ctx, fmt.Sprintf("/v2/node/%s/vpn", testNodeID), &nodeAttachments); err != nil {
+				return fmt.Errorf("error listing node VPN attachments: %w", err)
+			}
+			for _, a := range nodeAttachments {
+				if strings.HasPrefix(a.NetworkName, testVNetPrefix) {
+					_ = client.Delete(ctx, fmt.Sprintf("/v2/node/%s/vpn/%s", testNodeID, a.NetworkName), nil)
+				}
+			}
+
+			// Same for the cluster.
+			var clusterAttachments []tg.VPNAttachment
+			if err := client.Get(ctx, fmt.Sprintf("/v2/cluster/%s/vpn", testClusterFQDN), &clusterAttachments); err != nil {
+				return fmt.Errorf("error listing cluster VPN attachments: %w", err)
+			}
+			for _, a := range clusterAttachments {
+				if strings.HasPrefix(a.NetworkName, testVNetPrefix) {
+					_ = client.Delete(ctx, fmt.Sprintf("/v2/cluster/%s/vpn/%s", testClusterFQDN, a.NetworkName), nil)
+				}
+			}
+
+			return nil
+		},
+	})
+
 	resource.AddTestSweepers("tg_virtualnetwork", &resource.Sweeper{
 		Name:         "tg_virtualnetwork",
-		Dependencies: []string{"tg_vpn_dynamic_export_route", "tg_vpn_dynamic_import_route", "tg_vpn_static_route"},
+		Dependencies: []string{"tg_vpn_attachment"},
 		F: func(r string) error {
 			cp := tg.ClientParams{
 				APIKey:    os.Getenv("TG_API_KEY_ID"),
