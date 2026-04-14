@@ -58,6 +58,59 @@ func VNetRoute() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
+			"monitor": {
+				Description: "Route monitor configuration",
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Description: "Unique name for the monitor",
+							Type:        schema.TypeString,
+							Required:    true,
+						},
+						"enabled": {
+							Description: "Must be explicitly true",
+							Type:        schema.TypeBool,
+							Required:    true,
+						},
+						"protocol": {
+							Description:  "Probe protocol: tcp or icmp",
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"tcp", "icmp"}, false),
+						},
+						"dest": {
+							Description: "Destination IP to probe",
+							Type:        schema.TypeString,
+							Required:    true,
+						},
+						"port": {
+							Description: "Destination port (required for tcp protocol)",
+							Type:        schema.TypeInt,
+							Optional:    true,
+						},
+						"interval": {
+							Description:  "Probe interval in seconds (min 1)",
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"count": {
+							Description:  "Number of consecutive failures before route is deactivated (min 1)",
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"max_latency": {
+							Description: "Max acceptable latency in ms (default 1000)",
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Default:     1000,
+						},
+					},
+				},
+			},
 		},
 	}
 }
