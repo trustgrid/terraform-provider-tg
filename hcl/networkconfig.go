@@ -57,6 +57,7 @@ type SubInterface struct {
 
 type NetworkInterface struct {
 	NIC                string         `tf:"nic"`
+	VRF                string         `tf:"vrf,omitempty"`
 	Routes             []NetworkRoute `tf:"route,omitempty"`
 	SubInterfaces      []SubInterface `tf:"subinterface,omitempty"`
 	CloudRoutes        []CloudRoute   `tf:"cloud_route,omitempty"`
@@ -249,6 +250,7 @@ func (t NetworkTunnel) ToTG() tg.NetworkTunnel {
 func (ni NetworkInterface) ToTG() tg.NetworkInterface {
 	iface := tg.NetworkInterface{
 		NIC:                ni.NIC,
+		VRF:                ni.VRF,
 		ClusterIP:          ni.ClusterIP,
 		DHCP:               ni.DHCP,
 		Gateway:            ni.Gateway,
@@ -312,6 +314,7 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 	for _, i := range c.Interfaces {
 		iface := NetworkInterface{
 			NIC:                i.NIC,
+			VRF:                i.VRF,
 			ClusterIP:          i.ClusterIP,
 			DHCP:               i.DHCP,
 			Gateway:            i.Gateway,
