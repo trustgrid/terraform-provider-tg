@@ -85,15 +85,17 @@ func NodeInterface() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"auto", "manual"}, false),
 			},
 			"duplex": {
-				Description:  "Interface duplex. Required when mode is \"manual\".",
+				Description:  "Interface duplex (full or half). Must be provided alongside mode.",
 				Type:         schema.TypeString,
 				Optional:     true,
+				RequiredWith: []string{"mode"},
 				ValidateFunc: validation.StringInSlice([]string{"full", "half"}, false),
 			},
 			"speed": {
-				Description: "Interface speed in Mbps. Required when mode is \"manual\".",
-				Type:        schema.TypeInt,
-				Optional:    true,
+				Description:  "Interface speed in Mbps. Must be provided alongside mode.",
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"mode"},
 			},
 			"mtu": {
 				Description: "Interface MTU",

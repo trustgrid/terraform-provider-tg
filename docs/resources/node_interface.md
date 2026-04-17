@@ -39,13 +39,13 @@ resource "tg_node_interface" "eth1" {
 - `cluster_ip` (String) Cluster IP (cluster only)
 - `dhcp` (Boolean) Enable DHCP. Only applicable to WAN interfaces.
 - `dns` (List of String) DNS server IP addresses
-- `duplex` (String) Interface duplex. Required when mode is "manual".
+- `duplex` (String) Interface duplex (full or half). Must be provided alongside mode.
 - `gateway` (String) Gateway IP address
 - `ip` (String) IP address in CIDR notation
 - `mode` (String) Auto Negotiation mode. Valid values are "auto" and "manual". When set to "manual", speed and duplex must also be provided.
 - `mtu` (Number) Interface MTU
 - `node_id` (String) Node ID
-- `speed` (Number) Interface speed in Mbps. Required when mode is "manual".
+- `speed` (Number) Interface speed in Mbps. Must be provided alongside mode.
 - `vrf` (String) VRF name
 
 ### Read-Only

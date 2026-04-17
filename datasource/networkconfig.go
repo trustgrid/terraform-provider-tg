@@ -369,7 +369,7 @@ func NetworkConfig() *schema.Resource {
 							},
 						},
 						"dhcp": {
-							Description: "Enable DHCP. Only applicable to WAN interfaces.",
+							Description: "Enable DHCP",
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Computed:    true,
@@ -387,19 +387,19 @@ func NetworkConfig() *schema.Resource {
 							Computed:    true,
 						},
 						"mode": {
-							Description: "Auto Negotiation mode. Valid values are \"auto\" and \"manual\". When set to \"manual\", speed and duplex must also be provided.",
+							Description: "Interface mode",
 							Type:        schema.TypeString,
 							Optional:    true,
 							Computed:    true,
 						},
 						"duplex": {
-							Description: "Interface duplex. Required when mode is \"manual\".",
+							Description: "Interface duplex",
 							Type:        schema.TypeString,
 							Optional:    true,
 							Computed:    true,
 						},
 						"speed": {
-							Description: "Interface speed in Mbps. Required when mode is \"manual\".",
+							Description: "Interface speed",
 							Type:        schema.TypeInt,
 							Optional:    true,
 							Computed:    true,
