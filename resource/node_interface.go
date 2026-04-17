@@ -92,10 +92,11 @@ func NodeInterface() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"full", "half"}, false),
 			},
 			"speed": {
-				Description:  "Interface speed in Mbps. Must be provided alongside mode.",
+				Description:  "Interface speed in Mbps. Valid values are 10, 100, 1000, 2500, 5000, 10000. Must be provided alongside mode.",
 				Type:         schema.TypeInt,
 				Optional:     true,
 				RequiredWith: []string{"mode"},
+				ValidateFunc: validation.IntInSlice([]int{10, 100, 1000, 2500, 5000, 10000}),
 			},
 			"mtu": {
 				Description: "Interface MTU",

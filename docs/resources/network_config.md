@@ -184,7 +184,7 @@ Optional:
 - `mode` (String) Auto Negotiation mode. Valid values are "auto" and "manual". When set to "manual", speed and duplex must also be provided.
 - `mtu` (Number) Interface MTU
 - `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
-- `speed` (Number) Interface speed in Mbps. Must be provided alongside mode.
+- `speed` (Number) Interface speed in Mbps. Valid values are 10, 100, 1000, 2500, 5000, 10000. Must be provided alongside mode.
 - `subinterface` (Block List) VLAN interfaces (see [below for nested schema](#nestedblock--interface--subinterface))
 - `vrf` (String) VRF
 
