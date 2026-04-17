@@ -36,14 +36,14 @@ Optional:
 
 - `cloud_route` (Block List) Cluster interface routes (see [below for nested schema](#nestedblock--interface--cloud_route))
 - `cluster_ip` (String) Cluster IP
-- `dhcp` (Boolean) Enable DHCP
-- `duplex` (String) Interface duplex
+- `dhcp` (Boolean) Enable DHCP. Only applicable to WAN interfaces.
+- `duplex` (String) Interface duplex. Required when mode is "manual".
 - `gateway` (String) Gateway IP address
 - `ip` (String) IP address
-- `mode` (String) Interface mode
+- `mode` (String) Auto Negotiation mode. Valid values are "auto" and "manual". When set to "manual", speed and duplex must also be provided.
 - `mtu` (Number) Interface MTU
 - `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
-- `speed` (Number) Interface speed
+- `speed` (Number) Interface speed in Mbps. Required when mode is "manual".
 - `subinterface` (Block List) VLAN interfaces (see [below for nested schema](#nestedblock--interface--subinterface))
 
 Read-Only:

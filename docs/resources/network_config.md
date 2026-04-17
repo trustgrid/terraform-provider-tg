@@ -55,7 +55,6 @@ resource "tg_network_config" "network-1" {
 
   interface {
     nic     = "ens192"
-    vrf     = "blue"
     dhcp    = false
     gateway = "10.20.10.1"
     ip      = "10.20.10.50/24"
@@ -176,15 +175,15 @@ Optional:
 - `cloud_route` (Block List) Cluster interface routes - these will update AWS/Azure VPC route tables (see [below for nested schema](#nestedblock--interface--cloud_route))
 - `cluster_ip` (String) Cluster IP
 - `cluster_route_tables` (List of String) Cluster route tables - should be a list of either AWS or Azure route table IDs
-- `dhcp` (Boolean) Enable DHCP
+- `dhcp` (Boolean) Enable DHCP. Only applicable to WAN interfaces.
 - `dns` (List of String) DNS servers
-- `duplex` (String) Interface duplex
+- `duplex` (String) Interface duplex. Required when mode is "manual".
 - `gateway` (String) Gateway IP address
 - `ip` (String) IP address
-- `mode` (String) Interface mode
+- `mode` (String) Auto Negotiation mode. Valid values are "auto" and "manual". When set to "manual", speed and duplex must also be provided.
 - `mtu` (Number) Interface MTU
 - `route` (Block List) Interface routes (see [below for nested schema](#nestedblock--interface--route))
-- `speed` (Number) Interface speed
+- `speed` (Number) Interface speed in Mbps. Required when mode is "manual".
 - `subinterface` (Block List) VLAN interfaces (see [below for nested schema](#nestedblock--interface--subinterface))
 - `vrf` (String) VRF
 
