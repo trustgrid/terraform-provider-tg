@@ -383,7 +383,7 @@ func NetworkConfig() *schema.Resource {
 							},
 						},
 						"dhcp": {
-							Description: "Enable DHCP",
+							Description: "Enable DHCP. Only applicable to WAN interfaces.",
 							Type:        schema.TypeBool,
 							Optional:    true,
 						},
@@ -401,21 +401,22 @@ func NetworkConfig() *schema.Resource {
 							ConflictsWith: []string{"cluster_fqdn"},
 						},
 						"mode": {
-							Description:  "Interface mode",
+							Description:  "Auto Negotiation mode. Valid values are \"auto\" and \"manual\". When set to \"manual\", speed and duplex must also be provided.",
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"auto", "manual"}, false),
 						},
 						"duplex": {
-							Description:  "Interface duplex",
+							Description:  "Interface duplex (full or half). Must be provided alongside mode.",
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"full", "half"}, false),
 						},
 						"speed": {
-							Description: "Interface speed",
-							Type:        schema.TypeInt,
-							Optional:    true,
+							Description:  "Interface speed in Mbps. Valid values are 10, 100, 1000, 2500, 5000, 10000. Must be provided alongside mode.",
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntInSlice([]int{10, 100, 1000, 2500, 5000, 10000}),
 						},
 						"mtu": {
 							Description: "Interface MTU",
