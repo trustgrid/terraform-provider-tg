@@ -70,6 +70,12 @@ func convertToMap(in any) (map[string]any, error) {
 				}
 			}
 			out[tf] = slice
+		case reflect.Pointer:
+			value := reflect.ValueOf(in).FieldByIndex([]int{i})
+			if value.IsNil() {
+				continue
+			}
+			out[tf] = value.Elem().Interface()
 		default:
 			out[tf] = reflect.ValueOf(in).FieldByIndex([]int{i}).Interface()
 		}

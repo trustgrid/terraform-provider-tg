@@ -19,6 +19,17 @@ resource "tg_virtual_network_route" "route1" {
   network_cidr = "10.10.10.14/32"
   metric       = 1
   description  = "my edge node route"
+
+  monitor {
+    name        = "tcp-probe"
+    enabled     = true
+    protocol    = "tcp"
+    dest        = "10.100.0.10"
+    port        = 443
+    interval    = 5
+    count       = 3
+    max_latency = 500
+  }
 }
 ```
 
@@ -35,8 +46,26 @@ resource "tg_virtual_network_route" "route1" {
 ### Optional
 
 - `description` (String) Description
+- `monitor` (Block List) Route monitors that can deactivate the route when a probe target becomes unreachable (see [below for nested schema](#nestedblock--monitor))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 - `uid` (String) Unique identifier of the route
+
+<a id="nestedblock--monitor"></a>
+### Nested Schema for `monitor`
+
+Required:
+
+- `count` (Number) Consecutive failures before the route is deactivated
+- `dest` (String) Destination IP to probe
+- `enabled` (Boolean) Monitor enabled state. Must be set to true because the API defaults new monitors to false
+- `interval` (Number) Probe interval in seconds
+- `name` (String) Unique name for the route monitor
+- `protocol` (String) Probe protocol
+
+Optional:
+
+- `max_latency` (Number) Maximum acceptable probe latency in milliseconds
+- `port` (Number) Destination port for TCP probes
