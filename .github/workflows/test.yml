@@ -40,6 +40,11 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@5f32ed9ef53c4f4b7f2e3c0555d88c5cb6d9d3ff # v4
+        with:
+          terraform_wrapper: false
+
       - name: test
         run: |
           make sweep testacc
