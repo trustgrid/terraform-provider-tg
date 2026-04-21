@@ -68,6 +68,13 @@ type ContainerInterface struct {
 	Dest string `tf:"dest"`
 }
 
+type ContainerState struct {
+	NodeID      string `tf:"node_id"`
+	ClusterFQDN string `tf:"cluster_fqdn"`
+	ContainerID string `tf:"container_id"`
+	Enabled     bool   `tf:"enabled"`
+}
+
 type Container struct {
 	NodeID              string           `tf:"node_id"`
 	ClusterFQDN         string           `tf:"cluster_fqdn"`
@@ -387,4 +394,22 @@ func (tfc *Container) UpdateFromTG(c tg.Container) {
 	tfc.updatePortMappings(c)
 	tfc.updateVirtualNetworks(c)
 	tfc.updateInterfaces(c)
+}
+
+func (tfs ContainerState) ToTG() tg.ContainerState {
+	return tg.ContainerState{
+		NodeID:      tfs.NodeID,
+		ClusterFQDN: tfs.ClusterFQDN,
+		ContainerID: tfs.ContainerID,
+		Enabled:     tfs.Enabled,
+	}
+}
+
+func (tfs ContainerState) UpdateFromTG(c tg.ContainerState) HCL[tg.ContainerState] {
+	return ContainerState{
+		NodeID:      tfs.NodeID,
+		ClusterFQDN: tfs.ClusterFQDN,
+		ContainerID: tfs.ContainerID,
+		Enabled:     c.Enabled,
+	}
 }
