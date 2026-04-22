@@ -132,7 +132,11 @@ func TestAccVNetRoute_HappyPath(t *testing.T) {
 						}
 
 						monitor := route.Monitors[0]
-						if !monitor.Enabled || monitor.Name != "icmp-probe" || monitor.Protocol != "icmp" || monitor.Dest != "10.100.0.11" || monitor.Port != nil || monitor.Interval != 10 || monitor.Count != 2 {
+						port := 0
+						if monitor.Port != nil {
+							port = *monitor.Port
+						}
+						if !monitor.Enabled || monitor.Name != "icmp-probe" || monitor.Protocol != "icmp" || monitor.Dest != "10.100.0.11" || port != 0 || monitor.Interval != 10 || monitor.Count != 2 {
 							return fmt.Errorf("unexpected monitor: %+v", monitor)
 						}
 
