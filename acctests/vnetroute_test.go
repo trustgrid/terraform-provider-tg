@@ -112,7 +112,7 @@ func TestAccVNetRoute_HappyPath(t *testing.T) {
 				Config: vnetRouteUpdatedConfig(networkName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_virtual_network_route.test", "id"),
-					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "dest", "another-subject"),
+					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "dest", "test-subject"),
 					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "network_cidr", "10.10.24.0/24"),
 					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "metric", "11"),
 					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "description", "Updated Test Virtual Network Route"),
@@ -124,8 +124,8 @@ func TestAccVNetRoute_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "monitor.0.count", "2"),
 					resource.TestCheckNoResourceAttr("tg_virtual_network_route.test", "monitor.0.port"),
 					checkVNetRouteAPISide(tgProvider, networkName, func(route tg.VNetRoute) error {
-						if route.Dest != "another-subject" {
-							return fmt.Errorf("expected route dest another-subject, got %s", route.Dest)
+						if route.Dest != "test-subject" {
+							return fmt.Errorf("expected route dest test-subject, got %s", route.Dest)
 						}
 						if len(route.Monitors) != 1 {
 							return fmt.Errorf("expected 1 monitor, got %d", len(route.Monitors))
@@ -156,8 +156,13 @@ resource "tg_virtual_network" "test" {
   no_nat       = true
 }
 
+resource "tg_vpn_attachment" "test" {
+  node_id = %q
+  network = tg_virtual_network.test.name
+}
+
 resource "tg_virtual_network_route" "test" {
-  network      = tg_virtual_network.test.name
+  network      = tg_vpn_attachment.test.network
   dest         = "test-subject"
   network_cidr = "10.10.24.24/32"
   metric       = 10
@@ -174,7 +179,7 @@ resource "tg_virtual_network_route" "test" {
     max_latency = 500
   }
 }
-`, networkName)
+`, networkName, testNodeID)
 }
 
 func vnetRouteUpdatedConfig(networkName string) string {
@@ -186,9 +191,14 @@ resource "tg_virtual_network" "test" {
   no_nat       = true
 }
 
+resource "tg_vpn_attachment" "test" {
+  node_id = %q
+  network = tg_virtual_network.test.name
+}
+
 resource "tg_virtual_network_route" "test" {
-  network      = tg_virtual_network.test.name
-  dest         = "another-subject"
+  network      = tg_vpn_attachment.test.network
+  dest         = "test-subject"
   network_cidr = "10.10.24.0/24"
   metric       = 11
   description  = "Updated Test Virtual Network Route"
@@ -202,7 +212,7 @@ resource "tg_virtual_network_route" "test" {
     count    = 2
   }
 }
-`, networkName)
+`, networkName, testNodeID)
 }
 
 func checkVNetRouteAPISide(provider *schema.Provider, networkName string, check func(tg.VNetRoute) error) resource.TestCheckFunc {
