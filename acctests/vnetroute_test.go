@@ -122,7 +122,7 @@ func TestAccVNetRoute_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "monitor.0.dest", "10.100.0.11"),
 					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "monitor.0.interval", "10"),
 					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "monitor.0.count", "2"),
-					resource.TestCheckNoResourceAttr("tg_virtual_network_route.test", "monitor.0.port"),
+					resource.TestCheckResourceAttr("tg_virtual_network_route.test", "monitor.0.port", "0"),
 					checkVNetRouteAPISide(tgProvider, networkName, func(route tg.VNetRoute) error {
 						if route.Dest != "test-cluster" {
 							return fmt.Errorf("expected route dest test-cluster, got %s", route.Dest)
