@@ -12,10 +12,22 @@ type VNetRoute struct {
 	UID         string `tf:"uid" json:"uid"`
 	NetworkName string `tf:"network" json:"-"`
 
-	NetworkCIDR string `tf:"network_cidr" json:"networkCidr"`
-	Dest        string `tf:"dest" json:"nodeName"`
-	Metric      int    `tf:"metric" json:"metric"`
-	Description string `tf:"description" json:"description"`
+	NetworkCIDR string             `tf:"network_cidr" json:"networkCidr"`
+	Dest        string             `tf:"dest" json:"nodeName"`
+	Metric      int                `tf:"metric" json:"metric"`
+	Description string             `tf:"description" json:"description"`
+	Monitors    []VNetRouteMonitor `tf:"monitor" json:"monitors,omitempty"`
+}
+
+type VNetRouteMonitor struct {
+	Enabled    bool   `tf:"enabled" json:"enabled"`
+	Name       string `tf:"name" json:"name"`
+	Protocol   string `tf:"protocol" json:"protocol"`
+	Dest       string `tf:"dest" json:"dest"`
+	Port       *int   `tf:"port,omitempty" json:"port,omitempty"`
+	Interval   int    `tf:"interval" json:"interval"`
+	Count      int    `tf:"count" json:"count"`
+	MaxLatency *int   `tf:"max_latency,omitempty" json:"maxLatency,omitempty"`
 }
 
 type VNetPortForward struct {
