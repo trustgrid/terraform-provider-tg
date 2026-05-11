@@ -67,13 +67,15 @@ type GatewayConfig struct {
 }
 
 type Service struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Enabled     bool   `json:"enabled"`
-	Host        string `json:"host"`
-	Port        int    `json:"port"`
-	Protocol    string `json:"protocol"`
-	Description string `json:"description"`
+	ID                  string `json:"id"`
+	Name                string `json:"name"`
+	Enabled             bool   `json:"enabled"`
+	Host                string `json:"host"`
+	Port                int    `json:"port"`
+	Protocol            string `json:"protocol"`
+	Description         string `json:"description"`
+	SourceInterface     string `json:"sourceInterface,omitempty"`
+	SourceFromClusterIP bool   `json:"sourceFromClusterIP,omitempty"`
 }
 
 type ServicesConfig struct {

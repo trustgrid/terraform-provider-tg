@@ -109,6 +109,7 @@ func New(version string) func() *schema.Provider {
 				"tg_node_cluster_config":              resource.ClusterConfig(),
 				"tg_policy":                           resource.Policy(),
 				"tg_portal_auth":                      resource.PortalAuth(),
+				"tg_cluster_service":                  resource.ClusterService(),
 				"tg_service":                          resource.Service(),
 				"tg_serviceuser":                      resource.ServiceUser(),
 				"tg_snmp":                             resource.SNMP(),
