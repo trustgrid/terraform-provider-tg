@@ -109,10 +109,11 @@ func ClusterService() *schema.Resource {
 				Optional:    true,
 			},
 			"source_from_cluster_ip": {
-				Description: "When true (and source_interface is set), bind the outbound socket to the cluster VIP on that NIC",
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
+				Description:  "When true, bind the outbound socket to the cluster VIP on that NIC. Requires source_interface to be set.",
+				Type:         schema.TypeBool,
+				Optional:     true,
+				Default:      false,
+				RequiredWith: []string{"source_interface"},
 			},
 		},
 	}
