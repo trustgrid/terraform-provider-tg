@@ -76,6 +76,13 @@ func TestAccClusterService_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "enabled", "true"),
 					resource.TestCheckNoResourceAttr("tg_cluster_service.test", "source_interface"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "source_from_cluster_ip", "false"),
+					checkClusterServiceAPISide(p, testClusterFQDN, clusterServiceExpect{
+						Name:     testClusterServiceName,
+						Protocol: "tcp",
+						Host:     "10.0.0.1",
+						Port:     8080,
+						Enabled:  true,
+					}),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_cluster_service.test", tfjsonpath.New("service_id")),
@@ -87,7 +94,15 @@ func TestAccClusterService_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttrSet("tg_cluster_service.test", "service_id"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "source_interface", "ens192"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "source_from_cluster_ip", "true"),
-					checkClusterServiceAPISide(p, testClusterFQDN, "ens192", true),
+					checkClusterServiceAPISide(p, testClusterFQDN, clusterServiceExpect{
+						Name:                testClusterServiceName,
+						Protocol:            "tcp",
+						Host:                "10.0.0.1",
+						Port:                8080,
+						Enabled:             true,
+						SourceInterface:     "ens192",
+						SourceFromClusterIP: true,
+					}),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_cluster_service.test", tfjsonpath.New("service_id")),
@@ -98,7 +113,14 @@ func TestAccClusterService_HappyPath(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "source_interface", "ens192"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "source_from_cluster_ip", "false"),
-					checkClusterServiceAPISide(p, testClusterFQDN, "ens192", false),
+					checkClusterServiceAPISide(p, testClusterFQDN, clusterServiceExpect{
+						Name:            testClusterServiceName,
+						Protocol:        "tcp",
+						Host:            "10.0.0.1",
+						Port:            8080,
+						Enabled:         true,
+						SourceInterface: "ens192",
+					}),
 				),
 			},
 		},
@@ -149,7 +171,17 @@ resource "tg_cluster_service" "test" {
 `, clusterFQDN, testClusterServiceName, sourceInterfaceLine, sourceFromClusterIPLine)
 }
 
-func checkClusterServiceAPISide(p *schema.Provider, clusterFQDN, expectedSourceInterface string, expectedSourceFromClusterIP bool) resource.TestCheckFunc {
+type clusterServiceExpect struct {
+	Name                string
+	Protocol            string
+	Host                string
+	Port                int
+	Enabled             bool
+	SourceInterface     string
+	SourceFromClusterIP bool
+}
+
+func checkClusterServiceAPISide(p *schema.Provider, clusterFQDN string, want clusterServiceExpect) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := p.Meta().(*tg.Client)
 
@@ -173,14 +205,27 @@ func checkClusterServiceAPISide(p *schema.Provider, clusterFQDN, expectedSourceI
 			return fmt.Errorf("service %s not found in cluster config (have %d services)", serviceID, len(cluster.Config.Services.Items))
 		}
 
-		if svc.SourceInterface != expectedSourceInterface {
-			return fmt.Errorf("expected source_interface %q, got %q", expectedSourceInterface, svc.SourceInterface)
+		if svc.Name != want.Name {
+			return fmt.Errorf("expected name %q, got %q", want.Name, svc.Name)
 		}
-
-		if svc.SourceFromClusterIP != expectedSourceFromClusterIP {
-			return fmt.Errorf("expected source_from_cluster_ip %t, got %t", expectedSourceFromClusterIP, svc.SourceFromClusterIP)
+		if svc.Protocol != want.Protocol {
+			return fmt.Errorf("expected protocol %q, got %q", want.Protocol, svc.Protocol)
 		}
-
+		if svc.Host != want.Host {
+			return fmt.Errorf("expected host %q, got %q", want.Host, svc.Host)
+		}
+		if svc.Port != want.Port {
+			return fmt.Errorf("expected port %d, got %d", want.Port, svc.Port)
+		}
+		if svc.Enabled != want.Enabled {
+			return fmt.Errorf("expected enabled %t, got %t", want.Enabled, svc.Enabled)
+		}
+		if svc.SourceInterface != want.SourceInterface {
+			return fmt.Errorf("expected source_interface %q, got %q", want.SourceInterface, svc.SourceInterface)
+		}
+		if svc.SourceFromClusterIP != want.SourceFromClusterIP {
+			return fmt.Errorf("expected source_from_cluster_ip %t, got %t", want.SourceFromClusterIP, svc.SourceFromClusterIP)
+		}
 		return nil
 	}
 }
