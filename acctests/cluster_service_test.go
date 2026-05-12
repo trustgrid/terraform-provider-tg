@@ -3,6 +3,8 @@ package acctests
 import (
 	"context"
 	"fmt"
+	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -14,6 +16,43 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/provider"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
+
+const testClusterServiceName = "tf-test-service"
+
+func init() {
+	resource.AddTestSweepers("tg_cluster_service", &resource.Sweeper{
+		Name: "tg_cluster_service",
+		F: func(r string) error {
+			cp := tg.ClientParams{
+				APIKey:    os.Getenv("TG_API_KEY_ID"),
+				APISecret: os.Getenv("TG_API_KEY_SECRET"),
+				APIHost:   os.Getenv("TG_API_HOST"),
+			}
+			client, err := tg.NewClient(context.Background(), cp)
+			if err != nil {
+				return fmt.Errorf("error creating client: %w", err)
+			}
+
+			var cluster tg.Cluster
+			if err := client.Get(context.Background(), "/cluster/"+testClusterFQDN, &cluster); err != nil {
+				return fmt.Errorf("error fetching cluster %s: %w", testClusterFQDN, err)
+			}
+			if cluster.Config.Services == nil {
+				return nil
+			}
+			for id, svc := range cluster.Config.Services.Items {
+				if svc.Name != testClusterServiceName {
+					continue
+				}
+				url := fmt.Sprintf("/v2/cluster/%s/config/services/%s", testClusterFQDN, id)
+				if err := client.Delete(context.Background(), url, nil); err != nil {
+					return fmt.Errorf("error deleting cluster service %s: %w", id, err)
+				}
+			}
+			return nil
+		},
+	})
+}
 
 func TestAccClusterService_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
@@ -30,7 +69,7 @@ func TestAccClusterService_HappyPath(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("tg_cluster_service.test", "service_id"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "cluster_fqdn", testClusterFQDN),
-					resource.TestCheckResourceAttr("tg_cluster_service.test", "name", "tf-test-service"),
+					resource.TestCheckResourceAttr("tg_cluster_service.test", "name", testClusterServiceName),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "protocol", "tcp"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "host", "10.0.0.1"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "port", "8080"),
@@ -66,6 +105,29 @@ func TestAccClusterService_HappyPath(t *testing.T) {
 	})
 }
 
+func TestAccClusterService_SourceFromClusterIPRequiresInterface(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider.New("test")(),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "tg_cluster_service" "test" {
+  cluster_fqdn           = %q
+  name                   = %q
+  protocol               = "tcp"
+  host                   = "10.0.0.1"
+  port                   = 8080
+  source_from_cluster_ip = true
+}
+`, testClusterFQDN, testClusterServiceName),
+				ExpectError: regexp.MustCompile("source_from_cluster_ip = true requires source_interface"),
+			},
+		},
+	})
+}
+
 func clusterServiceConfig(clusterFQDN, sourceInterface string, sourceFromClusterIP bool) string {
 	sourceInterfaceLine := ""
 	sourceFromClusterIPLine := ""
@@ -76,7 +138,7 @@ func clusterServiceConfig(clusterFQDN, sourceInterface string, sourceFromCluster
 	return fmt.Sprintf(`
 resource "tg_cluster_service" "test" {
   cluster_fqdn = %q
-  name         = "tf-test-service"
+  name         = %q
   protocol     = "tcp"
   host         = "10.0.0.1"
   port         = 8080
@@ -84,7 +146,7 @@ resource "tg_cluster_service" "test" {
 %s
 %s
 }
-`, clusterFQDN, sourceInterfaceLine, sourceFromClusterIPLine)
+`, clusterFQDN, testClusterServiceName, sourceInterfaceLine, sourceFromClusterIPLine)
 }
 
 func checkClusterServiceAPISide(p *schema.Provider, clusterFQDN, expectedSourceInterface string, expectedSourceFromClusterIP bool) resource.TestCheckFunc {

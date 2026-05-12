@@ -2,7 +2,9 @@ package acctests
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -15,9 +17,43 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 )
 
+const testClusterName = "tf-test-cluster"
+
+func init() {
+	resource.AddTestSweepers("tg_cluster", &resource.Sweeper{
+		Name:         "tg_cluster",
+		Dependencies: []string{"tg_cluster_service"},
+		F: func(r string) error {
+			cp := tg.ClientParams{
+				APIKey:    os.Getenv("TG_API_KEY_ID"),
+				APISecret: os.Getenv("TG_API_KEY_SECRET"),
+				APIHost:   os.Getenv("TG_API_HOST"),
+			}
+			client, err := tg.NewClient(context.Background(), cp)
+			if err != nil {
+				return fmt.Errorf("error creating client: %w", err)
+			}
+
+			fqdn := testClusterName + "." + client.Domain
+			var cluster tg.Cluster
+			if err := client.Get(context.Background(), "/cluster/"+fqdn, &cluster); err != nil {
+				var nferr *tg.NotFoundError
+				if errors.As(err, &nferr) {
+					return nil
+				}
+				return fmt.Errorf("error checking cluster %s: %w", fqdn, err)
+			}
+			if err := client.Delete(context.Background(), "/cluster/"+fqdn, nil); err != nil {
+				return fmt.Errorf("error deleting cluster %s: %w", fqdn, err)
+			}
+			return nil
+		},
+	})
+}
+
 func TestAccCluster_HappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
-	clusterName := "tf-test-cluster"
+	clusterName := testClusterName
 
 	provider := provider.New("test")()
 

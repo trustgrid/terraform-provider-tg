@@ -15,6 +15,13 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
+func clusterServiceValidate(_ context.Context, d *schema.ResourceDiff, _ any) error {
+	if d.Get("source_from_cluster_ip").(bool) && d.Get("source_interface").(string) == "" {
+		return fmt.Errorf("source_from_cluster_ip = true requires source_interface to be set")
+	}
+	return nil
+}
+
 func clusterServiceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
@@ -95,6 +102,7 @@ func ClusterService() *schema.Resource {
 		UpdateContext: md.Update,
 		DeleteContext: md.Delete,
 		CreateContext: md.Create,
+		CustomizeDiff: clusterServiceValidate,
 
 		Schema: map[string]*schema.Schema{
 			"service_id": {
@@ -148,11 +156,10 @@ func ClusterService() *schema.Resource {
 				Optional:    true,
 			},
 			"source_from_cluster_ip": {
-				Description:  "When true, bind the outbound socket to the cluster VIP on that NIC. Requires source_interface to be set.",
-				Type:         schema.TypeBool,
-				Optional:     true,
-				Default:      false,
-				RequiredWith: []string{"source_interface"},
+				Description: "When true, bind the outbound socket to the cluster VIP on that NIC. Requires source_interface to be set.",
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
 			},
 		},
 	}
