@@ -41,26 +41,29 @@ func init() {
 
 			ctx := context.Background()
 
-			// Query the node directly for its VPN attachments so we catch dangling
-			// attachments even when the underlying virtual network object is already gone.
-			var nodeAttachments []tg.VPNAttachment
-			if err := client.Get(ctx, fmt.Sprintf("/v2/node/%s/vpn", testNodeID), &nodeAttachments); err != nil {
-				return fmt.Errorf("error listing node VPN attachments: %w", err)
+			nodeNames, err := vpnNetworkNamesOnNode(ctx, client, testNodeID)
+			if err != nil {
+				return err
 			}
-			for _, a := range nodeAttachments {
-				if strings.HasPrefix(a.NetworkName, testVNetPrefix) {
-					_ = client.Delete(ctx, fmt.Sprintf("/v2/node/%s/vpn/%s", testNodeID, a.NetworkName), nil)
+			for _, name := range nodeNames {
+				if !strings.HasPrefix(name, testVNetPrefix) {
+					continue
+				}
+				if err := deleteAttachmentWithDanglingFallback(ctx, client, fmt.Sprintf("/v2/node/%s/vpn/%s", testNodeID, name), name); err != nil {
+					return fmt.Errorf("error deleting node attachment %s: %w", name, err)
 				}
 			}
 
-			// Same for the cluster.
 			var clusterAttachments []tg.VPNAttachment
 			if err := client.Get(ctx, fmt.Sprintf("/v2/cluster/%s/vpn", testClusterFQDN), &clusterAttachments); err != nil {
 				return fmt.Errorf("error listing cluster VPN attachments: %w", err)
 			}
 			for _, a := range clusterAttachments {
-				if strings.HasPrefix(a.NetworkName, testVNetPrefix) {
-					_ = client.Delete(ctx, fmt.Sprintf("/v2/cluster/%s/vpn/%s", testClusterFQDN, a.NetworkName), nil)
+				if !strings.HasPrefix(a.NetworkName, testVNetPrefix) {
+					continue
+				}
+				if err := deleteAttachmentWithDanglingFallback(ctx, client, fmt.Sprintf("/v2/cluster/%s/vpn/%s", testClusterFQDN, a.NetworkName), a.NetworkName); err != nil {
+					return fmt.Errorf("error deleting cluster attachment %s: %w", a.NetworkName, err)
 				}
 			}
 
@@ -121,6 +124,54 @@ func init() {
 			return nil
 		},
 	})
+}
+
+// vpnNetworkNamesOnNode returns every VPN network name attached to the node.
+// We read from /node/<id> so we pick up dangling entries that no longer have
+// a matching domain network (the /v2/.../vpn endpoint hides those, yet the
+// server still rejects new attachments while any dangling reference remains).
+func vpnNetworkNamesOnNode(ctx context.Context, client *tg.Client, nodeID string) ([]string, error) {
+	var node struct {
+		Config struct {
+			VPN struct {
+				Networks []struct {
+					Name string `json:"name"`
+				} `json:"networks"`
+			} `json:"vpn"`
+		} `json:"config"`
+	}
+	if err := client.Get(ctx, fmt.Sprintf("/node/%s", nodeID), &node); err != nil {
+		return nil, fmt.Errorf("error fetching node %s: %w", nodeID, err)
+	}
+	names := make([]string, 0, len(node.Config.VPN.Networks))
+	for _, n := range node.Config.VPN.Networks {
+		names = append(names, n.Name)
+	}
+	return names, nil
+}
+
+// deleteAttachmentWithDanglingFallback deletes a VPN attachment. If the server
+// rejects the delete because the underlying virtual network has already been
+// removed from the domain ("Unable to find ... in domain networks"), the
+// network is recreated briefly so the attachment can be cleaned up, then the
+// network is deleted again.
+func deleteAttachmentWithDanglingFallback(ctx context.Context, client *tg.Client, url, networkName string) error {
+	err := client.Delete(ctx, url, nil)
+	if err == nil {
+		return nil
+	}
+	if !strings.Contains(err.Error(), "Unable to find ") || !strings.Contains(err.Error(), " in domain networks") {
+		return err
+	}
+
+	tmp := tg.VirtualNetwork{Name: networkName, NetworkCIDR: "10.10.0.0/16"}
+	if _, perr := client.Post(ctx, "/v2/domain/"+client.Domain+"/network", &tmp); perr != nil {
+		return fmt.Errorf("attachment delete blocked by missing network and recreate failed: %w", perr)
+	}
+	defer func() {
+		_ = client.Delete(ctx, "/v2/domain/"+client.Domain+"/network/"+networkName, nil)
+	}()
+	return client.Delete(ctx, url, nil)
 }
 
 func TestAccVirtualNetwork_HappyPath(t *testing.T) {

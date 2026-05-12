@@ -9,9 +9,14 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// DecodeResourceData decodes TF resource data (HCL+schema filters/etc) into the given struct,
-// using the `tf` tag. If a field doesn't have a `tf` tag, it won't be populated.
-func DecodeResourceData[T any](d *schema.ResourceData) (T, error) {
+// HCLSource is the subset of schema.ResourceData / schema.ResourceDiff used by
+// the HCL decoder, so the same logic works for both Create/Update/Read and
+// CustomizeDiff validators.
+type HCLSource interface {
+	GetOk(string) (any, bool)
+}
+
+func decodeHCL[T any](d HCLSource) (T, error) {
 	fields := make(map[string]any)
 
 	target := new(T)
@@ -37,6 +42,17 @@ func DecodeResourceData[T any](d *schema.ResourceData) (T, error) {
 	}
 
 	return *target, decoder.Decode(fields)
+}
+
+// DecodeResourceData decodes TF resource data (HCL+schema filters/etc) into the given struct,
+// using the `tf` tag. If a field doesn't have a `tf` tag, it won't be populated.
+func DecodeResourceData[T any](d *schema.ResourceData) (T, error) {
+	return decodeHCL[T](d)
+}
+
+// DecodeResourceDiff is the CustomizeDiff equivalent of DecodeResourceData.
+func DecodeResourceDiff[T any](d *schema.ResourceDiff) (T, error) {
+	return decodeHCL[T](d)
 }
 
 func convertToMap(in any) (map[string]any, error) {

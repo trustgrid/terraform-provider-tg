@@ -82,6 +82,12 @@ type ServicesConfig struct {
 	Services []Service `json:"services"`
 }
 
+// ClusterServicesConfig mirrors the v2 API shape for cluster services,
+// where services are stored as a map keyed by service ID under "items".
+type ClusterServicesConfig struct {
+	Items map[string]Service `json:"items"`
+}
+
 type Connector struct {
 	ID          string `json:"id"`
 	Enabled     bool   `json:"enabled"`

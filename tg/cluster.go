@@ -8,9 +8,9 @@ type Cluster struct {
 	Device Device            `json:"device"`
 	Health string            `json:"health,omitempty"`
 	Config struct {
-		Connectors *ConnectorsConfig `json:"connectors,omitempty"`
-		Services   *ServicesConfig   `json:"services,omitempty"`
-		Network    *NetworkConfig    `json:"network,omitempty"`
-		ZTNA       *ZTNAConfig       `json:"apigw,omitempty"`
+		Connectors *ConnectorsConfig      `json:"connectors,omitempty"`
+		Services   *ClusterServicesConfig `json:"services,omitempty"`
+		Network    *NetworkConfig         `json:"network,omitempty"`
+		ZTNA       *ZTNAConfig            `json:"apigw,omitempty"`
 	} `json:"config"`
 }
