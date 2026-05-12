@@ -3,8 +3,10 @@ package resource
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/trustgrid/terraform-provider-tg/hcl"
@@ -12,6 +14,46 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/tg"
 	"github.com/trustgrid/terraform-provider-tg/validators"
 )
+
+func clusterServiceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	tgc := tg.GetClient(meta)
+
+	fqdn, _ := d.Get("cluster_fqdn").(string)
+	id := d.Id()
+
+	var cluster tg.Cluster
+	err := tgc.Get(ctx, fmt.Sprintf("/cluster/%s", fqdn), &cluster)
+
+	var nferr *tg.NotFoundError
+	switch {
+	case errors.As(err, &nferr):
+		d.SetId("")
+		return nil
+	case err != nil:
+		return diag.FromErr(err)
+	}
+
+	if cluster.Config.Services == nil {
+		d.SetId("")
+		return nil
+	}
+
+	svc, ok := cluster.Config.Services.Items[id]
+	if !ok {
+		d.SetId("")
+		return nil
+	}
+
+	tf, decErr := hcl.DecodeResourceData[hcl.ClusterService](d)
+	if decErr != nil {
+		return diag.FromErr(decErr)
+	}
+	updated := tf.UpdateFromTG(svc)
+	if encErr := hcl.EncodeResourceData(updated, d); encErr != nil {
+		return diag.FromErr(encErr)
+	}
+	return nil
+}
 
 func ClusterService() *schema.Resource {
 	md := majordomo.NewResource(
@@ -24,9 +66,6 @@ func ClusterService() *schema.Resource {
 			},
 			DeleteURL: func(r hcl.ClusterService) string {
 				return fmt.Sprintf("/v2/cluster/%s/config/services/%s", r.ClusterFQDN, r.ServiceID)
-			},
-			IndexURL: func(r hcl.ClusterService) string {
-				return fmt.Sprintf("/v2/cluster/%s/config/services", r.ClusterFQDN)
 			},
 			OnCreateReply: func(_ context.Context, args majordomo.CallbackArgs[tg.Service, hcl.ClusterService]) (string, error) {
 				var svc tg.Service
@@ -52,7 +91,7 @@ func ClusterService() *schema.Resource {
 	return &schema.Resource{
 		Description: "Manage an L4 service on a cluster.",
 
-		ReadContext:   md.Read,
+		ReadContext:   clusterServiceRead,
 		UpdateContext: md.Update,
 		DeleteContext: md.Delete,
 		CreateContext: md.Create,

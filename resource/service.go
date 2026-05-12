@@ -87,7 +87,11 @@ func (r *service) getConfig(ctx context.Context, tgc *tg.Client, tf hcl.Service)
 		return tg.ServicesConfig{}, err
 	}
 	if cluster.Config.Services != nil {
-		return *cluster.Config.Services, nil
+		svcs := make([]tg.Service, 0, len(cluster.Config.Services.Items))
+		for _, s := range cluster.Config.Services.Items {
+			svcs = append(svcs, s)
+		}
+		return tg.ServicesConfig{Services: svcs}, nil
 	}
 	return tg.ServicesConfig{}, nil
 }

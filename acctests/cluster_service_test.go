@@ -35,7 +35,7 @@ func TestAccClusterService_HappyPath(t *testing.T) {
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "host", "10.0.0.1"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "port", "8080"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "enabled", "true"),
-					resource.TestCheckResourceAttr("tg_cluster_service.test", "source_interface", ""),
+					resource.TestCheckNoResourceAttr("tg_cluster_service.test", "source_interface"),
 					resource.TestCheckResourceAttr("tg_cluster_service.test", "source_from_cluster_ip", "false"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -97,9 +97,18 @@ func checkClusterServiceAPISide(p *schema.Provider, clusterFQDN, expectedSourceI
 		}
 		serviceID := rs.Primary.ID
 
-		var svc tg.Service
-		if err := client.Get(context.Background(), fmt.Sprintf("/v2/cluster/%s/config/services/%s", clusterFQDN, serviceID), &svc); err != nil {
-			return fmt.Errorf("error getting cluster service: %w", err)
+		var cluster tg.Cluster
+		if err := client.Get(context.Background(), fmt.Sprintf("/cluster/%s", clusterFQDN), &cluster); err != nil {
+			return fmt.Errorf("error getting cluster: %w", err)
+		}
+
+		if cluster.Config.Services == nil {
+			return fmt.Errorf("cluster has no services config")
+		}
+
+		svc, found := cluster.Config.Services.Items[serviceID]
+		if !found {
+			return fmt.Errorf("service %s not found in cluster config (have %d services)", serviceID, len(cluster.Config.Services.Items))
 		}
 
 		if svc.SourceInterface != expectedSourceInterface {
