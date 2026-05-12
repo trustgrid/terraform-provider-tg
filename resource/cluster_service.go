@@ -16,7 +16,11 @@ import (
 )
 
 func clusterServiceValidate(_ context.Context, d *schema.ResourceDiff, _ any) error {
-	if d.Get("source_from_cluster_ip").(bool) && d.Get("source_interface").(string) == "" {
+	tf, err := hcl.DecodeResourceDiff[hcl.ClusterService](d)
+	if err != nil {
+		return err
+	}
+	if tf.SourceFromClusterIP && tf.SourceInterface == "" {
 		return fmt.Errorf("source_from_cluster_ip = true requires source_interface to be set")
 	}
 	return nil
