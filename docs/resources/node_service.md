@@ -40,7 +40,7 @@ resource "tg_node_service" "https_forwarder" {
 
 - `description` (String) Description.
 - `enabled` (Boolean) Whether the service is enabled.
-- `source_interface` (String) NIC used for the upstream connection. V2-only.
+- `source_interface` (String) NIC used for the upstream connection. V2-only. **Prerequisite**: the NIC must be configured on the node, typically via `tg_node_interface` (or `tg_network_config`).
 
 ### Read-Only
 

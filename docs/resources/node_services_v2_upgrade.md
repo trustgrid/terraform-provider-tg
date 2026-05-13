@@ -3,12 +3,12 @@
 page_title: "tg_node_services_v2_upgrade Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Trigger the V1→V2 services config upgrade on a node. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).
+  Trigger the V1→V2 services config upgrade on a node. Idempotent — applying against an already-V2 node is a no-op. Destroy is also a no-op.
 ---
 
 # tg_node_services_v2_upgrade (Resource)
 
-Trigger the V1→V2 services config upgrade on a node. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).
+Trigger the V1→V2 services config upgrade on a node. Idempotent — applying against an already-V2 node is a no-op. Destroy is also a no-op.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ resource "tg_node_services_v2_upgrade" "edge1" {
 
 ### Required
 
-- `node_id` (String) node_id to upgrade.
+- `node_id` (String) UUID of the node to upgrade.
 
 ### Read-Only
 

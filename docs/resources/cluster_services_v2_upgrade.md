@@ -3,12 +3,12 @@
 page_title: "tg_cluster_services_v2_upgrade Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Trigger the V1→V2 services config upgrade on a cluster. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).
+  Trigger the V1→V2 services config upgrade on a cluster. Idempotent — applying against an already-V2 cluster is a no-op. Destroy is also a no-op (the upgrade is irreversible per the API).
 ---
 
 # tg_cluster_services_v2_upgrade (Resource)
 
-Trigger the V1→V2 services config upgrade on a cluster. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).
+Trigger the V1→V2 services config upgrade on a cluster. Idempotent — applying against an already-V2 cluster is a no-op. Destroy is also a no-op (the upgrade is irreversible per the API).
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ resource "tg_cluster_services_v2_upgrade" "hq" {
 
 ### Required
 
-- `cluster_fqdn` (String) cluster_fqdn to upgrade.
+- `cluster_fqdn` (String) FQDN of the cluster to upgrade.
 
 ### Read-Only
 

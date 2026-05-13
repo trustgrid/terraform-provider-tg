@@ -158,9 +158,10 @@ func NodeService() *schema.Resource {
 				Default:     true,
 			},
 			"source_interface": {
-				Description: "NIC used for the upstream connection. V2-only.",
-				Type:        schema.TypeString,
-				Optional:    true,
+				Description: "NIC used for the upstream connection. V2-only. " +
+					"**Prerequisite**: the NIC must be configured on the node, typically via `tg_node_interface` (or `tg_network_config`).",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
