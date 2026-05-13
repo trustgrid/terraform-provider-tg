@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -11,83 +12,137 @@ import (
 	"github.com/trustgrid/terraform-provider-tg/validators"
 )
 
-// v2Upgrade returns a one-shot resource that POSTs to a V1→V2 upgrade
-// endpoint on Create. The upgrade is one-way per the API, so Read/Update/Delete
-// are intentionally no-ops — state presence represents "this target has been
-// upgraded." Terraform destroy does NOT roll the target back; manage that
-// expectation in user docs.
-func v2Upgrade(description, targetField, urlPattern string, targetValidator schema.SchemaValidateFunc) *schema.Resource {
+// postUpgradeIdempotent POSTs to the upgrade endpoint and treats a 422
+// response as success (target is already V2). This makes the resource
+// idempotent — running `terraform apply` against an already-upgraded
+// target is a no-op rather than an error.
+func postUpgradeIdempotent(ctx context.Context, tgc *tg.Client, url string) error {
+	_, err := tgc.Post(ctx, url, struct{}{})
+	if err == nil {
+		return nil
+	}
+	// The portal returns 422 with body "Cannot modify ... for V1 config" or
+	// similar when the target is already V2. Treat any 422 from the upgrade
+	// endpoint as idempotent success.
+	if strings.Contains(err.Error(), ": 422") {
+		return nil
+	}
+	return err
+}
+
+func ClusterServicesV2Upgrade() *schema.Resource {
 	return &schema.Resource{
-		Description: description,
+		Description: "Trigger the V1→V2 services config upgrade on a cluster. Idempotent — applying against an already-V2 cluster is a no-op. Destroy is also a no-op (the upgrade is irreversible per the API).",
 		CreateContext: func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 			tgc := tg.GetClient(meta)
-			target, _ := d.Get(targetField).(string)
-			if target == "" {
-				return diag.Errorf("%s is required", targetField)
-			}
-			url := fmt.Sprintf(urlPattern, target)
-			if _, err := tgc.Post(ctx, url, struct{}{}); err != nil {
+			fqdn, _ := d.Get("cluster_fqdn").(string)
+			url := fmt.Sprintf("/v2/cluster/%s/config/services/upgrade", fqdn)
+			if err := postUpgradeIdempotent(ctx, tgc, url); err != nil {
 				return diag.FromErr(fmt.Errorf("posting upgrade %s: %w", url, err))
 			}
-			d.SetId(target)
+			d.SetId(fqdn)
 			return nil
 		},
-		ReadContext: func(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
-			// Upgrade has no read shape; presence in state is the only signal.
-			return nil
-		},
-		// No UpdateContext — every field is ForceNew, so an update path is
-		// unreachable and the SDK rejects defining one.
-		DeleteContext: func(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
-			// Upgrade is one-way per the API. Drop from state without calling
-			// anything — the target stays on V2.
-			d.SetId("")
-			return nil
-		},
+		ReadContext:   noopRead,
+		DeleteContext: noopDelete,
 		Schema: map[string]*schema.Schema{
-			targetField: {
+			"cluster_fqdn": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: targetValidator,
-				Description:  fmt.Sprintf("%s to upgrade.", targetField),
+				ValidateFunc: validators.IsHostname,
+				Description:  "FQDN of the cluster to upgrade.",
 			},
 		},
 	}
 }
 
-func ClusterServicesV2Upgrade() *schema.Resource {
-	return v2Upgrade(
-		"Trigger the V1→V2 services config upgrade on a cluster. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).",
-		"cluster_fqdn",
-		"/v2/cluster/%s/config/services/upgrade",
-		validators.IsHostname,
-	)
-}
-
 func ClusterConnectorsV2Upgrade() *schema.Resource {
-	return v2Upgrade(
-		"Trigger the V1→V2 connectors config upgrade on a cluster. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).",
-		"cluster_fqdn",
-		"/v2/cluster/%s/config/connectors/upgrade",
-		validators.IsHostname,
-	)
+	return &schema.Resource{
+		Description: "Trigger the V1→V2 connectors config upgrade on a cluster. Idempotent — applying against an already-V2 cluster is a no-op. Destroy is also a no-op.",
+		CreateContext: func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+			tgc := tg.GetClient(meta)
+			fqdn, _ := d.Get("cluster_fqdn").(string)
+			url := fmt.Sprintf("/v2/cluster/%s/config/connectors/upgrade", fqdn)
+			if err := postUpgradeIdempotent(ctx, tgc, url); err != nil {
+				return diag.FromErr(fmt.Errorf("posting upgrade %s: %w", url, err))
+			}
+			d.SetId(fqdn)
+			return nil
+		},
+		ReadContext:   noopRead,
+		DeleteContext: noopDelete,
+		Schema: map[string]*schema.Schema{
+			"cluster_fqdn": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validators.IsHostname,
+				Description:  "FQDN of the cluster to upgrade.",
+			},
+		},
+	}
 }
 
 func NodeServicesV2Upgrade() *schema.Resource {
-	return v2Upgrade(
-		"Trigger the V1→V2 services config upgrade on a node. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).",
-		"node_id",
-		"/v2/node/%s/config/services/upgrade",
-		validation.IsUUID,
-	)
+	return &schema.Resource{
+		Description: "Trigger the V1→V2 services config upgrade on a node. Idempotent — applying against an already-V2 node is a no-op. Destroy is also a no-op.",
+		CreateContext: func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+			tgc := tg.GetClient(meta)
+			nodeID, _ := d.Get("node_id").(string)
+			url := fmt.Sprintf("/v2/node/%s/config/services/upgrade", nodeID)
+			if err := postUpgradeIdempotent(ctx, tgc, url); err != nil {
+				return diag.FromErr(fmt.Errorf("posting upgrade %s: %w", url, err))
+			}
+			d.SetId(nodeID)
+			return nil
+		},
+		ReadContext:   noopRead,
+		DeleteContext: noopDelete,
+		Schema: map[string]*schema.Schema{
+			"node_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+				Description:  "UUID of the node to upgrade.",
+			},
+		},
+	}
 }
 
 func NodeConnectorsV2Upgrade() *schema.Resource {
-	return v2Upgrade(
-		"Trigger the V1→V2 connectors config upgrade on a node. One-shot — Terraform destroy is a no-op (the upgrade is irreversible per the API).",
-		"node_id",
-		"/v2/node/%s/config/connectors/upgrade",
-		validation.IsUUID,
-	)
+	return &schema.Resource{
+		Description: "Trigger the V1→V2 connectors config upgrade on a node. Idempotent — applying against an already-V2 node is a no-op. Destroy is also a no-op.",
+		CreateContext: func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+			tgc := tg.GetClient(meta)
+			nodeID, _ := d.Get("node_id").(string)
+			url := fmt.Sprintf("/v2/node/%s/config/connectors/upgrade", nodeID)
+			if err := postUpgradeIdempotent(ctx, tgc, url); err != nil {
+				return diag.FromErr(fmt.Errorf("posting upgrade %s: %w", url, err))
+			}
+			d.SetId(nodeID)
+			return nil
+		},
+		ReadContext:   noopRead,
+		DeleteContext: noopDelete,
+		Schema: map[string]*schema.Schema{
+			"node_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+				Description:  "UUID of the node to upgrade.",
+			},
+		},
+	}
+}
+
+func noopRead(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
+	return nil
+}
+
+func noopDelete(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
+	d.SetId("")
+	return nil
 }

@@ -83,8 +83,15 @@ func TestAccNodeConnectorV2_HappyPath(t *testing.T) {
 
 func nodeConnectorV2Config(nodeID string, rateLimit int) string {
 	return fmt.Sprintf(`
+# Ensure the node has been upgraded to V2 connectors config before creating
+# any V2 connectors. Idempotent — no-op if already V2.
+resource "tg_node_connectors_v2_upgrade" "test" {
+  node_id = %q
+}
+
 resource "tg_node_connector" "test" {
   node_id      = %q
+  depends_on   = [tg_node_connectors_v2_upgrade.test]
   node         = "local"
   service      = "127.0.0.1:9093"
   port         = 9092
@@ -94,7 +101,7 @@ resource "tg_node_connector" "test" {
   nic          = "any"
   rate_limit   = %d
 }
-`, nodeID, v2NodeTestConnectorDesc, rateLimit)
+`, nodeID, nodeID, v2NodeTestConnectorDesc, rateLimit)
 }
 
 func checkNodeConnectorAPISide(p *schema.Provider, nodeID string, wantRateLimit int) resource.TestCheckFunc {
