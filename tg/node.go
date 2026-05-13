@@ -1,6 +1,10 @@
 package tg
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"sort"
+)
 
 type SNMPConfig struct {
 	NodeID string `tf:"node_id" json:"-"`
@@ -74,10 +78,45 @@ type Service struct {
 	Port        int    `json:"port"`
 	Protocol    string `json:"protocol"`
 	Description string `json:"description"`
+
+	// V2-only fields. Server ignores these on V1 endpoints, so they stay
+	// invisible to legacy tg_service. Both omitempty so V1 payloads round-trip
+	// unchanged when the new V2 resources aren't in use.
+	SourceInterface     string `json:"sourceInterface,omitempty"`
+	SourceFromClusterIP bool   `json:"sourceFromClusterIP,omitempty"`
 }
 
 type ServicesConfig struct {
 	Services []Service `json:"services"`
+}
+
+// UnmarshalJSON accepts both the V1 array shape ({"services":[...]})
+// and the V2 items-map shape ({"items":{id:{...}}}) returned by upgraded
+// nodes/clusters. Both normalize to the Services slice. Map entries with
+// an empty inner ID inherit the map key as ID. Results are sorted by ID
+// so callers see stable ordering across reads.
+func (c *ServicesConfig) UnmarshalJSON(data []byte) error {
+	var probe struct {
+		Items    map[string]Service `json:"items"`
+		Services []Service          `json:"services"`
+	}
+	if err := json.Unmarshal(data, &probe); err != nil {
+		return err
+	}
+	if probe.Items != nil {
+		services := make([]Service, 0, len(probe.Items))
+		for id, svc := range probe.Items {
+			if svc.ID == "" {
+				svc.ID = id
+			}
+			services = append(services, svc)
+		}
+		sort.Slice(services, func(i, j int) bool { return services[i].ID < services[j].ID })
+		c.Services = services
+		return nil
+	}
+	c.Services = probe.Services
+	return nil
 }
 
 type Connector struct {
@@ -94,6 +133,33 @@ type Connector struct {
 
 type ConnectorsConfig struct {
 	Connectors []Connector `json:"connectors"`
+}
+
+// UnmarshalJSON accepts both the V1 array shape ({"connectors":[...]})
+// and the V2 items-map shape ({"items":{id:{...}}}) returned by upgraded
+// nodes/clusters. See ServicesConfig.UnmarshalJSON for normalization rules.
+func (c *ConnectorsConfig) UnmarshalJSON(data []byte) error {
+	var probe struct {
+		Items      map[string]Connector `json:"items"`
+		Connectors []Connector          `json:"connectors"`
+	}
+	if err := json.Unmarshal(data, &probe); err != nil {
+		return err
+	}
+	if probe.Items != nil {
+		connectors := make([]Connector, 0, len(probe.Items))
+		for id, conn := range probe.Items {
+			if conn.ID == "" {
+				conn.ID = id
+			}
+			connectors = append(connectors, conn)
+		}
+		sort.Slice(connectors, func(i, j int) bool { return connectors[i].ID < connectors[j].ID })
+		c.Connectors = connectors
+		return nil
+	}
+	c.Connectors = probe.Connectors
+	return nil
 }
 
 type ZTNAConfig struct {
