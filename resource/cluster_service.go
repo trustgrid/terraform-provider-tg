@@ -20,9 +20,9 @@ import (
 // source_interface is also set. Enforced at plan time so the user sees the
 // error before any API write.
 func clusterServiceValidate(_ context.Context, d *schema.ResourceDiff, _ any) error {
-	source, _ := d.GetOk("source_interface")
-	useClusterIP, _ := d.GetOk("source_from_cluster_ip")
-	if useClusterIP == true && source == "" {
+	source, _ := d.Get("source_interface").(string)
+	useClusterIP, _ := d.Get("source_from_cluster_ip").(bool)
+	if useClusterIP && source == "" {
 		return fmt.Errorf("source_from_cluster_ip = true requires source_interface to be set")
 	}
 	return nil
