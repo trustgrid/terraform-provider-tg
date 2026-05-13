@@ -180,7 +180,7 @@ func ClusterService() *schema.Resource {
 				Default:     true,
 			},
 			"source_interface": {
-				Description: "NIC used for the upstream connection (e.g. `ens192`). V2-only.",
+				Description: "NIC used for the upstream connection (e.g. `ens192`). V2-only. Note: setting this alone may produce VIP-sourcing depending on cluster IP topology (e.g. if the cluster VIP is a secondary IP on this NIC on the active node). For predictable VIP-sourcing behavior, set both `source_interface` and `source_from_cluster_ip = true`.",
 				Type:        schema.TypeString,
 				Optional:    true,
 			},

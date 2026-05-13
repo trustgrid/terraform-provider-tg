@@ -42,7 +42,7 @@ resource "tg_cluster_service" "https_forwarder" {
 - `description` (String) Description.
 - `enabled` (Boolean) Whether the service is enabled.
 - `source_from_cluster_ip` (Boolean) When true, bind the outbound socket to the cluster VIP on `source_interface`. Requires `source_interface` to be set. V2-only.
-- `source_interface` (String) NIC used for the upstream connection (e.g. `ens192`). V2-only.
+- `source_interface` (String) NIC used for the upstream connection (e.g. `ens192`). V2-only. Note: setting this alone may produce VIP-sourcing depending on cluster IP topology (e.g. if the cluster VIP is a secondary IP on this NIC on the active node). For predictable VIP-sourcing behavior, set both `source_interface` and `source_from_cluster_ip = true`.
 
 ### Read-Only
 
