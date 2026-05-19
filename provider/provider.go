@@ -90,6 +90,7 @@ func New(version string) func() *schema.Provider {
 				"tg_app_acl":                          resource.AppACL(),
 				"tg_cert":                             resource.Cert(),
 				"tg_cluster":                          resource.Cluster(),
+				"tg_cluster_active_member":            resource.ClusterActiveMember(),
 				"tg_cluster_connector":                resource.ClusterConnector(),
 				"tg_cluster_connectors_v2_upgrade":    resource.ClusterConnectorsV2Upgrade(),
 				"tg_cluster_member":                   resource.ClusterMember(),
