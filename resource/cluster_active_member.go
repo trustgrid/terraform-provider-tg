@@ -27,6 +27,17 @@ type clusterActiveMember struct{}
 // at most one of these per cluster); the API silently overwrites if you call
 // it twice in the same apply, so terraform plan-time conflict detection would
 // require a separate cross-resource validator. Documented but not enforced.
+//
+// Failover stickiness: Read is intentionally a no-op for `node_id`. This means
+// terraform only ever issues `PUT /active/{node_id}` when the user explicitly
+// changes the HCL value (or on initial Create). If the cluster fails over
+// outside terraform — node death, Lambda cluster-IP failover handler, portal
+// admin clicking promote, in-node election picking a new master after a peer
+// drops — terraform stays out of the way and does NOT try to revert reality
+// back to the originally-declared master. The tradeoff is that `terraform
+// plan` cannot surface out-of-band master changes as drift; users who want
+// drift detection should poll the portal independently. For a master
+// designation in a clustered system, failover-tolerance is the right default.
 func ClusterActiveMember() *schema.Resource {
 	c := clusterActiveMember{}
 
@@ -105,10 +116,20 @@ func (c *clusterActiveMember) Update(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
+// Read intentionally does NOT refresh `node_id` from the live cluster state.
+// See the type-level comment for the failover-stickiness rationale: pulling
+// the current master into state would cause the next apply to try and revert
+// out-of-band failovers (Lambda, portal click, node death) back to the
+// HCL-declared master — which is exactly the kind of thrash a clustered
+// system needs to avoid. Instead, state mirrors what HCL last applied, and
+// terraform only issues `PUT /active/{node_id}` when the user explicitly
+// changes the HCL value (or on Create).
+//
+// We still verify the cluster itself exists so the resource gets cleared
+// from state if someone destroys the underlying cluster outside terraform.
 func (c *clusterActiveMember) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
 
-	// Confirm cluster still exists; clear state if not.
 	var cluster tg.Cluster
 	err := tgc.Get(ctx, "/cluster/"+d.Id(), &cluster)
 	var nferr *tg.NotFoundError
@@ -120,24 +141,6 @@ func (c *clusterActiveMember) Read(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	// Drift-detect by finding whichever member is currently flagged master.
-	var nodes []tg.Node
-	if err := tgc.Get(ctx, "/node?cluster="+d.Id(), &nodes); err != nil {
-		return diag.FromErr(fmt.Errorf("listing members of cluster %s: %w", d.Id(), err))
-	}
-	for _, n := range nodes {
-		if n.Config.Cluster.Active {
-			if err := d.Set("node_id", n.UID); err != nil {
-				return diag.FromErr(err)
-			}
-			if err := d.Set("cluster_fqdn", d.Id()); err != nil {
-				return diag.FromErr(err)
-			}
-			return nil
-		}
-	}
-	// No active member upstream — leave node_id as configured so the next
-	// apply will re-promote (this is a recoverable drift, not a deletion).
 	return nil
 }
 
