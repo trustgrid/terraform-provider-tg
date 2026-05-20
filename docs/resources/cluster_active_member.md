@@ -3,41 +3,15 @@
 page_title: "tg_cluster_active_member Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Designate the active master of a TG cluster.
-  Every functional cluster has exactly one active member. This resource declaratively sets it via PUT /cluster/{fqdn}/active/{node_id}. The referenced node must already be a member of the cluster (typically via tg_cluster_member); use a reference or depends_on to ensure ordering.
-  Lifecycle semantics
-  Create — issues PUT /cluster/{fqdn}/active/{node_id} to promote the named node.Update — re-issues PUT /cluster/{fqdn}/active/{node_id} only when the HCL node_id changes. This is the only path that re-promotes.Read — intentionally a no-op for node_id. Refresh does not query the upstream master and does not mutate state. See "Failover stickiness" below.Delete — no-op. There is no "unset master" API, and removing the resource from terraform should not demote a working cluster. To change the master, modify node_id instead.
-  Failover stickiness — what this resource does not do
-  After Create, subsequent terraform apply runs are effectively a no-op for this resource unless the HCL node_id itself changes. In particular:
-  If the cluster fails over outside terraform — node death, Lambda cluster-IP failover, a portal admin clicking "Make Active", in-node election after a peer drops — terraform plan will not see drift and terraform apply will not revert the master back to the originally-declared node.Real-world failover is the whole point of clustering; terraform fighting failover would be the wrong default. This resource sets the configured active master once (and on subsequent HCL changes), then steps out of the way.To force a re-promotion, change node_id in HCL. The Update path will fire PUT /cluster/{fqdn}/active/{node_id} against the portal.
-  Tradeoff: terraform plan cannot surface out-of-band master changes as drift. Operators who need that visibility should query the portal directly (e.g. the tg_cluster data source).
-  Declare at most one tg_cluster_active_member per cluster — the API will accept multiple calls but only one node is master at a time, so two of these for one cluster will fight each other across applies.
+  Designates which cluster member is the active node.
+  Set once per cluster. Subsequent terraform apply runs do not touch the active node unless you change node_id in your configuration. Cluster failovers performed outside terraform are not reverted and not surfaced as drift.
 ---
 
 # tg_cluster_active_member (Resource)
 
-Designate the active master of a TG cluster.
+Designates which cluster member is the active node.
 
-Every functional cluster has exactly one active member. This resource declaratively sets it via `PUT /cluster/{fqdn}/active/{node_id}`. The referenced node must already be a member of the cluster (typically via `tg_cluster_member`); use a reference or `depends_on` to ensure ordering.
-
-## Lifecycle semantics
-
-- **Create** — issues `PUT /cluster/{fqdn}/active/{node_id}` to promote the named node.
-- **Update** — re-issues `PUT /cluster/{fqdn}/active/{node_id}` *only* when the HCL `node_id` changes. This is the only path that re-promotes.
-- **Read** — intentionally a no-op for `node_id`. Refresh does not query the upstream master and does not mutate state. See "Failover stickiness" below.
-- **Delete** — no-op. There is no "unset master" API, and removing the resource from terraform should not demote a working cluster. To change the master, modify `node_id` instead.
-
-## Failover stickiness — what this resource does *not* do
-
-After Create, subsequent `terraform apply` runs are effectively a no-op for this resource unless the HCL `node_id` itself changes. In particular:
-
-- If the cluster fails over outside terraform — node death, Lambda cluster-IP failover, a portal admin clicking "Make Active", in-node election after a peer drops — `terraform plan` will not see drift and `terraform apply` will not revert the master back to the originally-declared node.
-- Real-world failover is the whole point of clustering; terraform fighting failover would be the wrong default. This resource sets the *configured* active master once (and on subsequent HCL changes), then steps out of the way.
-- To force a re-promotion, change `node_id` in HCL. The Update path will fire `PUT /cluster/{fqdn}/active/{node_id}` against the portal.
-
-Tradeoff: `terraform plan` cannot surface out-of-band master changes as drift. Operators who need that visibility should query the portal directly (e.g. the `tg_cluster` data source).
-
-Declare at most one `tg_cluster_active_member` per cluster — the API will accept multiple calls but only one node is master at a time, so two of these for one cluster will fight each other across applies.
+Set once per cluster. Subsequent `terraform apply` runs do not touch the active node unless you change `node_id` in your configuration. Cluster failovers performed outside terraform are not reverted and not surfaced as drift.
 
 ## Example Usage
 
@@ -56,9 +30,9 @@ resource "tg_cluster_member" "secondary" {
   node_id      = "f59838ae-a2b2-4c45-b7be-9378f0b265fa"
 }
 
-# Designate the active master. The named node must already be a member of
-# the cluster — depends_on ensures terraform creates the cluster_member
-# resources first.
+# Designate the active node for the cluster. The referenced cluster member
+# must already exist — depends_on ensures terraform creates the
+# cluster_member resources first.
 resource "tg_cluster_active_member" "mycluster" {
   cluster_fqdn = tg_cluster.mycluster.fqdn
   node_id      = tg_cluster_member.primary.node_id
@@ -76,7 +50,7 @@ resource "tg_cluster_active_member" "mycluster" {
 ### Required
 
 - `cluster_fqdn` (String) Cluster FQDN (typically `tg_cluster.<name>.fqdn`).
-- `node_id` (String) Node ID (UUID) of the cluster member to promote to active master.
+- `node_id` (String) Node ID (UUID) of the cluster member to designate as the active node.
 
 ### Read-Only
 

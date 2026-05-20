@@ -13,9 +13,9 @@ resource "tg_cluster_member" "secondary" {
   node_id      = "f59838ae-a2b2-4c45-b7be-9378f0b265fa"
 }
 
-# Designate the active master. The named node must already be a member of
-# the cluster — depends_on ensures terraform creates the cluster_member
-# resources first.
+# Designate the active node for the cluster. The referenced cluster member
+# must already exist — depends_on ensures terraform creates the
+# cluster_member resources first.
 resource "tg_cluster_active_member" "mycluster" {
   cluster_fqdn = tg_cluster.mycluster.fqdn
   node_id      = tg_cluster_member.primary.node_id
