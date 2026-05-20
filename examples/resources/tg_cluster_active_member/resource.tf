@@ -10,7 +10,7 @@ resource "tg_cluster_member" "primary" {
 
 resource "tg_cluster_member" "secondary" {
   cluster_fqdn = tg_cluster.mycluster.fqdn
-  node_id      = "z59838ae6-a2b2-4c45-b7be-9378f0b265fa"
+  node_id      = "f59838ae-a2b2-4c45-b7be-9378f0b265fa"
 }
 
 # Designate the active master. The named node must already be a member of

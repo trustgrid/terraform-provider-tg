@@ -78,8 +78,15 @@ func TestAccClusterActiveMember_FailoverStickyAndUpdate(t *testing.T) {
 	// destroy phase sets cluster=null on the node via tg_cluster_member
 	// Delete; this Cleanup re-assigns it to fixtureNode2OriginalCluster.
 	t.Cleanup(func() {
-		client := p.Meta().(*tg.Client)
-		if client == nil {
+		// Provider may not have been configured if the test bailed early
+		// (bad creds, network error, etc.) — guard against the Meta() and
+		// type-assert panicking.
+		meta := p.Meta()
+		if meta == nil {
+			return
+		}
+		client, ok := meta.(*tg.Client)
+		if !ok || client == nil {
 			return
 		}
 		_, _ = client.Put(context.Background(),

@@ -47,9 +47,33 @@ func ClusterActiveMember() *schema.Resource {
 			"sets it via `PUT /cluster/{fqdn}/active/{node_id}`. The referenced node must already be " +
 			"a member of the cluster (typically via `tg_cluster_member`); use a reference or " +
 			"`depends_on` to ensure ordering.\n\n" +
-			"Declare at most one `tg_cluster_active_member` per cluster — the API will accept multiple " +
-			"calls but only one node is master at a time, so two of these for one cluster will fight " +
-			"each other across applies.",
+			"## Lifecycle semantics\n\n" +
+			"- **Create** — issues `PUT /cluster/{fqdn}/active/{node_id}` to promote the named node.\n" +
+			"- **Update** — re-issues `PUT /cluster/{fqdn}/active/{node_id}` *only* when the HCL " +
+			"`node_id` changes. This is the only path that re-promotes.\n" +
+			"- **Read** — intentionally a no-op for `node_id`. Refresh does not query the upstream " +
+			"master and does not mutate state. See \"Failover stickiness\" below.\n" +
+			"- **Delete** — no-op. There is no \"unset master\" API, and removing the resource from " +
+			"terraform should not demote a working cluster. To change the master, modify `node_id` " +
+			"instead.\n\n" +
+			"## Failover stickiness — what this resource does *not* do\n\n" +
+			"After Create, subsequent `terraform apply` runs are effectively a no-op for this " +
+			"resource unless the HCL `node_id` itself changes. In particular:\n\n" +
+			"- If the cluster fails over outside terraform — node death, Lambda cluster-IP failover, " +
+			"a portal admin clicking \"Make Active\", in-node election after a peer drops — " +
+			"`terraform plan` will not see drift and `terraform apply` will not revert the master " +
+			"back to the originally-declared node.\n" +
+			"- Real-world failover is the whole point of clustering; terraform fighting failover " +
+			"would be the wrong default. This resource sets the *configured* active master once " +
+			"(and on subsequent HCL changes), then steps out of the way.\n" +
+			"- To force a re-promotion, change `node_id` in HCL. The Update path will fire " +
+			"`PUT /cluster/{fqdn}/active/{node_id}` against the portal.\n\n" +
+			"Tradeoff: `terraform plan` cannot surface out-of-band master changes as drift. " +
+			"Operators who need that visibility should query the portal directly (e.g. the " +
+			"`tg_cluster` data source).\n\n" +
+			"Declare at most one `tg_cluster_active_member` per cluster — the API will accept " +
+			"multiple calls but only one node is master at a time, so two of these for one cluster " +
+			"will fight each other across applies.",
 
 		ReadContext:   c.Read,
 		UpdateContext: c.Update,
