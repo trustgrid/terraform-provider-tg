@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/trustgrid/terraform-provider-tg/hcl"
 	"github.com/trustgrid/terraform-provider-tg/tg"
 	"github.com/trustgrid/terraform-provider-tg/validators"
 )
@@ -82,18 +83,14 @@ func (c *clusterActiveMember) promote(ctx context.Context, tgc *tg.Client, fqdn,
 
 func (c *clusterActiveMember) Create(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	tgc := tg.GetClient(meta)
-	fqdn, ok := d.Get("cluster_fqdn").(string)
-	if !ok || fqdn == "" {
-		return diag.FromErr(errors.New("cluster_fqdn must be a non-empty string"))
-	}
-	nodeID, ok := d.Get("node_id").(string)
-	if !ok || nodeID == "" {
-		return diag.FromErr(errors.New("node_id must be a non-empty string"))
-	}
-	if err := c.promote(ctx, tgc, fqdn, nodeID); err != nil {
+	tf, err := hcl.DecodeResourceData[hcl.ClusterActiveMember](d)
+	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(fqdn)
+	if err := c.promote(ctx, tgc, tf.ClusterFQDN, tf.NodeID); err != nil {
+		return diag.FromErr(err)
+	}
+	d.SetId(tf.ClusterFQDN)
 	return nil
 }
 
@@ -102,11 +99,11 @@ func (c *clusterActiveMember) Update(ctx context.Context, d *schema.ResourceData
 		return nil
 	}
 	tgc := tg.GetClient(meta)
-	nodeID, ok := d.Get("node_id").(string)
-	if !ok || nodeID == "" {
-		return diag.FromErr(errors.New("node_id must be a non-empty string"))
+	tf, err := hcl.DecodeResourceData[hcl.ClusterActiveMember](d)
+	if err != nil {
+		return diag.FromErr(err)
 	}
-	if err := c.promote(ctx, tgc, d.Id(), nodeID); err != nil {
+	if err := c.promote(ctx, tgc, d.Id(), tf.NodeID); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
