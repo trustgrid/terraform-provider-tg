@@ -15,6 +15,49 @@ import (
 
 type network struct{}
 
+func validateNetworkConfigDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
+	clusterFQDN, _ := d.Get("cluster_fqdn").(string)
+	interfaces, ok := d.GetOk("interface")
+	if !ok {
+		return nil
+	}
+
+	interfaceList, ok := interfaces.([]any)
+	if !ok {
+		return fmt.Errorf("interface has invalid type %T", interfaces)
+	}
+
+	return validateNetworkConfigInterfaces(interfaceList, clusterFQDN != "")
+
+}
+
+func validateNetworkConfigInterfaces(interfaceList []any, isCluster bool) error {
+	if !isCluster {
+		return nil
+	}
+
+	for i, rawInterface := range interfaceList {
+		iface, ok := rawInterface.(map[string]any)
+		if !ok {
+			return fmt.Errorf("interface %d has invalid type %T", i, rawInterface)
+		}
+
+		dhcp, _ := iface["dhcp"].(bool)
+		if !dhcp {
+			continue
+		}
+
+		nic, _ := iface["nic"].(string)
+		if nic == "" {
+			nic = fmt.Sprintf("index %d", i)
+		}
+
+		return fmt.Errorf("interface %q cannot set dhcp = true when cluster_fqdn is set; cluster interfaces only allow nic, cluster_ip, route, cloud_route, and cluster_route_tables", nic)
+	}
+
+	return nil
+}
+
 func NetworkConfig() *schema.Resource {
 	n := network{}
 
@@ -25,6 +68,7 @@ func NetworkConfig() *schema.Resource {
 		ReadContext:   n.Read,
 		UpdateContext: n.Update,
 		DeleteContext: n.Delete,
+		CustomizeDiff: validateNetworkConfigDiff,
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {

@@ -3,6 +3,7 @@ package acctests
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,6 +42,16 @@ resource "tg_network_config" "test" {
   }
 }`
 
+const clusterNetworkConfigDHCP = `
+resource "tg_network_config" "test" {
+  cluster_fqdn = "cluster.example.com"
+
+  interface {
+    nic = "ens192"
+    dhcp = true
+  }
+}`
+
 func TestAccNetworkConfig_NodeHappyPath(t *testing.T) {
 	compareValuesSame := statecheck.CompareValue(compare.ValuesSame())
 
@@ -72,6 +83,23 @@ func TestAccNetworkConfig_NodeHappyPath(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					compareValuesSame.AddStateValue("tg_network_config.test", tfjsonpath.New("id")),
 				},
+			},
+		},
+	})
+}
+
+func TestAccNetworkConfig_ClusterRejectsDHCP(t *testing.T) {
+	provider := provider.New("test")()
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config:      clusterNetworkConfigDHCP,
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`cannot set dhcp = true when cluster_fqdn is set`),
 			},
 		},
 	})
