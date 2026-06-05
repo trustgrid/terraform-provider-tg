@@ -112,7 +112,11 @@ func checkNetworkConfig(ctx context.Context, provider *schema.Provider, name str
 			return fmt.Errorf("not found: %s", name)
 		}
 
-		client := provider.Meta().(*tg.Client)
+		meta := provider.Meta()
+		client, ok := meta.(*tg.Client)
+		if !ok {
+			return fmt.Errorf("provider meta has unexpected type %T", meta)
+		}
 
 		n := tg.Node{}
 		if err := client.Get(ctx, "/node/"+rs.Primary.ID, &n); err != nil {

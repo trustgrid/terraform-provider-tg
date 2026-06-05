@@ -28,7 +28,6 @@ func validateNetworkConfigDiff(_ context.Context, d *schema.ResourceDiff, _ any)
 	}
 
 	return validateNetworkConfigInterfaces(interfaceList, clusterFQDN != "")
-
 }
 
 func validateNetworkConfigInterfaces(interfaceList []any, isCluster bool) error {
