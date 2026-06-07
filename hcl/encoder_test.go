@@ -7,6 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type fakeGetter map[string]any
+
+func (f fakeGetter) GetOk(key string) (any, bool) {
+	value, ok := f[key]
+	return value, ok
+}
+
 func TestDecode_Simple(t *testing.T) {
 	type unset struct {
 		Int    int     `tf:"int"`
@@ -195,6 +202,31 @@ func TestDecode_Structs(t *testing.T) {
 	assert.Equal(t, 7, u.Nested[0].Int)
 	assert.NotNil(t, u.Nested[0].IntPtr)
 	assert.Equal(t, 22, *u.Nested[0].IntPtr)
+}
+
+func TestDecodeTFTagged_Structs(t *testing.T) {
+	t.Parallel()
+
+	type nested struct {
+		String string `tf:"string"`
+		Bool   bool   `tf:"bool"`
+	}
+
+	type config struct {
+		Name   string   `tf:"name"`
+		Nested []nested `tf:"nested"`
+	}
+
+	decoded, err := decodeTFTagged[config](fakeGetter{
+		"name":   "bob",
+		"nested": []map[string]any{{"string": "hi", "bool": true}},
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, "bob", decoded.Name)
+	assert.Len(t, decoded.Nested, 1)
+	assert.Equal(t, "hi", decoded.Nested[0].String)
+	assert.True(t, decoded.Nested[0].Bool)
 }
 
 func TestEncode_Simple(t *testing.T) {

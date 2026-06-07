@@ -5,38 +5,37 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/trustgrid/terraform-provider-tg/hcl"
 )
 
 func TestValidateNetworkConfigInterfaces(t *testing.T) {
 	tests := []struct {
 		name       string
-		interfaces []any
+		interfaces []hcl.NetworkInterface
 		isCluster  bool
 		err        string
 	}{
 		{
-			name: "node allows dhcp",
-			interfaces: []any{map[string]any{
-				"nic":  "ens192",
-				"dhcp": true,
-			}},
-			isCluster: false,
+			name:       "node allows dhcp",
+			interfaces: []hcl.NetworkInterface{{NIC: "ens192", DHCP: true}},
+			isCluster:  false,
 		},
 		{
-			name: "cluster allows interface without dhcp",
-			interfaces: []any{map[string]any{
-				"nic": "ens192",
-			}},
-			isCluster: true,
+			name:       "cluster allows interface without dhcp",
+			interfaces: []hcl.NetworkInterface{{NIC: "ens192"}},
+			isCluster:  true,
 		},
 		{
-			name: "cluster rejects dhcp",
-			interfaces: []any{map[string]any{
-				"nic":  "ens192",
-				"dhcp": true,
-			}},
-			isCluster: true,
-			err:       `interface "ens192" cannot set dhcp = true when cluster_fqdn is set`,
+			name:       "cluster rejects dhcp",
+			interfaces: []hcl.NetworkInterface{{NIC: "ens192", DHCP: true}},
+			isCluster:  true,
+			err:        `interface "ens192" cannot set dhcp = true when cluster_fqdn is set`,
+		},
+		{
+			name:       "cluster rejects dhcp without nic",
+			interfaces: []hcl.NetworkInterface{{DHCP: true}},
+			isCluster:  true,
+			err:        `interface "index 0" cannot set dhcp = true when cluster_fqdn is set`,
 		},
 	}
 

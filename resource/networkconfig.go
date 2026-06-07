@@ -16,37 +16,27 @@ import (
 type network struct{}
 
 func validateNetworkConfigDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
-	clusterFQDN, _ := d.Get("cluster_fqdn").(string)
-	interfaces, ok := d.GetOk("interface")
-	if !ok {
-		return nil
+	tf, err := hcl.DecodeResourceDiff[hcl.NetworkConfig](d)
+	if err != nil {
+		return err
 	}
 
-	interfaceList, ok := interfaces.([]any)
-	if !ok {
-		return fmt.Errorf("interface has invalid type %T", interfaces)
-	}
+	_, isCluster := d.GetOk("cluster_fqdn")
 
-	return validateNetworkConfigInterfaces(interfaceList, clusterFQDN != "")
+	return validateNetworkConfigInterfaces(tf.Interfaces, isCluster)
 }
 
-func validateNetworkConfigInterfaces(interfaceList []any, isCluster bool) error {
+func validateNetworkConfigInterfaces(interfaces []hcl.NetworkInterface, isCluster bool) error {
 	if !isCluster {
 		return nil
 	}
 
-	for i, rawInterface := range interfaceList {
-		iface, ok := rawInterface.(map[string]any)
-		if !ok {
-			return fmt.Errorf("interface %d has invalid type %T", i, rawInterface)
-		}
-
-		dhcp, _ := iface["dhcp"].(bool)
-		if !dhcp {
+	for i, iface := range interfaces {
+		if !iface.DHCP {
 			continue
 		}
 
-		nic, _ := iface["nic"].(string)
+		nic := iface.NIC
 		if nic == "" {
 			nic = fmt.Sprintf("index %d", i)
 		}
