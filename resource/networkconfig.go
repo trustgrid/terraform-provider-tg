@@ -15,6 +15,38 @@ import (
 
 type network struct{}
 
+func validateNetworkConfigDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
+	tf, err := hcl.DecodeResourceDiff[hcl.NetworkConfig](d)
+	if err != nil {
+		return err
+	}
+
+	_, isCluster := d.GetOk("cluster_fqdn")
+
+	return validateNetworkConfigInterfaces(tf.Interfaces, isCluster)
+}
+
+func validateNetworkConfigInterfaces(interfaces []hcl.NetworkInterface, isCluster bool) error {
+	if !isCluster {
+		return nil
+	}
+
+	for i, iface := range interfaces {
+		if !iface.DHCP {
+			continue
+		}
+
+		nic := iface.NIC
+		if nic == "" {
+			nic = fmt.Sprintf("index %d", i)
+		}
+
+		return fmt.Errorf("interface %q cannot set dhcp = true when cluster_fqdn is set; cluster interfaces only allow nic, cluster_ip, route, cloud_route, and cluster_route_tables", nic)
+	}
+
+	return nil
+}
+
 func NetworkConfig() *schema.Resource {
 	n := network{}
 
@@ -25,6 +57,7 @@ func NetworkConfig() *schema.Resource {
 		ReadContext:   n.Read,
 		UpdateContext: n.Update,
 		DeleteContext: n.Delete,
+		CustomizeDiff: validateNetworkConfigDiff,
 
 		Schema: map[string]*schema.Schema{
 			"node_id": {

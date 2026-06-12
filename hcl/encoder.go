@@ -9,22 +9,26 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// DecodeResourceData decodes TF resource data (HCL+schema filters/etc) into the given struct,
-// using the `tf` tag. If a field doesn't have a `tf` tag, it won't be populated.
-func DecodeResourceData[T any](d *schema.ResourceData) (T, error) {
+type tfGetter interface {
+	GetOk(string) (any, bool)
+}
+
+func decodeTFTagged[T any](d tfGetter) (T, error) {
 	fields := make(map[string]any)
 
 	target := new(T)
 	for i := 0; i < reflect.TypeOf(target).Elem().NumField(); i++ {
 		field := reflect.TypeOf(target).Elem().FieldByIndex([]int{i})
 		tf := field.Tag.Get("tf")
-		if tf != "" {
-			vals := strings.Split(tf, ",")
-			tf = vals[0]
-			v, ok := d.GetOk(tf)
-			if ok {
-				fields[tf] = v
-			}
+		if tf == "" {
+			continue
+		}
+
+		vals := strings.Split(tf, ",")
+		tf = vals[0]
+		v, ok := d.GetOk(tf)
+		if ok {
+			fields[tf] = v
 		}
 	}
 
@@ -37,6 +41,18 @@ func DecodeResourceData[T any](d *schema.ResourceData) (T, error) {
 	}
 
 	return *target, decoder.Decode(fields)
+}
+
+// DecodeResourceData decodes TF resource data (HCL+schema filters/etc) into the given struct,
+// using the `tf` tag. If a field doesn't have a `tf` tag, it won't be populated.
+func DecodeResourceData[T any](d *schema.ResourceData) (T, error) {
+	return decodeTFTagged[T](d)
+}
+
+// DecodeResourceDiff decodes TF diff data into the given struct using the `tf`
+// tag so plan-time validation can share the same typed HCL models as CRUD paths.
+func DecodeResourceDiff[T any](d *schema.ResourceDiff) (T, error) {
+	return decodeTFTagged[T](d)
 }
 
 func convertToMap(in any) (map[string]any, error) {

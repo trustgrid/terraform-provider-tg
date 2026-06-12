@@ -3,6 +3,7 @@ package acctests
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -38,6 +39,16 @@ resource "tg_network_config" "test" {
       description = "some desc"
       next_hop = "127.0.0.1"
     }
+  }
+}`
+
+const clusterNetworkConfigDHCP = `
+resource "tg_network_config" "test" {
+  cluster_fqdn = "cluster.example.com"
+
+  interface {
+    nic = "ens192"
+    dhcp = true
   }
 }`
 
@@ -77,6 +88,23 @@ func TestAccNetworkConfig_NodeHappyPath(t *testing.T) {
 	})
 }
 
+func TestAccNetworkConfig_ClusterRejectsDHCP(t *testing.T) {
+	provider := provider.New("test")()
+
+	resource.Test(t, resource.TestCase{
+		Providers: map[string]*schema.Provider{
+			"tg": provider,
+		},
+		Steps: []resource.TestStep{
+			{
+				Config:      clusterNetworkConfigDHCP,
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`cannot set dhcp = true when cluster_fqdn is set`),
+			},
+		},
+	})
+}
+
 func checkNetworkConfig(ctx context.Context, provider *schema.Provider, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -84,7 +112,11 @@ func checkNetworkConfig(ctx context.Context, provider *schema.Provider, name str
 			return fmt.Errorf("not found: %s", name)
 		}
 
-		client := provider.Meta().(*tg.Client)
+		meta := provider.Meta()
+		client, ok := meta.(*tg.Client)
+		if !ok {
+			return fmt.Errorf("provider meta has unexpected type %T", meta)
+		}
 
 		n := tg.Node{}
 		if err := client.Get(ctx, "/node/"+rs.Primary.ID, &n); err != nil {
