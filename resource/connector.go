@@ -20,7 +20,8 @@ func Connector() *schema.Resource {
 	r := connector{}
 
 	return &schema.Resource{
-		Description: "Node or Cluster Connector",
+		Description:        "Node or Cluster Connector",
+		DeprecationMessage: "This resource is deprecated. Use tg_node_connector or tg_cluster_connector instead.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
