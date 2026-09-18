@@ -20,7 +20,8 @@ func Service() *schema.Resource {
 	r := service{}
 
 	return &schema.Resource{
-		Description: "Node or Cluster Service",
+		Description:        "Node or Cluster Service",
+		DeprecationMessage: "This resource is deprecated. Use tg_node_service or tg_cluster_service instead.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
