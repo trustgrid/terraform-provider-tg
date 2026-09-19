@@ -43,6 +43,14 @@ Runs:
 golangci-lint run --tests=false ./...
 ```
 
+### GitHub Actions workflow linting
+
+Pull requests run [actionlint](https://github.com/rhysd/actionlint) against every workflow in `.github/workflows` as part of the `Test / Lint` check. To run the same validation locally, install actionlint (for example, with `brew install actionlint`) and run:
+
+```bash
+actionlint
+```
+
 ### `make test`
 
 Runs the full Go test suite.
