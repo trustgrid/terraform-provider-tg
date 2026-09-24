@@ -105,6 +105,11 @@ type VRFRule struct {
 	Source      string `tf:"source,omitempty"`
 	VRF         string `tf:"vrf,omitempty"`
 	Dest        string `tf:"dest,omitempty"`
+	In          string `tf:"in,omitempty"`
+	IFace       string `tf:"iface,omitempty"`
+	SNAT        bool   `tf:"snat"`
+	Ports       string `tf:"ports,omitempty"`
+	DNAT        string `tf:"dnat,omitempty"`
 }
 
 type VRF struct {
@@ -171,6 +176,11 @@ func (r VRFRule) ToTG() tg.VRFRule {
 		Source:      r.Source,
 		VRF:         r.VRF,
 		Dest:        r.Dest,
+		In:          r.In,
+		IFace:       r.IFace,
+		SNAT:        r.SNAT,
+		Ports:       r.Ports,
+		DNAT:        r.DNAT,
 	}
 }
 
@@ -397,6 +407,11 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 				Source:      r.Source,
 				VRF:         r.VRF,
 				Dest:        r.Dest,
+				In:          r.In,
+				IFace:       r.IFace,
+				SNAT:        r.SNAT,
+				Ports:       r.Ports,
+				DNAT:        r.DNAT,
 			})
 		}
 
