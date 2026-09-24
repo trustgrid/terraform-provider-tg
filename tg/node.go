@@ -290,6 +290,11 @@ type VRFRule struct {
 	Source      string `json:"source,omitempty"`
 	VRF         string `json:"vrf,omitempty"`
 	Dest        string `json:"dest,omitempty"`
+	In          string `json:"in,omitempty"`
+	IFace       string `json:"iface,omitempty"`
+	SNAT        bool   `json:"snat,omitempty"`
+	Ports       string `json:"ports,omitempty"`
+	DNAT        string `json:"dnat,omitempty"`
 }
 
 type VRF struct {

@@ -121,6 +121,28 @@ resource "tg_network_config" "network-1" {
       vrf         = "some-vrf-name"
       dest        = "10.20.20.0/24"
     }
+    rule {
+      protocol    = "udp"
+      line        = 2
+      action      = "forward"
+      description = "local internet breakout for STUN"
+      source      = "0.0.0.0/0"
+      dest        = "0.0.0.0/0"
+      ports       = "3478-3479"
+      in          = "ens224"
+      iface       = "ens192"
+      snat        = true
+    }
+    rule {
+      protocol    = "tcp"
+      line        = 3
+      action      = "dnat"
+      description = "publish internal web server"
+      source      = "0.0.0.0/0"
+      dest        = "10.20.10.50/32"
+      ports       = "443"
+      dnat        = "10.20.20.5:443"
+    }
     forwarding = true
     acl {
       action   = "allow"

@@ -48,6 +48,15 @@ resource "tg_node_interface" "eth1" {
 **Run `make docs` before committing** when you add or change a resource or data source.
 Commit the updated files under `docs/` alongside the code changes.
 
+`tfplugindocs` derives the provider name from the checkout's directory name. In a clone
+not named exactly `terraform-provider-tg` (e.g. a worktree `terraform-provider-tg-270`),
+`make docs` fails with `executing "docTemplate" at <plainmarkdown>: invalid value` and
+deletes every file under `docs/`. Run it with the name pinned instead:
+
+```bash
+go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name terraform-provider-tg
+```
+
 ## Project Structure
 
 ```
@@ -116,7 +125,7 @@ func Alarm() *schema.Resource {
 }
 ```
 
-**GET API INFO FROM https://apidocs.trustgrid.io/page-data/shared/oas-index.yaml.json**
+**GET API INFO FROM https://apidocs.trustgrid.io/page-data/shared/api-docs-index.yaml.json**
 
 **Custom CRUD (for complex resources like Container):**
 ```go
@@ -130,7 +139,7 @@ func (cr *container) Create(ctx context.Context, d *schema.ResourceData, meta an
 }
 ```
 
-**GET API INFO FROM https://apidocs.trustgrid.io/page-data/shared/oas-index.yaml.json**
+**GET API INFO FROM https://apidocs.trustgrid.io/page-data/shared/api-docs-index.yaml.json**
 
 ### Error Handling
 ```go
@@ -199,5 +208,5 @@ goimports, gosec, gocritic, revive. Nolint comments require explanation:
 
 ## API
 
-Find API interactions at https://apidocs.trustgrid.io/page-data/shared/oas-index.yaml.json. **ALL types, fields, URLs, and verbs MUST come from that document**.
+Find API interactions at https://apidocs.trustgrid.io/page-data/shared/api-docs-index.yaml.json. **ALL types, fields, URLs, and verbs MUST come from that document**.
 

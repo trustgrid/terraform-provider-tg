@@ -260,8 +260,33 @@ func NetworkConfig() *schema.Resource {
 										Type:        schema.TypeString,
 										Optional:    true,
 									},
+									"in": {
+										Description: "Input interface to match",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
+									"iface": {
+										Description: "Output interface for `forward` rules",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
+									"snat": {
+										Description: "Source-NAT matching traffic to the output interface's address",
+										Type:        schema.TypeBool,
+										Optional:    true,
+									},
+									"ports": {
+										Description: "Port or port range to match, like 443 or 3478-3479. Only applicable for protocols tcp and udp.",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
+									"dnat": {
+										Description: "Destination-NAT target for `dnat` rules",
+										Type:        schema.TypeString,
+										Optional:    true,
+									},
 									"action": {
-										Description:  "To Dest",
+										Description:  "Action",
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringInSlice([]string{"accept", "drop", "reject", "forward", "dnat"}, false),

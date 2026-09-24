@@ -135,6 +135,28 @@ resource "tg_network_config" "network-1" {
       vrf         = "some-vrf-name"
       dest        = "10.20.20.0/24"
     }
+    rule {
+      protocol    = "udp"
+      line        = 2
+      action      = "forward"
+      description = "local internet breakout for STUN"
+      source      = "0.0.0.0/0"
+      dest        = "0.0.0.0/0"
+      ports       = "3478-3479"
+      in          = "ens224"
+      iface       = "ens192"
+      snat        = true
+    }
+    rule {
+      protocol    = "tcp"
+      line        = 3
+      action      = "dnat"
+      description = "publish internal web server"
+      source      = "0.0.0.0/0"
+      dest        = "10.20.10.50/32"
+      ports       = "443"
+      dnat        = "10.20.20.5:443"
+    }
     forwarding = true
     acl {
       action   = "allow"
@@ -346,7 +368,12 @@ Required:
 
 Optional:
 
-- `action` (String) To Dest
+- `action` (String) Action
 - `description` (String) Description
+- `dnat` (String) Destination-NAT target for `dnat` rules
+- `iface` (String) Output interface for `forward` rules
+- `in` (String) Input interface to match
 - `line` (Number) Line
+- `ports` (String) Port or port range to match, like 443 or 3478-3479. Only applicable for protocols tcp and udp.
+- `snat` (Boolean) Source-NAT matching traffic to the output interface's address
 - `vrf` (String) VRF

@@ -203,9 +203,14 @@ Read-Only:
 
 Optional:
 
-- `action` (String) To Dest
+- `action` (String) Action
 - `description` (String) Description
+- `dnat` (String) Destination-NAT target for `dnat` rules
+- `iface` (String) Output interface for `forward` rules
+- `in` (String) Input interface to match
 - `line` (Number) Line
+- `ports` (String) Port or port range to match, like 443 or 3478-3479. Only applicable for protocols tcp and udp.
+- `snat` (Boolean) Source-NAT matching traffic to the output interface's address
 - `vrf` (String) VRF
 
 Read-Only:
