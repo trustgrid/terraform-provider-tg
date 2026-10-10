@@ -56,7 +56,7 @@ tasks:
     name: Run unit tests
     description: Run tests without enabling live acceptance tests
     type: script
-    script: make test
+    script: TF_ACC= make test
   - id: lint
     name: Lint Go code
     type: script
