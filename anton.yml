@@ -1,0 +1,67 @@
+approval:
+  auto_approve: true
+  whole_repo: true
+  judgement:
+    - id: whole-repo
+      description: >-
+        The whole repository is in scope. Say outside only when the change
+        reaches beyond it - a credential, a production endpoint, or a
+        deployment it can trigger elsewhere.
+review:
+  prompts:
+    - id: offline-unit-tests
+      paths:
+        - datasource/*_test.go
+        - hcl/*_test.go
+        - resource/*_test.go
+        - tg/*_test.go
+        - validators/*_test.go
+      context: >-
+        These are package-level Go unit tests, separate from acctests; confirm
+        the changed test uses synthetic fixtures and does not call Trustgrid.
+      instructions: |
+        Do not flag missing CORS or CSP controls for these tests because the
+        provider is a Terraform API client, not a browser-facing server. Treat
+        credential-like strings as disposable only when the changed test proves
+        they are synthetic. Continue to report real credentials, external API
+        calls, or tests that bypass production security expectations. Do not
+        apply this rule to acctests.
+    - id: live-acceptance-tests
+      paths:
+        - acctests/**
+      context: >-
+        These acceptance tests can contact a real Trustgrid environment when
+        TF_ACC=1 and use TG_API_KEY_ID, TG_API_KEY_SECRET, TG_API_HOST, and
+        TG_ORG_ID supplied through the environment.
+      instructions: |
+        Do not flag the names of environment variables or clearly fake example
+        IDs as leaked credentials. Treat actual credential values and target
+        organizations as live unless the changed code proves otherwise; report
+        hard-coded secrets, credential logging, unsafe production targeting,
+        or auth bypasses. Do not dismiss an issue merely because it is in a
+        test. CORS or CSP applies only if a browser-facing service is added.
+    - id: development-container
+      paths:
+        - .devcontainer/**
+      context: >-
+        The devcontainer installs Go and Terraform tools; acceptance-test
+        credentials are supplied as Codespaces secrets rather than stored here.
+      instructions: |
+        Do not treat documented secret names or a tool-only devcontainer as
+        exposed credentials. Continue to report committed keys or tokens,
+        production endpoints, unsafe service exposure, or changes that write
+        secrets into the repository.
+tasks:
+  - id: test
+    name: Run unit tests
+    description: Run tests without enabling live acceptance tests
+    type: script
+    script: TF_ACC= make test
+  - id: lint
+    name: Lint Go code
+    type: script
+    script: make lint
+  - id: build
+    name: Build provider
+    type: script
+    script: make build
