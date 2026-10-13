@@ -3,12 +3,12 @@
 page_title: "tg_tagging Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Manages selected tags on a node or the complete tag map on a cluster.
+  Manages the complete tag map on a node or cluster.
 ---
 
 # tg_tagging (Resource)
 
-Manages selected tags on a node or the complete tag map on a cluster.
+Manages the complete tag map on a node or cluster.
 
 ## Example Usage
 
@@ -30,7 +30,7 @@ resource "tg_tagging" "node1_tags" {
 
 - `cluster_fqdn` (String) Cluster FQDN - required if node_id not set
 - `node_id` (String) Node UID - required if cluster_fqdn not set
-- `tags` (Map of String) Include Tag Filters
+- `tags` (Map of String) Complete tag map.
 
 ### Read-Only
 

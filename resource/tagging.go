@@ -21,8 +21,8 @@ func Tagging() *schema.Resource {
 	r := tagging{}
 
 	return &schema.Resource{
-		Description:        "Manages selected tags on a node or the complete tag map on a cluster.",
-		DeprecationMessage: "For node tags, prefer tg_node_tag to avoid managing unrelated keys. Cluster tags still use full-map ownership.",
+		Description:        "Manages the complete tag map on a node or cluster.",
+		DeprecationMessage: "This resource's plan owns the full map. Use tg_node_tag for single node tag ownership. Cluster tags still use the full-map API.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
@@ -47,7 +47,7 @@ func Tagging() *schema.Resource {
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"tags": {
-				Description: "Include Tag Filters",
+				Description: "Complete tag map.",
 				Type:        schema.TypeMap,
 				Optional:    true,
 				Elem: &schema.Schema{
