@@ -3,12 +3,12 @@
 page_title: "tg_tagging Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Node or Cluster tags
+  Manages selected tags on a node or the complete tag map on a cluster.
 ---
 
 # tg_tagging (Resource)
 
-Node or Cluster tags
+Manages selected tags on a node or the complete tag map on a cluster.
 
 ## Example Usage
 
