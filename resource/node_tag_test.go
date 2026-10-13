@@ -103,6 +103,40 @@ func TestReadNodeTag_EvictsStateWhenTagWasRemoved(t *testing.T) {
 	require.Empty(t, data.Id())
 }
 
+func TestUpdateNodeTag_RejectsStalePriorValue(t *testing.T) {
+	var mutation nodeTagMutation
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&mutation))
+		http.Error(w, "tag changed", http.StatusConflict)
+	}))
+	defer server.Close()
+	previousClient := http.DefaultClient
+	http.DefaultClient = server.Client()
+	defer func() { http.DefaultClient = previousClient }()
+
+	data := schema.TestResourceDataRaw(t, NodeTag().Schema, map[string]interface{}{
+		"node_id": "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc",
+		"name":    "purpose",
+		"value":   "new-value",
+	})
+	data.SetId("35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc/purpose")
+	client := &tg.Client{APIHost: strings.TrimPrefix(server.URL, "https://")}
+
+	diagnostics := writeNodeTag(
+		context.Background(),
+		data,
+		client,
+		stringPointer("stale-value"),
+		stringPointer("new-value"),
+	)
+	require.NotEmpty(t, diagnostics)
+	require.NotNil(t, mutation.ExpectedValue)
+	require.Equal(t, "stale-value", *mutation.ExpectedValue)
+	require.NotNil(t, mutation.Value)
+	require.Equal(t, "new-value", *mutation.Value)
+	require.Equal(t, "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc/purpose", data.Id())
+}
+
 func TestTaggingWriteTags_ChangesOnlyChangedNodeKeys(t *testing.T) {
 	var mu sync.Mutex
 	mutations := make(map[string]nodeTagMutation)
