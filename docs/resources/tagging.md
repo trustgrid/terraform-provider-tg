@@ -29,7 +29,7 @@ resource "tg_tagging" "node1_tags" {
 ### Optional
 
 - `cluster_fqdn` (String) Cluster FQDN - required if node_id not set
-- `node_id` (String) Node UID - required if cluster_fqdn not set
+- `node_id` (String, Deprecated) Node UID - required if cluster_fqdn not set
 - `tags` (Map of String) Complete tag map.
 
 ### Read-Only

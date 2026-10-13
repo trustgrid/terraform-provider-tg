@@ -28,7 +28,7 @@ type nodeTagMutation struct {
 // NodeTag manages one tag on one node with a conditional update.
 func NodeTag() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Manages one node tag without replacing other tags. Import with <node_id>/<name>.",
+		Description:   "Manages one node tag without replacing other tags. Import with `node_id/name`.",
 		CreateContext: createNodeTag,
 		ReadContext:   readNodeTag,
 		UpdateContext: updateNodeTag,

@@ -21,8 +21,7 @@ func Tagging() *schema.Resource {
 	r := tagging{}
 
 	return &schema.Resource{
-		Description:        "Manages the complete tag map on a node or cluster.",
-		DeprecationMessage: "This resource's plan owns the full map. Use tg_node_tag for single node tag ownership. Cluster tags still use the full-map API.",
+		Description: "Manages the complete tag map on a node or cluster.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
@@ -32,6 +31,7 @@ func Tagging() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"node_id": {
 				Description:  "Node UID - required if cluster_fqdn not set",
+				Deprecated:   "This node mode owns the complete tag map. Use tg_node_tag for single node tag ownership.",
 				Type:         schema.TypeString,
 				ValidateFunc: validation.IsUUID,
 				Optional:     true,

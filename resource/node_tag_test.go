@@ -54,6 +54,55 @@ func TestImportNodeTag_ParsesNodeAndTag(t *testing.T) {
 	require.Equal(t, "purpose", data.Get("name"))
 }
 
+func TestDeleteNodeTag_UsesExpectedValue(t *testing.T) {
+	var mutation nodeTagMutation
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "/node/35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc/tag/purpose/compare-and-set", r.URL.Path)
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&mutation))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+	previousClient := http.DefaultClient
+	http.DefaultClient = server.Client()
+	defer func() { http.DefaultClient = previousClient }()
+
+	data := schema.TestResourceDataRaw(t, NodeTag().Schema, map[string]interface{}{
+		"node_id": "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc",
+		"name":    "purpose",
+		"value":   "agent-first-demo",
+	})
+	data.SetId("35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc/purpose")
+	client := &tg.Client{APIHost: strings.TrimPrefix(server.URL, "https://")}
+
+	require.Empty(t, deleteNodeTag(context.Background(), data, client))
+	require.NotNil(t, mutation.ExpectedValue)
+	require.Equal(t, "agent-first-demo", *mutation.ExpectedValue)
+	require.Nil(t, mutation.Value)
+	require.Empty(t, data.Id())
+}
+
+func TestReadNodeTag_EvictsStateWhenTagWasRemoved(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "/node/35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc", r.URL.Path)
+		w.Header().Set("Content-Type", "application/json")
+		require.NoError(t, json.NewEncoder(w).Encode(map[string]interface{}{
+			"uid":  "35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc",
+			"tags": map[string]string{"owner": "platform"},
+		}))
+	}))
+	defer server.Close()
+	previousClient := http.DefaultClient
+	http.DefaultClient = server.Client()
+	defer func() { http.DefaultClient = previousClient }()
+
+	data := schema.TestResourceDataRaw(t, NodeTag().Schema, map[string]interface{}{})
+	data.SetId("35ee5516-c6d5-409b-b1ba-6aa2d0dd92fc/purpose")
+	client := &tg.Client{APIHost: strings.TrimPrefix(server.URL, "https://")}
+
+	require.Empty(t, readNodeTag(context.Background(), data, client))
+	require.Empty(t, data.Id())
+}
+
 func TestTaggingWriteTags_ChangesOnlyChangedNodeKeys(t *testing.T) {
 	var mu sync.Mutex
 	mutations := make(map[string]nodeTagMutation)

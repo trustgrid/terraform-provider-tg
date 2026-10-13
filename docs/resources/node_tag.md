@@ -3,12 +3,12 @@
 page_title: "tg_node_tag Resource - terraform-provider-tg"
 subcategory: ""
 description: |-
-  Manages one node tag without replacing other tags. Import with <node_id>/.
+  Manages one node tag without replacing other tags. Import with node_id/name.
 ---
 
 # tg_node_tag (Resource)
 
-Manages one node tag without replacing other tags. Import with <node_id>/<name>.
+Manages one node tag without replacing other tags. Import with `node_id/name`.
 
 ## Example Usage
 
