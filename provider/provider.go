@@ -126,6 +126,7 @@ func New(version string) func() *schema.Provider {
 				"tg_serviceuser":                      resource.ServiceUser(),
 				"tg_snmp":                             resource.SNMP(),
 				"tg_tagging":                          resource.Tagging(),
+				"tg_node_tag":                         resource.NodeTag(),
 				"tg_user":                             resource.User(),
 				"tg_virtual_network":                  resource.VirtualNetwork(),
 				"tg_virtual_network_access_rule":      resource.VNetAccessRule(),
