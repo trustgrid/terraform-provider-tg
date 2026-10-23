@@ -510,6 +510,19 @@ func NetworkConfig() *schema.Resource {
 							Computed:    true,
 							Description: "IPSec Cipher",
 						},
+						"public_key": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Description: "WireGuard peer public key (wireguard tunnels)",
+						},
+						"preshared_key": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+							Sensitive:   true,
+							Description: "Optional WireGuard preshared key (wireguard tunnels)",
+						},
 						"psk": {
 							Type:        schema.TypeString,
 							Optional:    true,
