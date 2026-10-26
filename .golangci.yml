@@ -42,7 +42,7 @@ linters:
       # Default: [ switch ]
       check:
         - switch
-        - map
+        - mapliteral
       default-signifies-exhaustive: true
 
     exhaustruct:

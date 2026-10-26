@@ -13,6 +13,8 @@ type NetworkTunnel struct {
 	Destination   string `tf:"destination,omitempty"`
 	IPSecCipher   string `tf:"ipsec_cipher,omitempty"`
 	PSK           string `tf:"psk,omitempty"`
+	PublicKey     string `tf:"public_key,omitempty"`
+	PresharedKey  string `tf:"preshared_key,omitempty"`
 	VRF           string `tf:"vrf,omitempty"`
 	Type          string `tf:"type"`
 	MTU           int    `tf:"mtu"`
@@ -240,6 +242,8 @@ func (t NetworkTunnel) ToTG() tg.NetworkTunnel {
 		Destination:   t.Destination,
 		IPSecCipher:   t.IPSecCipher,
 		PSK:           t.PSK,
+		PublicKey:     t.PublicKey,
+		PresharedKey:  t.PresharedKey,
 		VRF:           t.VRF,
 		Type:          t.Type,
 		MTU:           t.MTU,
@@ -303,6 +307,8 @@ func (h *NetworkConfig) UpdateFromTG(c tg.NetworkConfig) {
 			Destination:   t.Destination,
 			IPSecCipher:   t.IPSecCipher,
 			PSK:           t.PSK,
+			PublicKey:     t.PublicKey,
+			PresharedKey:  t.PresharedKey,
 			VRF:           t.VRF,
 			Type:          t.Type,
 			MTU:           t.MTU,

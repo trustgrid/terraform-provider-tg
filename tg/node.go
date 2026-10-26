@@ -203,6 +203,8 @@ type NetworkTunnel struct {
 	Destination   string `json:"destination,omitempty"`
 	IPSecCipher   string `json:"ipsecCipher,omitempty"`
 	PSK           string `json:"psk,omitempty"`
+	PublicKey     string `json:"publicKey,omitempty"`
+	PresharedKey  string `json:"presharedKey,omitempty"`
 	VRF           string `json:"vrf,omitempty"`
 	Type          string `json:"type"`
 	MTU           int    `json:"mtu"`

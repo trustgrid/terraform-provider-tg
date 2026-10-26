@@ -550,6 +550,17 @@ func NetworkConfig() *schema.Resource {
 							Description:  "IPSec Cipher",
 							ValidateFunc: validation.StringInSlice([]string{"aes128-sha1", "aes128-sha256", "aes256-sha1", "aes256-sha256"}, false),
 						},
+						"public_key": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "WireGuard peer public key (wireguard tunnels)",
+						},
+						"preshared_key": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Sensitive:   true,
+							Description: "Optional WireGuard preshared key (wireguard tunnels)",
+						},
 						"psk": {
 							Type:        schema.TypeString,
 							Optional:    true,
@@ -565,7 +576,7 @@ func NetworkConfig() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							Description:  "Tunnel type",
-							ValidateFunc: validation.StringInSlice([]string{"ipsec", "vnet"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"ipsec", "vnet", "wireguard"}, false),
 						},
 						"mtu": {
 							Type:        schema.TypeInt,

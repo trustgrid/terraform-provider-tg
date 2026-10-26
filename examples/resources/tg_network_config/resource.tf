@@ -39,6 +39,18 @@ resource "tg_network_config" "network-1" {
     remote_subnet  = "10.0.10.0/24"
   }
 
+  tunnel {
+    name          = "wg1"
+    type          = "wireguard"
+    enabled       = true
+    ip            = "192.0.2.1/24"
+    public_key    = "your-peer-public-key"
+    preshared_key = var.wireguard_preshared_key
+    mtu           = 1430
+    vrf           = "vpn"
+    description   = "WireGuard remote access"
+  }
+
   interface {
     nic     = "ens192"
     vrf     = "blue"
@@ -152,4 +164,11 @@ resource "tg_network_config" "network-1" {
       line     = 1
     }
   }
+}
+
+variable "wireguard_preshared_key" {
+  type        = string
+  description = "Optional WireGuard preshared key"
+  sensitive   = true
+  default     = null
 }
