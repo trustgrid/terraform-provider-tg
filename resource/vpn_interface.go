@@ -157,7 +157,7 @@ func VPNInterface() *schema.Resource {
 							Optional:    true,
 						},
 						"proxy_arp": {
-							Description: "Answer ARP on the local network for addresses in `local_cidr`. Set false to turn it off.",
+							Description: "Answer ARP on the local network for addresses in `local_cidr`. Defaults to `true`, the node default; set `false` to turn it off.",
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Default:     true,
