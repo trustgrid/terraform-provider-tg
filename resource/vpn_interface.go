@@ -157,9 +157,10 @@ func VPNInterface() *schema.Resource {
 							Optional:    true,
 						},
 						"proxy_arp": {
-							Description: "Proxy ARP",
+							Description: "Answer ARP on the local network for addresses in `local_cidr`. Defaults to true, the node's own default; set false to turn it off.",
 							Type:        schema.TypeBool,
 							Optional:    true,
+							Default:     true,
 						},
 					},
 				},
@@ -187,11 +188,12 @@ func (h *HCLVPNInterface) toTGVPNInterface() tg.VPNInterface {
 	}
 
 	for _, nat := range h.OutsideNATs {
+		proxyARP := nat.ProxyARP
 		iface.OutsideNATs = append(iface.OutsideNATs, tg.VPNInterfaceNAT{
 			NetworkCIDR: nat.NetworkCIDR,
 			LocalCIDR:   nat.LocalCIDR,
 			Description: nat.Description,
-			ProxyARP:    nat.ProxyARP,
+			ProxyARP:    &proxyARP,
 		})
 	}
 
@@ -215,11 +217,13 @@ func (h *HCLVPNInterface) updateFromTGVPNInterface(vpn tg.VPNInterface) {
 	}
 
 	for _, nat := range vpn.OutsideNATs {
+		// The node treats a missing proxyArp as true.
+		proxyARP := nat.ProxyARP == nil || *nat.ProxyARP
 		h.OutsideNATs = append(h.OutsideNATs, HCLVPNInterfaceOutsideNAT{
 			NetworkCIDR: nat.NetworkCIDR,
 			LocalCIDR:   nat.LocalCIDR,
 			Description: nat.Description,
-			ProxyARP:    nat.ProxyARP,
+			ProxyARP:    proxyARP,
 		})
 	}
 }
