@@ -10,7 +10,10 @@ type VPNInterfaceNAT struct {
 	NetworkCIDR string `json:"networkCidr,omitempty"`
 	LocalCIDR   string `json:"localCidr,omitempty"`
 	Description string `json:"description,omitempty"`
-	ProxyARP    bool   `json:"proxyArp,omitempty"`
+	// ProxyARP is a pointer so an outside NAT can send an explicit false: the
+	// node treats a missing proxyArp as true, so a plain omitempty bool made
+	// "off" impossible (#279). Inside NATs leave it nil.
+	ProxyARP *bool `json:"proxyArp,omitempty"`
 }
 
 type VPNInterface struct {

@@ -112,4 +112,4 @@ Required:
 Optional:
 
 - `description` (String) Description
-- `proxy_arp` (Boolean) Proxy ARP
+- `proxy_arp` (Boolean) Answer ARP on the local network for addresses in `local_cidr`. Defaults to `true`, the node default; set `false` to turn it off.
