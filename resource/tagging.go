@@ -3,6 +3,8 @@ package resource
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -19,7 +21,7 @@ func Tagging() *schema.Resource {
 	r := tagging{}
 
 	return &schema.Resource{
-		Description: "Node or Cluster tags",
+		Description: "Manages the complete tag map on a node or cluster.",
 
 		ReadContext:   r.Read,
 		UpdateContext: r.Update,
@@ -29,6 +31,7 @@ func Tagging() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"node_id": {
 				Description:  "Node UID - required if cluster_fqdn not set",
+				Deprecated:   "This node mode owns the complete tag map. Use tg_node_tag for single node tag ownership.",
 				Type:         schema.TypeString,
 				ValidateFunc: validation.IsUUID,
 				Optional:     true,
@@ -44,7 +47,7 @@ func Tagging() *schema.Resource {
 				ExactlyOneOf: []string{"node_id", "cluster_fqdn"},
 			},
 			"tags": {
-				Description: "Include Tag Filters",
+				Description: "Complete tag map.",
 				Type:        schema.TypeMap,
 				Optional:    true,
 				Elem: &schema.Schema{
@@ -55,17 +58,40 @@ func Tagging() *schema.Resource {
 	}
 }
 
-func (r *tagging) writeTags(ctx context.Context, tgc *tg.Client, tf hcl.Tagging) (string, error) {
-	url := "/node/" + tf.NodeID + "/tags"
+func (r *tagging) writeTags(
+	ctx context.Context,
+	tgc *tg.Client,
+	tf hcl.Tagging,
+	oldTags map[string]string,
+) (string, error) {
 	id := tf.NodeID
-	if tf.NodeID == "" {
-		url = "/cluster/" + tf.ClusterFQDN + "/tags"
-		id = tf.ClusterFQDN
-	}
-
 	if tf.Tags == nil {
 		tf.Tags = make(map[string]string)
 	}
+	if tf.NodeID != "" {
+		for _, name := range changedTagNames(oldTags, tf.Tags) {
+			oldValue, hasOld := oldTags[name]
+			newValue, hasNew := tf.Tags[name]
+			if hasOld && hasNew && oldValue == newValue {
+				continue
+			}
+			var expectedValue *string
+			if hasOld {
+				expectedValue = stringPointer(oldValue)
+			}
+			var value *string
+			if hasNew {
+				value = stringPointer(newValue)
+			}
+			if err := compareAndSetNodeTag(ctx, tgc, tf.NodeID, name, expectedValue, value); err != nil {
+				return "", fmt.Errorf("updating node tag %q: %w", name, err)
+			}
+		}
+		return id, nil
+	}
+
+	id = tf.ClusterFQDN
+	url := "/cluster/" + tf.ClusterFQDN + "/tags"
 
 	if _, err := tgc.Put(ctx, url, map[string]any{"tags": tf.Tags}); err != nil {
 		return "", err
@@ -82,7 +108,7 @@ func (r *tagging) Create(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	id, err := r.writeTags(ctx, tgc, tf)
+	id, err := r.writeTags(ctx, tgc, tf, nil)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -99,7 +125,12 @@ func (r *tagging) Update(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	id, err := r.writeTags(ctx, tgc, tf)
+	oldTags, _ := d.GetChange("tags")
+	priorTags, err := stringTagMap(oldTags)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("reading prior tag state: %w", err))
+	}
+	id, err := r.writeTags(ctx, tgc, tf, priorTags)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -117,13 +148,54 @@ func (r *tagging) Delete(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	tf.Tags = nil
-	_, err = r.writeTags(ctx, tgc, tf)
+	if tf.NodeID != "" {
+		_, err = r.writeTags(ctx, tgc, hcl.Tagging{NodeID: tf.NodeID}, tf.Tags)
+	} else {
+		tf.Tags = nil
+		_, err = r.writeTags(ctx, tgc, tf, nil)
+	}
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId("")
 	return nil
+}
+
+func changedTagNames(oldTags, newTags map[string]string) []string {
+	nameSet := make(map[string]struct{}, len(oldTags)+len(newTags))
+	for name := range oldTags {
+		nameSet[name] = struct{}{}
+	}
+	for name := range newTags {
+		nameSet[name] = struct{}{}
+	}
+	names := make([]string, 0, len(nameSet))
+	for name := range nameSet {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
+func stringTagMap(value any) (map[string]string, error) {
+	result := make(map[string]string)
+	switch tags := value.(type) {
+	case nil:
+		return result, nil
+	case map[string]string:
+		return tags, nil
+	case map[string]interface{}:
+		for name, rawValue := range tags {
+			tagValue, ok := rawValue.(string)
+			if !ok {
+				return nil, fmt.Errorf("tag %q value must be a string", name)
+			}
+			result[name] = tagValue
+		}
+		return result, nil
+	default:
+		return nil, fmt.Errorf("prior tags must be a string map, got %T", value)
+	}
 }
 
 func (r *tagging) Read(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
